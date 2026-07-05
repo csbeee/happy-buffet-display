@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>한식뷔페 관리자</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial;
+    background: #f4f4f4;
+  }
+
+  .header {
+    background: #111;
+    color: white;
+    padding: 15px;
+    font-size: 20px;
+  }
+
+  .container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: calc(100vh - 60px);
+  }
+
+  .left {
+    padding: 20px;
+    background: white;
+    overflow-y: auto;
+  }
+
+  .right {
+    padding: 20px;
+    background: black;
+    color: white;
+  }
+
+  input, select {
+    padding: 10px;
+    margin: 5px;
+  }
+
+  button {
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+  }
+
+  .item {
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
+    border-bottom:1px solid #eee;
+  }
+
+  .tag {
+    font-size: 12px;
+    margin-left: 5px;
+    padding: 2px 6px;
+  }
+
+  .highlight { background: gold; }
+  .soldout { background: red; color: white; }
+  .cat { background: #ddd; }
+
+  .tv {
+    font-size: 26px;
+    line-height: 1.8;
+    text-align: center;
+  }
+
+  .categoryTitle {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #aaa;
+  }
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  🍽 한식뷔페 관리자 시스템 (카테고리)
+</div>
+
+<div class="container">
+
+  <!-- LEFT -->
+  <div class="left">
+
+    <h3>메뉴 입력</h3>
+
+    <input id="menuInput" placeholder="메뉴 입력">
+
+    <!-- 🔥 카테고리 추가 -->
+    <select id="category">
+      <option value="국">국</option>
+      <option value="메인">메인</option>
+      <option value="반찬">반찬</option>
+      <option value="기타">기타</option>
+    </select>
+
+    <button onclick="addMenu()">추가</button>
+
+    <br>
+
+    <button onclick="copyYesterday()">📋 어제 복사</button>
+    <button onclick="saveMenus()">💾 저장</button>
+
+    <h3>메뉴 리스트</h3>
+    <div id="list"></div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+
+    <h2 style="text-align:center">📺 TV 미리보기</h2>
+
+    <div id="tv" class="tv"></div>
+
+  </div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC5jGVYthXgAdoNten0TIkjm_s6JLRh5tM",
+  authDomain: "todaymenu-30fe7.firebaseapp.com",
+  projectId: "todaymenu-30fe7",
+  storageBucket: "todaymenu-30fe7.firebasestorage.app",
+  messagingSenderId: "487318917655",
+  appId: "1:487318917655:web:515f36c0cfb14508ebc252"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let menus = [];
+
+const list = document.getElementById("list");
+const tv = document.getElementById("tv");
+
+//////////////////////////////////////////////////////
+// 추가 (카테고리 포함)
+//////////////////////////////////////////////////////
+function addMenu(){
+
+  const input = document.getElementById("menuInput");
+  const cat = document.getElementById("category").value;
+
+  if(!input.value.trim()) return;
+
+  menus.push({
+    name: input.value,
+    category: cat,
+    highlight: false,
+    soldout: false
+  });
+
+  input.value = "";
+  render();
+}
+
+//////////////////////////////////////////////////////
+function toggle(i){
+  menus[i].highlight = !menus[i].highlight;
+  render();
+}
+
+function toggleSold(i){
+  menus[i].soldout = !menus[i].soldout;
+  render();
+}
+
+function removeMenu(i){
+  menus.splice(i,1);
+  render();
+}
+
+//////////////////////////////////////////////////////
+// 저장
+//////////////////////////////////////////////////////
+async function saveMenus(){
+
+  const today = new Date().toISOString().split("T")[0];
+
+  await db.collection("menus").doc(today).set({
+    items: menus,
+    updatedAt: new Date().toISOString()
+  });
+
+  alert("저장 완료");
+}
+
+//////////////////////////////////////////////////////
+// 렌더 (카테고리 그룹화)
+//////////////////////////////////////////////////////
+function render(){
+
+  list.innerHTML = "";
+
+  const cats = ["국","메인","반찬","기타"];
+
+  cats.forEach(cat => {
+
+    const group = menus.filter(m => m.category === cat);
+
+    if(group.length === 0) return;
+
+    list.innerHTML += `<h4 class="categoryTitle">📌 ${cat}</h4>`;
+
+    group.forEach((m,i)=>{
+
+      const index = menus.indexOf(m);
+
+      list.innerHTML += `
+        <div class="item">
+          <div>
+            [${m.category}] ${m.name}
+            ${m.highlight ? '<span class="tag highlight">⭐</span>' : ''}
+            ${m.soldout ? '<span class="tag soldout">❌</span>' : ''}
+          </div>
+
+          <div>
+            <button onclick="toggle(${index})">⭐</button>
+            <button onclick="toggleSold(${index})">❌</button>
+            <button onclick="removeMenu(${index})">삭제</button>
+          </div>
+        </div>
+      `;
+    });
+
+  });
+
+  renderTV();
+}
+
+//////////////////////////////////////////////////////
+// TV 미리보기 (카테고리 표시)
+//////////////////////////////////////////////////////
+function renderTV(){
+
+  tv.innerHTML = "";
+
+  const cats = ["국","메인","반찬","기타"];
+
+  cats.forEach(cat => {
+
+    const group = menus.filter(m => m.category === cat && !m.soldout);
+
+    if(group.length === 0) return;
+
+    tv.innerHTML += `<div class="categoryTitle">📌 ${cat}</div>`;
+
+    group.forEach(m => {
+      tv.innerHTML += `
+        <div>
+          ${m.highlight ? "⭐ " : ""}
+          ${m.name}
+        </div>
+      `;
+    });
+
+  });
+}
+
+//////////////////////////////////////////////////////
+// Firebase 실시간
+//////////////////////////////////////////////////////
+db.collection("menus").doc("today")
+  .onSnapshot(doc=>{
+
+    if(doc.exists){
+      menus = doc.data().items || [];
+    }
+
+    render();
+  });
+
+</script>
+
+</body>
+</html>

@@ -27,19 +27,19 @@ export async function getTodayMenu() {
  */
 export async function saveTodayMenu(menu) {
 
-  await setDoc(doc(db, "todayMenu", "today"), {
+    await setDoc(doc(db, "todayMenu", "today"), {
 
-    soup: menu.soup,
-    main: menu.main,
-    side: menu.side,
-    kimchi: menu.kimchi,
-    extra: menu.extra,
-    dessert: menu.dessert,
-    notice: menu.notice,
+        soup: menu.soup,
+        main: menu.main,
+        side: menu.side,
+        kimchi: menu.kimchi,
+        extra: menu.extra,
+        dessert: menu.dessert,
+        notice: menu.notice,
+        updatedAt: serverTimestamp()
 
-    updatedAt: serverTimestamp()
+    });
 
-  });
 
 }
 

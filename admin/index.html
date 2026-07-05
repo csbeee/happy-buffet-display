@@ -14,16 +14,41 @@
 </head>
 
 <body>
+<header>
+    <h1>🍽 행복을 담은 한식뷔페 관리자</h1>
 
-<h1>행복을 담은 한식뷔페 관리자</h1>
+    <div id="saveInfo" class="save-info">
+        마지막 저장 : -
+    </div>
+</header>
 
-<div id="app"></div>
+<div class="container">
 
-<div class="save-area">
-    <button id="saveBtn">저장</button>
+    <div class="editor">
+
+        <div id="app"></div>
+
+        <div class="save-area">
+            <button id="saveBtn">💾 저장</button>
+        </div>
+
+    </div>
+
+    <div class="preview">
+
+        <h2>📺 TV 미리보기</h2>
+
+        <iframe
+            src="../display/index.html"
+            frameborder="0">
+        </iframe>
+
+    </div>
+
 </div>
 
-<script type="module" src="app.js"></script>
+<div id="toast"></div>
 
+<script type="module" src="app.js"></script>
 </body>
 </html>

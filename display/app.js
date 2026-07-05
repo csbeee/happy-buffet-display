@@ -50,4 +50,13 @@ watchTodayMenu((menu) => {
     document.getElementById("notice").textContent =
         menu.notice;
 
+    if (menu.updatedAt) {
+
+    const date = menu.updatedAt.toDate();
+
+    document.getElementById("updatedAt").textContent =
+        "최종 업데이트 : " +
+        date.toLocaleString("ko-KR");
+
+}
 });

@@ -5,6 +5,21 @@ firebase-debug.log
 .DS_Store
 .vscode/settings.json
 
+# Node
+node_modules/
+
+# Firebase
+.firebase/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+npm-debug.log*
+
 # Logs
 logs
 *.log

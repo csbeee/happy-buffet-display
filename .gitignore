@@ -1,3 +1,10 @@
+node_modules/
+.env
+.firebase/
+firebase-debug.log
+.DS_Store
+.vscode/settings.json
+
 # Logs
 logs
 *.log

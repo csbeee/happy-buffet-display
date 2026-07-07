@@ -1,5 +1,8 @@
 import { watchTodayMenu } from "../firebase/firestore.js";
 
+import { getMenuIcon } from "../shared/icon-map.js";
+
+
 function draw(id, items) {
 
     const ul = document.getElementById(id);
@@ -7,13 +10,23 @@ function draw(id, items) {
 
     if (!items) return;
 
-    items.forEach(item => {
+   items.forEach(item => {
 
-        const li = document.createElement("li");
-        li.textContent = item;
-        ul.appendChild(li);
+    const li = document.createElement("li");
 
-    });
+    li.innerHTML = `
+        <img class="menu-icon"
+             src="${getMenuIcon(item)}"
+             alt="icon">
+
+        <span class="title">
+            ${item}
+        </span>
+    `;
+
+    ul.appendChild(li);
+
+});
 
 }
 

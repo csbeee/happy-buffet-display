@@ -15,75 +15,93 @@
 
 <body>
 
-<div class="container">
+    <div class="container">
 
-<header>
+        <!-- 헤더 -->
 
-<h1>행복을 담은 한식뷔페</h1>
+        <header>
 
-<div id="date"></div>
+            <h1>🍽 행복을 담은 한식뷔페</h1>
 
-<div id="clock"></div>
+            <div class="subtitle">
+                TODAY'S MENU
+            </div>
 
-</header>
+            <div id="date"></div>
 
-<main>
+            <div id="clock"></div>
 
-<section>
+        </header>
 
-<h2>🍲 국</h2>
+        <!-- 메뉴 -->
 
-<ul id="soup"></ul>
+        <main>
 
-</section>
+            <section class="menu-card">
 
-<section>
+                <h2>🍲 국</h2>
 
-<h2>🍖 메인요리</h2>
+                <ul id="soup"></ul>
 
-<ul id="main"></ul>
+            </section>
 
-</section>
+            <section class="menu-card">
 
-<section>
+                <h2>🍖 메인요리</h2>
 
-<h2>🥗 서브메뉴</h2>
+                <ul id="main"></ul>
 
-<ul id="side"></ul>
+            </section>
 
-</section>
+            <section class="menu-card">
 
-<section>
+                <h2>🥗 반찬</h2>
 
-<h2>🥬 김치</h2>
+                <ul id="side"></ul>
 
-<ul id="kimchi"></ul>
+            </section>
 
-</section>
+            <section class="menu-card">
 
-<section>
+                <h2>🌶 김치</h2>
 
-<h2>🍉 후식</h2>
+                <ul id="kimchi"></ul>
 
-<ul id="dessert"></ul>
+            </section>
 
-</section>
+            <section class="menu-card">
 
-</main>
+                <h2>🍉 후식</h2>
 
-<footer>
+                <ul id="dessert"></ul>
 
-<div id="notice">
+            </section>
 
-오늘도 맛있게 드세요 😊
+        </main>
 
-</div>
-<div id="updatedAt" class="updated-time"></div>
-</footer>
+        <!-- 공지 -->
 
-</div>
+        <section class="notice-card">
 
-<script type="module" src="app.js"></script>
+            <h2>📢 공지사항</h2>
+
+            <div id="notice"></div>
+
+        </section>
+
+        <!-- Footer -->
+
+        <footer>
+
+            <div id="updatedAt">
+                최종 업데이트 : -
+            </div>
+
+        </footer>
+
+    </div>
+
+    <script type="module" src="app.js"></script>
 
 </body>
 

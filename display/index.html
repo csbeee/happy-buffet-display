@@ -5,7 +5,8 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>행복을 담은 한식뷔페</title>
 
@@ -15,93 +16,201 @@
 
 <body>
 
-    <div class="container">
+<div class="container">
 
-        <!-- 헤더 -->
+    <!-- =======================
+            HEADER
+    ======================== -->
 
-        <header>
+    <header>
 
-            <h1>🍽 행복을 담은 한식뷔페</h1>
+        <h1 class="logo">
 
-            <div class="subtitle">
-                TODAY'S MENU
+            행복을 담은 한식뷔페
+
+        </h1>
+
+        <div class="info">
+
+            <span id="date"></span>
+
+            <span id="clock"></span>
+
+        </div>
+
+    </header>
+
+    <!-- =======================
+            국
+    ======================== -->
+
+    <section
+        class="menu-card"
+        id="card-soup">
+
+        <div class="menu-title soup">
+
+            <img
+                class="category-icon"
+                src="../assets/icons/category/soup.svg"
+                alt="국">
+
+            <span>국</span>
+
+        </div>
+
+        <ul id="soup"></ul>
+
+    </section>
+
+    <!-- =======================
+            메인요리
+    ======================== -->
+
+    <section
+        class="menu-card"
+        id="card-main">
+
+        <div class="menu-title main">
+
+            <img
+                class="category-icon"
+                src="../assets/icons/category/main.svg"
+                alt="메인">
+
+            <span>메인요리</span>
+
+        </div>
+
+        <ul
+            id="main"
+            class="main-grid">
+
+        </ul>
+
+    </section>
+
+    <!-- =======================
+            반찬
+    ======================== -->
+
+    <section
+        class="menu-card"
+        id="card-side">
+
+        <div class="menu-title side">
+
+            <img
+                class="category-icon"
+                src="../assets/icons/category/side.svg"
+                alt="반찬">
+
+            <span>반찬</span>
+
+        </div>
+
+        <ul id="side"></ul>
+
+    </section>
+
+    <!-- =======================
+        김치 + 후식
+    ======================== -->
+
+    <section class="bottom-row">
+
+        <!-- 김치 -->
+
+        <div
+            class="menu-card"
+            id="card-kimchi">
+
+            <div class="menu-title kimchi">
+
+                <img
+                    class="category-icon"
+                    src="../assets/icons/category/kimchi.svg"
+                    alt="김치">
+
+                <span>김치</span>
+
             </div>
 
-            <div id="date"></div>
+            <ul id="kimchi"></ul>
 
-            <div id="clock"></div>
+        </div>
 
-        </header>
+        <!-- 후식 -->
 
-        <!-- 메뉴 -->
+        <div
+            class="menu-card"
+            id="card-dessert">
 
-        <main>
+            <div class="menu-title dessert">
 
-            <section class="menu-card">
+                <img
+                    class="category-icon"
+                    src="../assets/icons/category/dessert.svg"
+                    alt="후식">
 
-                <h2>🍲 국</h2>
+                <span>후식</span>
 
-                <ul id="soup"></ul>
+            </div>
 
-            </section>
+            <ul id="dessert"></ul>
 
-            <section class="menu-card">
+        </div>
 
-                <h2>🍖 메인요리</h2>
+    </section>
 
-                <ul id="main"></ul>
+    <!-- =======================
+            공지
+    ======================== -->
 
-            </section>
+    <section
+        class="notice-card"
+        id="noticeCard">
 
-            <section class="menu-card">
+        <div class="notice-title">
 
-                <h2>🥗 반찬</h2>
+            <img
+                class="category-icon"
+                src="../assets/icons/category/notice.svg"
+                alt="공지">
 
-                <ul id="side"></ul>
+            <span>공지사항</span>
 
-            </section>
+        </div>
 
-            <section class="menu-card">
-
-                <h2>🌶 김치</h2>
-
-                <ul id="kimchi"></ul>
-
-            </section>
-
-            <section class="menu-card">
-
-                <h2>🍉 후식</h2>
-
-                <ul id="dessert"></ul>
-
-            </section>
-
-        </main>
-
-        <!-- 공지 -->
-
-        <section class="notice-card">
-
-            <h2>📢 공지사항</h2>
+        <div class="notice-wrap">
 
             <div id="notice"></div>
 
-        </section>
+        </div>
 
-        <!-- Footer -->
+    </section>
 
-        <footer>
+    <!-- =======================
+            FOOTER
+    ======================== -->
 
-            <div id="updatedAt">
-                최종 업데이트 : -
-            </div>
+    <footer>
 
-        </footer>
+        <div id="updatedAt">
 
-    </div>
+            마지막 저장 : -
 
-    <script type="module" src="app.js"></script>
+        </div>
+
+    </footer>
+
+</div>
+
+<script
+    type="module"
+    src="app.js">
+
+</script>
 
 </body>
 

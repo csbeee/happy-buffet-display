@@ -1,319 +1,645 @@
-body{
+/* ==========================================================================
+   Happy Buffet Display - Admin Integrated Master Stylesheet
+   Version : v4.5.1 Stable
+   Matches: index.html, app.js, menu-ui.js, library-modal.js, autocomplete.js, library-editor.js
+   ========================================================================== */
 
-font-family:Arial;
-
-background:#f4f4f4;
-
-padding:30px;
-
+/* ============================================
+   Reset & Base Settings
+============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-h1{
-
-text-align:center;
-
-margin-bottom:30px;
-
+html {
+    font-size: 16px;
 }
 
-.category{
-
-background:white;
-
-padding:20px;
-
-margin-bottom:20px;
-
-border-radius:10px;
-
-box-shadow:0 2px 5px rgba(0,0,0,.15);
-
+body {
+    font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6f9;
+    color: #333333;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
 }
 
-.category h2{
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
+/* ============================================
+   Layout
+============================================ */
+.page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
-button{
-
-padding:8px 15px;
-
-cursor:pointer;
-
+.menuContainer {
+    padding: 20px 0 120px 0;
 }
 
-.menu-item{
-
-display:flex;
-
-margin-top:10px;
-
-gap:10px;
-
+/* ============================================
+   Header (Top Bar)
+============================================ */
+.topBar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.menu-item input{
-
-flex:1;
-
-padding:8px;
-
-font-size:16px;
-
+.topBar h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111111;
+    display: inline-block;
+    vertical-align: middle;
 }
 
-.delete{
-
-background:#ff4b4b;
-
-color:white;
-
-border:none;
-
+.topBar span {
+    font-size: 13px;
+    color: #777777;
+    background: #f0f2f5;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-left: 10px;
+    display: inline-block;
+    vertical-align: middle;
 }
 
-.save-area{
-
-text-align:center;
-
-margin-top:40px;
-
+.topButtons {
+    display: flex;
+    gap: 8px;
 }
 
-#saveBtn{
-
-font-size:22px;
-
-padding:15px 60px;
-
-background:#0d6efd;
-
-color:white;
-
-border:none;
-
-border-radius:10px;
-
+/* ============================================
+   Save Info Area
+============================================ */
+.saveArea {
+    max-width: 1200px;
+    margin: 16px auto 0 auto;
+    padding: 0 20px;
+    text-align: right;
 }
 
-.save-info{
-
-    text-align:center;
-
-    margin-bottom:25px;
-
-    color:#666;
-
-    font-size:18px;
-
+#saveInfo {
+    color: #666666;
+    font-size: 14px;
+    background: #eef2f7;
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-block;
 }
 
-#toast{
-
-    position:fixed;
-
-    right:30px;
-
-    bottom:30px;
-
-    background:#2e7d32;
-
-    color:white;
-
-    padding:14px 24px;
-
-    border-radius:10px;
-
-    font-size:18px;
-
-    opacity:0;
-
-    transition:.3s;
-
+/* ============================================
+   Buttons Component
+============================================ */
+button {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #333333;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#toast.show{
-
-    opacity:1;
-
+button:hover {
+    background: #f5f5f5;
+    border-color: #cccccc;
 }
 
-body{
-
-    margin:0;
-
-    background:#f5f5f5;
-
-    font-family:Arial,sans-serif;
-
+button.primary {
+    background: #1976d2;
+    color: #ffffff;
+    border: none;
 }
 
-header{
-
-    background:white;
-
-    padding:25px;
-
-    box-shadow:0 2px 8px rgba(0,0,0,.08);
-
-    text-align:center;
-
+button.primary:hover {
+    background: #1565c0;
 }
 
-.container{
-
-    display:grid;
-
-    grid-template-columns:1fr 420px;
-
-    gap:25px;
-
-    padding:25px;
-
+button.danger {
+    background: #d32f2f;
+    color: #ffffff;
+    border: none;
 }
 
-.editor{
-
-    background:white;
-
-    padding:25px;
-
-    border-radius:12px;
-
-    box-shadow:0 3px 10px rgba(0,0,0,.08);
-
+button.danger:hover {
+    background: #c62828;
 }
 
-.preview{
-
-    background:white;
-
-    padding:20px;
-
-    border-radius:12px;
-
-    box-shadow:0 3px 10px rgba(0,0,0,.08);
-
+/* ============================================
+   Category Card & Dynamic List (menu-ui.js)
+============================================ */
+.category {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eaeaea;
 }
 
-.preview iframe{
-
-    width:100%;
-
-    height:800px;
-
-    border:none;
-
+.category-header {
+    background: #fafafa;
+    padding: 16px 20px;
+    border-bottom: 1px solid #ececec;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.category{
-
-    border:1px solid #ddd;
-
-    border-radius:10px;
-
-    padding:15px;
-
-    margin-bottom:20px;
-
+.category-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #222222;
 }
 
-.category h2{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
+.add-btn {
+    background: #1976d2;
+    color: #ffffff;
+    border: none;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 6px;
 }
 
-.menu-item{
-
-    display:flex;
-
-    gap:10px;
-
-    margin:8px 0;
-
+.add-btn:hover {
+    background: #1565c0;
 }
 
-.menu-item input{
-
-    flex:1;
-
-    padding:10px;
-
-    font-size:16px;
-
+.menu-list {
+    padding: 16px;
+    min-height: 50px;
 }
 
-.add-btn{
-
-    background:#1976d2;
-
-    color:white;
-
-    border:none;
-
-    padding:8px 15px;
-
-    border-radius:6px;
-
-    cursor:pointer;
-
+/* Menu Item Row */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    background: #ffffff;
+    position: relative; /* For autocomplete layout */
 }
 
-.delete{
-
-    background:#e53935;
-
-    color:white;
-
-    border:none;
-
-    padding:8px 15px;
-
-    border-radius:6px;
-
-    cursor:pointer;
-
+.menu-item:last-child {
+    margin-bottom: 0;
 }
 
-.save-area{
-
-    text-align:center;
-
-    margin-top:40px;
-
+.drag {
+    width: 30px;
+    text-align: center;
+    cursor: grab;
+    color: #aaaaaa;
+    font-size: 18px;
+    user-select: none;
 }
 
-#saveBtn{
-
-    font-size:22px;
-
-    padding:18px 60px;
-
-    background:#2e7d32;
-
-    color:white;
-
-    border:none;
-
-    border-radius:10px;
-
-    cursor:pointer;
-
+.drag:active {
+    cursor: grabbing;
 }
 
-#saveBtn:hover{
+.menu-input {
+    flex: 1;
+    height: 42px;
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, background-color 0.2s;
+}
 
-    background:#1b5e20;
+.menu-input:focus {
+    border-color: #1976d2;
+    background: #fbfdff;
+}
 
+/* Icon Buttons inside Item Row */
+.icon-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    background: #f0f2f5;
+    border: none;
+    font-size: 15px;
+    color: #4a5568;
+    border-radius: 8px;
+}
+
+.icon-btn:hover {
+    background: #e2e8f0;
+    color: #1a202c;
+}
+
+.icon-btn.delete {
+    color: #e53e3e;
+}
+
+.icon-btn.delete:hover {
+    background: #fed7d7;
+}
+
+/* Sortable UI Styles */
+.dragging {
+    opacity: 0.5;
+    background: #edf2f7;
+}
+.chosen {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* ============================================
+   Autocomplete Suggestions (autocomplete.js)
+============================================ */
+.autocomplete-list {
+    position: absolute;
+    top: 44px;
+    left: 38px;  /* Align with input box starting position */
+    right: 200px; /* Preserve space for control icon buttons */
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 500;
+    max-height: 240px;
+    overflow-y: auto;
+    display: none;
+}
+
+.autocomplete-item {
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #334155;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.selected {
+    background: #f0f7ff;
+    color: #1d4ed8;
+    font-weight: 500;
+}
+
+/* ============================================
+   Bottom Toolbar Container
+============================================ */
+.bottomBar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #ffffff;
+    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.08);
+    padding: 16px 20px;
+    z-index: 100;
+    display: flex;
+    gap: 12px;
+}
+
+.bottomBar button {
+    flex: 1;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+#resetBtn {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+#resetBtn:hover {
+    background: #e2e8f0;
+}
+
+#libraryBtn {
+    background: #1976d2;
+    color: #ffffff;
+    border: none;
+}
+
+#libraryBtn:hover {
+    background: #1565c0;
+}
+
+/* ============================================
+   Modals Backdrop Layout (Library & Editor)
+============================================ */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    display: none; /* Injected from JS script toggles */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Active State Trigger */
+.modal.show {
+    display: flex !important;
+}
+
+/* Form Window Layer Framework */
+.modalBox, .editorModal {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 24px;
+    width: 90%;
+    max-width: 520px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.25s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Modal Inner Standard Header */
+.modalHeader, #editorTitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 12px;
+}
+
+.modalHeader h2, #editorTitle {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+#closeLibrary, #editorCancel {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #64748b;
+    padding: 4px;
+    cursor: pointer;
+}
+
+#closeLibrary:hover {
+    color: #1e293b;
+}
+
+/* ============================================
+   Menu Library Custom Content Layout
+============================================ */
+.libraryHeader {
+    display: flex;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+#librarySearch {
+    flex: 1;
+    height: 42px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px 0 0 8px;
+    padding: 0 14px;
+    font-size: 15px;
+    outline: none;
+}
+
+#librarySearch:focus {
+    border-color: #1976d2;
+}
+
+#libraryAdd {
+    height: 42px;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.libraryToolbar {
+    margin-bottom: 14px;
+}
+
+select {
+    width: 100%;
+    height: 42px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0 10px;
+    font-size: 14px;
+    background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") no-repeat right 12px center;
+    background-size: 16px;
+    appearance: none;
+    outline: none;
+}
+
+select:focus {
+    border-color: #1976d2;
+}
+
+/* Item List Area inside Library Container */
+.libraryList {
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 6px;
+}
+
+.library-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    transition: background-color 0.2s;
+}
+
+.library-item:last-child {
+    margin-bottom: 0;
+}
+
+.library-item:hover {
+    background: #f0f7ff;
+    border-color: #bae6fd;
+}
+
+.library-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 15px;
+    flex: 1;
+}
+
+.library-category {
+    font-size: 12px;
+    background: #e2e8f0;
+    color: #475569;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 12px;
+    text-transform: uppercase;
+}
+
+.library-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.library-actions button {
+    padding: 6px 10px;
+    font-size: 13px;
+    height: auto;
+    border-radius: 6px;
+}
+
+.library-use {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+.library-use:hover {
+    background: #cbd5e1;
+}
+
+.library-edit {
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+.favorite-btn {
+    border: none;
+    background: transparent;
+    padding: 4px;
+    font-size: 18px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+}
+
+.library-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+    font-size: 15px;
+}
+
+/* ============================================
+   Menu Editor Input Groups (library-editor.js)
+============================================ */
+.editorGroup {
+    margin-bottom: 16px;
+}
+
+.editorGroup label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+.editorGroup input[type="text"] {
+    width: 100%;
+    height: 42px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 15px;
+    outline: none;
+}
+
+.editorCheck {
+    margin-bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.editorCheck label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    user-select: none;
+}
+
+.editorCheck input[type="checkbox"] {
+    margin-right: 6px;
+    width: 16px;
+    height: 16px;
+    accent-color: #1976d2;
+    cursor: pointer;
+}
+
+.editorButtons {
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 16px;
+}
+
+.editorButtons button {
+    height: 42px;
+    min-width: 80px;
+}
+
+/* ============================================
+   Loading Overlay Global Indicator
+============================================ */
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loadingBox {
+    background: #ffffff;
+    padding: 20px 40px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Global Utility Toggle Visibility State */
+.hidden {
+    display: none !important;
 }

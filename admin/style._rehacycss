@@ -1,0 +1,324 @@
+/* ============================================
+   Happy Buffet Display
+   Admin v4.5.1 Stable
+============================================ */
+
+/* ============================================
+   Reset
+============================================ */
+
+*{
+
+    margin:0;
+
+    padding:0;
+
+    box-sizing:border-box;
+
+}
+
+html{
+
+    font-size:16px;
+
+}
+
+body{
+
+    font-family:
+
+        "Noto Sans KR",
+
+        sans-serif;
+
+    background:#f4f6f9;
+
+    color:#333;
+
+}
+
+/* ============================================
+   Header
+============================================ */
+
+.topbar{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:100;
+
+    background:#ffffff;
+
+    border-bottom:1px solid #e5e5e5;
+
+    padding:18px 20px;
+
+}
+
+.topbar h1{
+
+    font-size:26px;
+
+    font-weight:700;
+
+    margin-bottom:6px;
+
+}
+
+#saveInfo{
+
+    color:#777;
+
+    font-size:14px;
+
+}
+
+/* ============================================
+   Main
+============================================ */
+
+#menuContainer{
+
+    padding:20px;
+
+    padding-bottom:120px;
+
+}
+
+/* ============================================
+   Category Card
+============================================ */
+
+.category{
+
+    background:#ffffff;
+
+    border-radius:14px;
+
+    overflow:hidden;
+
+    margin-bottom:22px;
+
+    box-shadow:
+
+        0 3px 12px rgba(0,0,0,.08);
+
+}
+
+.category-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:16px 20px;
+
+    border-bottom:1px solid #ececec;
+
+    background:#fafafa;
+
+}
+
+.category-title{
+
+    font-size:21px;
+
+    font-weight:700;
+
+}
+
+.add-btn{
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#1976d2;
+
+    color:#fff;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    padding:10px 18px;
+
+    transition:.2s;
+
+}
+
+.add-btn:hover{
+
+    background:#1565c0;
+
+}
+
+/* ============================================
+   Menu List
+============================================ */
+
+.menu-list{
+
+    padding:16px;
+
+}
+
+.menu-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    margin-bottom:12px;
+
+}
+
+.drag{
+
+    width:26px;
+
+    text-align:center;
+
+    cursor:grab;
+
+    color:#777;
+
+    font-size:22px;
+
+}
+
+.menu-input{
+
+    flex:1;
+
+    height:46px;
+
+    border:1px solid #d8d8d8;
+
+    border-radius:8px;
+
+    padding:0 14px;
+
+    font-size:16px;
+
+    outline:none;
+
+    transition:.2s;
+
+}
+
+.menu-input:focus{
+
+    border-color:#1976d2;
+
+}
+
+/* ============================================
+   Item Buttons
+============================================ */
+
+.icon-btn{
+
+    width:42px;
+
+    height:42px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#efefef;
+
+    cursor:pointer;
+
+    font-size:18px;
+
+    transition:.2s;
+
+}
+
+.icon-btn:hover{
+
+    background:#dddddd;
+
+}
+
+/* ============================================
+   Bottom Bar
+============================================ */
+
+.bottomBar{
+
+    position:fixed;
+
+    left:0;
+
+    right:0;
+
+    bottom:0;
+
+    display:flex;
+
+    gap:12px;
+
+    padding:16px;
+
+    background:#ffffff;
+
+    box-shadow:
+
+        0 -4px 14px rgba(0,0,0,.08);
+
+    z-index:100;
+
+}
+
+.bottomBar button{
+
+    flex:1;
+
+    height:52px;
+
+    border:none;
+
+    border-radius:10px;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.primary{
+
+    background:#1976d2;
+
+    color:#ffffff;
+
+}
+
+.primary:hover{
+
+    background:#1565c0;
+
+}
+
+.secondary{
+
+    background:#ececec;
+
+}
+
+.secondary:hover{
+
+    background:#dddddd;
+
+}

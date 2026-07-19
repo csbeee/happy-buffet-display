@@ -1,122 +1,174 @@
+/* =========================================
+   행복을 담은 한식뷔페 Display v3.1
+========================================= */
+
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
 }
 
+html,
 body{
 
-    background:#F5F1E8;
+    width:100%;
+    height:100%;
 
-    color:#333;
+    background:#efefef;
 
-    font-family:"Noto Sans KR","Malgun Gothic",sans-serif;
+    font-family:"Noto Sans KR",sans-serif;
 
+    color:#222;
+}
+
+body{
+
+    display:flex;
+    justify-content:center;
 }
 
 .container{
 
-    width:100%;
+    width:1080px;
+    min-height:1920px;
 
-    max-width:1080px;
-
-    margin:auto;
-
-    padding:30px;
+    padding:24px;
 
 }
 
-/* =======================
-   Header
-======================= */
+/* ===========================
+        HEADER
+=========================== */
 
 header{
 
+    margin-bottom:20px;
+}
+
+.logo{
+
     text-align:center;
 
-    margin-bottom:30px;
+    font-size:64px;
 
+    font-weight:900;
 }
 
-h1{
+.info{
 
-    font-size:88px;
+    margin-top:12px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    font-size:34px;
+
+    color:#666;
 
     font-weight:700;
-
-    color:#5D4037;
-
-}
-
-.sub-title{
-
-    margin-top:10px;
-
-    font-size:38px;
-
-    color:#888;
-
-    letter-spacing:3px;
-
-}
-
-#date{
-
-    margin-top:20px;
-
-    font-size:42px;
-
 }
 
 #clock{
 
-    margin-top:10px;
+    font-size:44px;
 
-    font-size:64px;
-
-    font-weight:bold;
-
-    color:#E65100;
-
+    color:#d9480f;
 }
 
-/* =======================
-   Menu Card
-======================= */
+/* ===========================
+        CARD
+=========================== */
 
-.menu-card{
+.menu-card,
+.notice-card{
 
-    background:white;
+    background:#fff;
 
     border-radius:24px;
 
-    padding:25px;
+    margin-bottom:22px;
 
-    margin-bottom:25px;
+    overflow:hidden;
 
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    box-shadow:
 
-}
-
-.menu-card h2{
-
-    font-size:54px;
-
-    color:#4E342E;
-
-    margin-bottom:20px;
-
-    border-bottom:4px solid #E0E0E0;
-
-    padding-bottom:10px;
+        0 6px 16px rgba(0,0,0,.08);
 
 }
+
+/* ===========================
+      CATEGORY TITLE
+=========================== */
+
+.menu-title{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+    padding:18px 24px;
+
+    color:#fff;
+
+    font-size:40px;
+
+    font-weight:800;
+}
+
+.category-icon{
+
+    width:44px;
+
+    height:44px;
+}
+
+/* ===========================
+      COLOR
+=========================== */
+
+.soup{
+
+    background:#8d6e63;
+}
+
+.main{
+
+    background:#d9480f;
+}
+
+.side{
+
+    background:#2b8a3e;
+}
+
+.kimchi{
+
+    background:#c92a2a;
+}
+
+.dessert{
+
+    background:#7b2cbf;
+}
+
+/* ===========================
+        MENU
+=========================== */
 
 .menu-card ul{
 
     list-style:none;
 
+    padding:22px;
+
 }
+
+/* ===========================
+      기본 메뉴
+=========================== */
 
 .menu-card li{
 
@@ -124,164 +176,251 @@ h1{
 
     align-items:center;
 
-    font-size:58px;
+    gap:18px;
 
-    font-weight:700;
+    min-height:70px;
 
-    padding:12px 0;
+    padding:8px 0;
 
-    border-bottom:1px dashed #DDD;
-
+    border-bottom:1px solid #ececec;
 }
 
 .menu-card li:last-child{
 
     border:none;
-
 }
 
-/* =======================
-   Notice
-======================= */
+/* ===========================
+      아이콘
+=========================== */
 
-.notice-card{
+.menu-icon{
 
-    background:#FFF8E1;
+    width:52px;
 
-    border-left:12px solid #FFA000;
+    height:52px;
 
-    border-radius:20px;
+    object-fit:contain;
 
-    padding:25px;
-
-    margin-top:20px;
-
+    flex-shrink:0;
 }
 
-.notice-card h2{
+/* ===========================
+      기본 글자
+=========================== */
 
-    font-size:48px;
+.title{
 
-    margin-bottom:15px;
+    flex:1;
 
+    font-size:42px;
+
+    font-weight:700;
+
+    line-height:1.35;
+}
+
+/* ===========================
+      메인요리
+=========================== */
+
+.main-grid{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    column-gap:36px;
+
+    row-gap:12px;
+}
+
+#main li{
+
+    border:none;
+
+    min-height:84px;
+}
+
+#main .title{
+
+    font-size:52px;
+
+    font-weight:800;
+}
+
+#main .menu-icon{
+
+    width:60px;
+
+    height:60px;
+}
+
+/* ===========================
+      반찬
+=========================== */
+
+#side{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    column-gap:34px;
+
+    row-gap:8px;
+}
+
+/* ===========================
+   김치 / 후식
+=========================== */
+
+.bottom-row{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:22px;
+
+    margin-bottom:22px;
+}
+
+/* ===========================
+      공지
+=========================== */
+
+.notice-title{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+    padding:18px 24px;
+
+    background:#ff9800;
+
+    color:#fff;
+
+    font-size:36px;
+
+    font-weight:800;
+}
+
+.notice-wrap{
+
+    overflow:hidden;
+
+    white-space:nowrap;
+
+    padding:24px;
 }
 
 #notice{
 
-    font-size:44px;
+    display:inline-block;
 
-    line-height:1.6;
+    font-size:38px;
 
-    font-weight:600;
-
+    font-weight:700;
 }
 
-/* =======================
-   Footer
-======================= */
+/* ===========================
+      FOOTER
+=========================== */
 
 footer{
 
-    margin-top:30px;
+    margin-top:12px;
 
     text-align:center;
-
-    font-size:30px;
-
-    color:#777;
-
 }
 
-/* =======================
-   Responsive
-======================= */
+#updatedAt{
 
-@media screen and (max-width:1080px){
+    font-size:24px;
 
-    h1{
+    color:#888;
+}
 
-        font-size:72px;
+/* ===========================
+      EFFECT
+=========================== */
+
+.fade{
+
+    animation:fade .3s;
+}
+
+@keyframes fade{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(10px);
 
     }
 
-    .menu-card h2{
+    to{
 
-        font-size:46px;
+        opacity:1;
 
-    }
-
-    .menu-card li{
-
-        font-size:50px;
+        transform:translateY(0);
 
     }
 
 }
 
-.menu-card li{
+.hide{
 
-    display:flex;
+    display:none;
+}
 
-    align-items:center;
+/* ===========================================
+        공지사항 슬라이드
+=========================================== */
 
-    gap:20px;
+.notice-wrap{
+
+    overflow:hidden;
+
+    white-space:nowrap;
+
+    position:relative;
 
 }
 
-.icon{
+.notice-scroll{
 
-    font-size:54px;
+    display:inline-block;
 
-    width:70px;
+    white-space:nowrap;
 
-    text-align:center;
+    padding-left:100%;
 
-}
+    animation-name:noticeSlide;
 
-.title{
+    animation-timing-function:linear;
 
-    flex:1;
-
-}
-
-.menu-card li{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:20px;
+    animation-iteration-count:infinite;
 
 }
 
-.icon{
+@keyframes noticeSlide{
 
-    width:70px;
+    from{
 
-    text-align:center;
+        transform:translateX(0);
 
-    font-size:56px;
+    }
 
-}
+    to{
 
-.title{
+        transform:translateX(-100%);
 
-    flex:1;
+    }
 
-}
-
-.menu-card li{
-    display:flex;
-    align-items:center;
-    gap:15px;
-}
-
-.menu-icon{
-    width:48px;
-    height:48px;
-    object-fit:contain;
-}
-
-.title{
-    flex:1;
 }

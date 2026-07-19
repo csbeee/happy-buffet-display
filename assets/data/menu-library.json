@@ -1,0 +1,98 @@
+[
+    {
+        "id": 1,
+        "name": "제육볶음",
+        "category": "main",
+        "ingredient": "pork",
+        "cook": "stir-fry",
+        "icon": "pork"
+    },
+    {
+        "id": 2,
+        "name": "돈까스",
+        "category": "main",
+        "ingredient": "pork",
+        "cook": "fried",
+        "icon": "pork"
+    },
+    {
+        "id": 3,
+        "name": "소불고기",
+        "category": "main",
+        "ingredient": "beef",
+        "cook": "grilled",
+        "icon": "beef"
+    },
+    {
+        "id": 4,
+        "name": "닭갈비",
+        "category": "main",
+        "ingredient": "chicken",
+        "cook": "stir-fry",
+        "icon": "chicken"
+    },
+    {
+        "id": 5,
+        "name": "고등어구이",
+        "category": "main",
+        "ingredient": "fish",
+        "cook": "grilled",
+        "icon": "fish"
+    },
+    {
+        "id": 6,
+        "name": "육개장",
+        "category": "soup",
+        "ingredient": "beef",
+        "cook": "soup",
+        "icon": "soup"
+    },
+    {
+        "id": 7,
+        "name": "된장국",
+        "category": "soup",
+        "ingredient": "vegetable",
+        "cook": "soup",
+        "icon": "soup"
+    },
+    {
+        "id": 8,
+        "name": "감자조림",
+        "category": "side",
+        "ingredient": "vegetable",
+        "cook": "braised",
+        "icon": "potato"
+    },
+    {
+        "id": 9,
+        "name": "콩나물무침",
+        "category": "side",
+        "ingredient": "vegetable",
+        "cook": "seasoned",
+        "icon": "sprout"
+    },
+    {
+        "id": 10,
+        "name": "오이무침",
+        "category": "side",
+        "ingredient": "vegetable",
+        "cook": "seasoned",
+        "icon": "cucumber"
+    },
+    {
+        "id": 11,
+        "name": "배추김치",
+        "category": "kimchi",
+        "ingredient": "vegetable",
+        "cook": "kimchi",
+        "icon": "kimchi"
+    },
+    {
+        "id": 12,
+        "name": "수박",
+        "category": "dessert",
+        "ingredient": "fruit",
+        "cook": "dessert",
+        "icon": "watermelon"
+    }
+]

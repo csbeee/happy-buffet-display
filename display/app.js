@@ -60,21 +60,21 @@ function draw(category, items = []) {
     // 반찬 자동 2열
     //------------------------------------
 
-    if(category==="side"){
+    if (category === "side") {
 
-    if(items.length>=6){
+        if (items.length >= 6) {
+
+            ul.classList.add("two-column");
+
+        }
+
+    }
+
+    if (category === "main") {
 
         ul.classList.add("two-column");
 
     }
-
-}
-
-if(category==="main"){
-
-    ul.classList.add("two-column");
-
-}
 
     //------------------------------------
     // 글자 크기 자동 조절
@@ -124,21 +124,52 @@ if(category==="main"){
 /* ============================================
            Display Mode
 ============================================ */
+/* ============================================
+           Display Mode
+============================================ */
+
 function renderToday(menu) {
 
-    const mode =
-        menu.displayMode || "normal";
+    const normalLayout =
+        document.getElementById(
+            "normalLayout"
+        );
+
+    const specialLayout =
+        document.getElementById(
+            "specialLayout"
+        );
 
 
     /* ========================================
-       Special Day
+       일반 메뉴 모드
     ======================================== */
 
-    if (mode === "special") {
+    if (
+        menu.displayMode !== "special"
+    ) {
 
-        setDisplayMode("special");
+        // 일반 메뉴 표시
+        if (normalLayout) {
 
-        renderSpecial(menu);
+            normalLayout.classList.remove(
+                "hide"
+            );
+
+        }
+
+        // 컨셉데이 숨김
+        if (specialLayout) {
+
+            specialLayout.classList.add(
+                "hide"
+            );
+
+        }
+
+
+        // 일반 메뉴 출력
+        renderNormal(menu);
 
         return;
 
@@ -146,183 +177,51 @@ function renderToday(menu) {
 
 
     /* ========================================
-       Normal Menu
+       컨셉데이 모드
     ======================================== */
 
-    setDisplayMode("normal");
-
-
-    draw(
-        "soup",
-        menu.soup || []
-    );
-
-    toggleCard(
-        "card-soup",
-        menu.soup
-    );
-
-
-    draw(
-        "main",
-        menu.main || []
-    );
-
-    toggleCard(
-        "card-main",
-        menu.main
-    );
-
-
-    draw(
-        "side",
-        menu.side || []
-    );
-
-    toggleCard(
-        "card-side",
-        menu.side
-    );
-
-
-    draw(
-        "kimchi",
-        menu.kimchi || []
-    );
-
-    toggleCard(
-        "card-kimchi",
-        menu.kimchi
-    );
-
-
-    draw(
-        "dessert",
-        menu.dessert || []
-    );
-
-    toggleCard(
-        "card-dessert",
-        menu.dessert
-    );
-
-
-    drawNotice(
-        menu.notice || ""
-    );
-
-
-    drawUpdatedTime(
-        menu.updatedAt
-    );
-
-    /* ============================================
-   Special Day Theme
-   Phase 13-4
-============================================ */
-
-const CONCEPT_THEMES = {
-
-    bibimbap: {
-
-        icon: "🍚",
-
-        title: "비빔밥데이",
-
-        color: "#E67E22"
-
-    },
-
-    bunsik: {
-
-        icon: "🍢",
-
-        title: "분식데이",
-
-        color: "#E74C3C"
-
-    },
-
-    chicken: {
-
-        icon: "🍗",
-
-        title: "치킨데이",
-
-        color: "#F39C12"
-
-    },
-
-    pizza: {
-
-        icon: "🍕",
-
-        title: "피자데이",
-
-        color: "#D35400"
-
-    },
-
-    noodle: {
-
-        icon: "🍜",
-
-        title: "면요리데이",
-
-        color: "#8E44AD"
-
-    },
-
-    barbecue: {
-
-        icon: "🥩",
-
-        title: "고기데이",
-
-        color: "#C0392B"
-
-    },
-
-    seafood: {
-
-        icon: "🐟",
-
-        title: "해산물데이",
-
-        color: "#2980B9"
-
-    },
-
-    custom: {
-
-        icon: "⭐",
-
-        title: "스페셜데이",
-
-        color: "#1976D2"
-
-    }
-
-};
-
-
-    /* ============================================
-    Get Concept Theme
-    ============================================ */
-
-    function getConceptTheme(themeKey) {
-
-        return (
-
-            CONCEPT_THEMES[themeKey]
-
-            ||
-
-            CONCEPT_THEMES.custom
-
+    // 일반 메뉴 숨김
+    if (normalLayout) {
+
+        normalLayout.classList.add(
+            "hide"
         );
 
     }
+
+    // 컨셉데이 표시
+    if (specialLayout) {
+
+        specialLayout.classList.remove(
+            "hide"
+        );
+
+    }
+
+
+    // 컨셉데이 출력
+    renderSpecial(menu);
+
+}
+
+
+/* ============================================
+Get Concept Theme
+============================================ */
+
+function getConceptTheme(themeKey) {
+
+    return (
+
+        CONCEPT_THEMES[themeKey]
+
+        ||
+
+        CONCEPT_THEMES.custom
+
+    );
+
+}
 
 }
 
@@ -567,9 +466,9 @@ function drawNotice(text) {
     //------------------------------------
     if (notice) {
         notice.classList.remove("notice-scroll");
-        
+
         // 애니메이션 리셋을 위한 트리거
-        void notice.offsetWidth; 
+        void notice.offsetWidth;
 
         // 가공된 안전한 문자열의 길이를 기준으로 속도 계산
         const duration = Math.max(12, safeText.length * 0.55);
@@ -610,67 +509,67 @@ watchTodayMenu(menu => {
 });
 
 
-function getConceptTheme(theme){
+function getConceptTheme(theme) {
 
-    const themes={
+    const themes = {
 
-        bibimbap:{
+        bibimbap: {
 
-            title:"비빔밥 DAY",
+            title: "비빔밥 DAY",
 
-            icon:"🍚",
+            icon: "🍚",
 
-            color:"#D84315"
-
-        },
-
-        bunsik:{
-
-            title:"분식 DAY",
-
-            icon:"🍢",
-
-            color:"#E91E63"
+            color: "#D84315"
 
         },
 
-        samgyeopsal:{
+        bunsik: {
 
-            title:"삼겹살 DAY",
+            title: "분식 DAY",
 
-            icon:"🥩",
+            icon: "🍢",
 
-            color:"#8D6E63"
-
-        },
-
-        chinese:{
-
-            title:"중식 DAY",
-
-            icon:"🥟",
-
-            color:"#E53935"
+            color: "#E91E63"
 
         },
 
-        western:{
+        samgyeopsal: {
 
-            title:"양식 DAY",
+            title: "삼겹살 DAY",
 
-            icon:"🍝",
+            icon: "🥩",
 
-            color:"#3949AB"
+            color: "#8D6E63"
 
         },
 
-        healthy:{
+        chinese: {
 
-            title:"건강식 DAY",
+            title: "중식 DAY",
 
-            icon:"🥗",
+            icon: "🥟",
 
-            color:"#43A047"
+            color: "#E53935"
+
+        },
+
+        western: {
+
+            title: "양식 DAY",
+
+            icon: "🍝",
+
+            color: "#3949AB"
+
+        },
+
+        healthy: {
+
+            title: "건강식 DAY",
+
+            icon: "🥗",
+
+            color: "#43A047"
 
         }
 
@@ -678,11 +577,11 @@ function getConceptTheme(theme){
 
     return themes[theme] || {
 
-        title:"Today's Special",
+        title: "Today's Special",
 
-        icon:"🍽",
+        icon: "🍽",
 
-        color:"#1976D2"
+        color: "#1976D2"
 
     };
 

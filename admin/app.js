@@ -104,11 +104,16 @@ const conceptSectionsList =
 const addConceptSectionBtn =
     document.getElementById(
         "addConceptSectionBtn"
-    );    
+    );
 
 const conceptTheme =
     document.getElementById(
         "conceptTheme"
+    );
+
+const normalMenuEditor =
+    document.getElementById(
+        "normalMenuEditor"
     );
 
 let currentDisplayMode = "normal";
@@ -422,7 +427,7 @@ async function saveToday() {
         alert("저장되었습니다.");
 
     }
-    catch(error){
+    catch (error) {
 
         console.error("저장 오류", error);
 
@@ -479,37 +484,50 @@ function bindEvents() {
 /* ============================================
     Mode Change
 ============================================ */
+/* ============================================
+   Display Mode
+============================================ */
+
 function setDisplayMode(mode) {
 
-    currentDisplayMode =
-        mode === "special"
-            ? "special"
-            : "normal";
-
+    currentDisplayMode = mode;
 
     const isSpecial =
-        currentDisplayMode === "special";
+        mode === "special";
 
 
-    if (normalModeBtn) {
+    /* ========================================
+       버튼 상태
+    ======================================== */
 
-        normalModeBtn.classList.toggle(
-            "active",
-            !isSpecial
-        );
+    normalModeBtn.classList.toggle(
+        "active",
+        !isSpecial
+    );
 
-    }
+    specialModeBtn.classList.toggle(
+        "active",
+        isSpecial
+    );
 
 
-    if (specialModeBtn) {
+    /* ========================================
+       일반 메뉴 영역
+    ======================================== */
 
-        specialModeBtn.classList.toggle(
-            "active",
+    if (normalMenuEditor) {
+
+        normalMenuEditor.classList.toggle(
+            "hidden",
             isSpecial
         );
 
     }
 
+
+    /* ========================================
+       컨셉데이 영역
+    ======================================== */
 
     if (conceptEditor) {
 
@@ -579,11 +597,9 @@ function addConceptSection(
 
         <textarea
             class="concept-section-items"
-            placeholder="메뉴를 한 줄씩 입력하세요.">${
+            placeholder="메뉴를 한 줄씩 입력하세요.">${section?.items?.join("\n") ?? ""
 
-                section?.items?.join("\n") ?? ""
-
-            }</textarea>
+        }</textarea>
 
     `;
 
@@ -647,7 +663,7 @@ function collectConcept() {
 
 }
 
-function collectSections(){
+function collectSections() {
 
     return [
 
@@ -655,7 +671,7 @@ function collectSections(){
             ".concept-section"
         )
 
-    ].map(section=>({
+    ].map(section => ({
 
         title:
 
@@ -668,9 +684,9 @@ function collectSections(){
             section.querySelector(
                 ".concept-section-items"
             ).value
-            .split("\n")
-            .map(item=>item.trim())
-            .filter(Boolean)
+                .split("\n")
+                .map(item => item.trim())
+                .filter(Boolean)
 
     }));
 
@@ -701,9 +717,9 @@ async function init() {
 
         /* 메뉴 라이브러리 */
 
-        
-        initLibraryModal(); 
-        await loadLibrary(); 
+
+        initLibraryModal();
+        await loadLibrary();
 
         console.log("④ Autocomplete");
 
@@ -721,39 +737,39 @@ async function init() {
 
     }
 
-    catch(error){
+    catch (error) {
 
         console.error(error);
 
     }
 
-    finally{
+    finally {
 
         hideLoading();
 
     }
 
-    
+
 }
 
-    window.addEventListener(
+window.addEventListener(
 
 
-        "libraryChanged",
+    "libraryChanged",
 
-        async () => {
+    async () => {
 
-            console.log(
+        console.log(
 
-                "Library Reload"
+            "Library Reload"
 
-            );
+        );
 
-            await initLibraryModal();
+        await initLibraryModal();
 
-        }
+    }
 
-    );
+);
 
 
 /* ============================================
@@ -785,6 +801,6 @@ if (conceptTheme) {
 
 document.addEventListener('DOMContentLoaded', () => {
     init()
-  
+
 });
 

@@ -82,6 +82,225 @@
     </section>
 
     <!-- ==========================================
+     Display Mode
+========================================== -->
+
+<section class="displayModeArea">
+
+    <div class="displayModeHeader">
+
+        <h2>전광판 모드</h2>
+
+    </div>
+
+    <div class="displayModeButtons">
+
+        <button
+            id="normalModeBtn"
+            class="modeBtn active"
+            type="button">
+
+            일반 메뉴
+
+        </button>
+
+        <button
+            id="specialModeBtn"
+            class="modeBtn"
+            type="button">
+
+            특별 컨셉데이
+
+        </button>
+
+    </div>
+
+</section>
+
+<div class="form-group">
+
+    <label>
+
+        컨셉 테마
+
+    </label>
+
+    <select id="conceptTheme">
+
+        <option value="">
+
+            일반 메뉴
+
+        </option>
+
+        <option value="bibimbap">
+
+            🍚 비빔밥 DAY
+
+        </option>
+
+        <option value="bunsik">
+
+            🍢 분식 DAY
+
+        </option>
+
+        <option value="samgyeopsal">
+
+            🥩 삼겹살 DAY
+
+        </option>
+
+        <option value="chinese">
+
+            🥟 중식 DAY
+
+        </option>
+
+        <option value="western">
+
+            🍝 양식 DAY
+
+        </option>
+
+        <option value="healthy">
+
+            🥗 건강식 DAY
+
+        </option>
+
+    </select>
+
+</div>
+
+<div class="form-group">
+
+    <label>
+
+        행사 안내문
+
+    </label>
+
+    <input
+        id="conceptSubtitle"
+        type="text"
+        placeholder="오늘은 비빔밥 DAY 입니다.">
+
+</div>
+
+<!-- ============================================
+     Special Concept Editor
+============================================ -->
+
+<div
+    id="conceptEditor"
+    class="concept-editor hidden">
+
+    <div class="concept-editor-header">
+
+        <h2>
+            특별 컨셉데이 설정
+        </h2>
+
+        <p>
+            오늘의 특별 메뉴 컨셉을 설정하세요.
+        </p>
+
+    </div>
+
+
+    <!-- 컨셉 테마 -->
+
+    <div class="editor-group">
+
+        <label for="conceptTheme">
+            컨셉 선택
+        </label>
+
+        <select id="conceptTheme">
+
+            <option value="bibimbap">
+                🍚 비빔밥데이
+            </option>
+
+            <option value="bunsik">
+                🍢 분식데이
+            </option>
+
+            <option value="chicken">
+                🍗 치킨데이
+            </option>
+
+            <option value="pizza">
+                🍕 피자데이
+            </option>
+
+            <option value="noodle">
+                🍜 면요리데이
+            </option>
+
+            <option value="barbecue">
+                🥩 고기데이
+            </option>
+
+            <option value="seafood">
+                🐟 해산물데이
+            </option>
+
+            <option value="custom">
+                ⭐ 직접 설정
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- 부제목 -->
+
+    <div class="editor-group">
+
+        <label for="conceptSubtitle">
+            소개 문구
+        </label>
+
+        <input
+            id="conceptSubtitle"
+            type="text"
+            placeholder="예: 오늘은 내가 만드는 비빔밥!">
+
+    </div>
+
+
+    <!-- 섹션 -->
+
+    <div class="concept-sections-header">
+
+        <h3>
+            특별 메뉴 구성
+        </h3>
+
+        <button
+            id="addConceptSectionBtn"
+            type="button"
+            class="primary">
+
+            + 섹션 추가
+
+        </button>
+
+    </div>
+
+
+    <div
+        id="conceptSectionsList"
+        class="concept-sections-list">
+
+    </div>
+
+</div>
+
+    <!-- ==========================================
          Today Menu
     =========================================== -->
 

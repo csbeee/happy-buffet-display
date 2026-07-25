@@ -643,3 +643,227 @@ select:focus {
 .hidden {
     display: none !important;
 }
+
+/* ==========================================
+   Special Concept Editor
+========================================== */
+
+.concept-editor {
+
+    margin-top:20px;
+
+    padding:20px;
+
+    background:#fff;
+
+    border-radius:14px;
+
+    border:1px solid #e5e5e5;
+
+}
+
+
+.concept-editor-header {
+
+    margin-bottom:20px;
+
+}
+
+
+.concept-editor-header h2 {
+
+    margin:0 0 6px;
+
+    font-size:20px;
+
+}
+
+
+.concept-editor-header p {
+
+    margin:0;
+
+    color:#777;
+
+    font-size:14px;
+
+}
+
+
+/* ==========================================
+   Concept Sections Header
+========================================== */
+
+.concept-sections-header {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin:
+
+        24px
+
+        0
+
+        12px;
+
+}
+
+
+.concept-sections-header h3 {
+
+    margin:0;
+
+    font-size:17px;
+
+}
+
+
+.concept-sections-list {
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+}
+
+
+/* ==========================================
+   Concept Section
+========================================== */
+
+.concept-section {
+
+    padding:14px;
+
+    background:#f8f9fa;
+
+    border:1px solid #e1e1e1;
+
+    border-radius:10px;
+
+}
+
+
+.concept-section-header {
+
+    display:flex;
+
+    gap:8px;
+
+    margin-bottom:10px;
+
+}
+
+
+.concept-section-title {
+
+    flex:1;
+
+    min-width:0;
+
+}
+
+
+.concept-section-delete {
+
+    flex:none;
+
+    padding:
+
+        8px
+
+        12px;
+
+    border:none;
+
+    border-radius:6px;
+
+    background:#e53935;
+
+    color:#fff;
+
+    cursor:pointer;
+
+}
+
+
+.concept-section-items {
+
+    width:100%;
+
+    min-height:120px;
+
+    resize:vertical;
+
+    padding:10px;
+
+    border:
+
+        1px
+
+        solid
+
+        #ddd;
+
+    border-radius:8px;
+
+    font-family:inherit;
+
+    font-size:15px;
+
+    line-height:1.6;
+
+}
+
+
+/* ==========================================
+   Mobile
+========================================== */
+
+@media (max-width:768px) {
+
+    .concept-editor {
+
+        padding:16px;
+
+    }
+
+
+    .concept-sections-header {
+
+        align-items:stretch;
+
+        flex-direction:column;
+
+        gap:10px;
+
+    }
+
+
+    .concept-sections-header button {
+
+        width:100%;
+
+    }
+
+
+    .concept-section-header {
+
+        flex-direction:column;
+
+    }
+
+
+    .concept-section-delete {
+
+        width:100%;
+
+    }
+
+}

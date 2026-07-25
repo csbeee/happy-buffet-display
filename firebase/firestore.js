@@ -110,7 +110,31 @@ export async function saveTodayMenu(menu) {
 
             ...menu,
 
-            updatedAt: serverTimestamp()
+            displayMode:
+                menu.displayMode ?? "normal",
+
+            concept:
+                menu.concept ?? {
+
+                    enabled: false,
+
+                    title: "",
+
+                    subtitle: "",
+
+                    icon: ""
+
+                },
+
+            sections:
+                Array.isArray(menu.sections)
+
+                    ? menu.sections
+
+                    : [],
+
+            updatedAt:
+                serverTimestamp()
 
         }
 

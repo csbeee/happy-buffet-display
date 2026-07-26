@@ -1,8 +1,10 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 
 <head>
 
+    ```
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,23 +12,28 @@
     <title>행복을 담은 한식뷔페</title>
 
     <link rel="stylesheet" href="style.css">
+    ```
 
 </head>
 
 <body>
 
+    ```
+    <!-- =====================================================
+     DISPLAY ROOT
+     ===================================================== -->
+
     <div class="container">
 
-        <!-- =======================
-            HEADER
-    ======================== -->
+        <!-- =================================================
+         HEADER
+         일반 메뉴 / 컨셉데이 공통
+         ================================================= -->
 
         <header>
 
             <h1 class="logo">
-
                 행복을 담은 한식뷔페
-
             </h1>
 
             <div class="info">
@@ -39,174 +46,259 @@
 
         </header>
 
-        <div id="normalLayout"></div>
-        <!-- =======================
-                국
-        ======================== -->
 
-        <section class="menu-card" id="card-soup">
+        <!-- =================================================
+         NORMAL MENU LAYOUT
+         -------------------------------------------------
+         중요:
+         일반 메뉴 전체를 normalLayout 안에 배치합니다.
 
-            <div class="menu-title soup">
+         app.js
+         setDisplayMode("normal")
+         → normalLayout 표시
+         → specialLayout 숨김
 
-                <img class="category-icon" src="../assets/icons/category/soup.svg" alt="국">
+         setDisplayMode("special")
+         → normalLayout 숨김
+         → specialLayout 표시
+         ================================================= -->
 
-                <span>국</span>
+        <div id="normalLayout">
 
-            </div>
 
-            <ul id="soup"></ul>
+            <!-- =============================================
+             국
+             ============================================= -->
 
-        </section>
+            <section class="menu-card" id="card-soup">
 
-        <!-- =======================
-                메인요리
-        ======================== -->
+                <div class="menu-title soup">
 
-        <section class="menu-card" id="card-main">
+                    <img class="category-icon" src="../assets/icons/category/soup.svg" alt="국">
 
-            <div class="menu-title main">
-
-                <img class="category-icon" src="../assets/icons/category/main.svg" alt="메인">
-
-                <span>메인요리</span>
-
-            </div>
-
-            <ul id="main" class="main-grid">
-
-            </ul>
-
-        </section>
-
-        <!-- =======================
-                반찬
-        ======================== -->
-
-        <section class="menu-card" id="card-side">
-
-            <div class="menu-title side">
-
-                <img class="category-icon" src="../assets/icons/category/side.svg" alt="반찬">
-
-                <span>반찬</span>
-
-            </div>
-
-            <ul id="side"></ul>
-
-        </section>
-
-        <!-- =======================
-            김치 + 후식
-        ======================== -->
-
-        <section class="bottom-row">
-
-            <!-- 김치 -->
-
-            <div class="menu-card" id="card-kimchi">
-
-                <div class="menu-title kimchi">
-
-                    <img class="category-icon" src="../assets/icons/category/kimchi.svg" alt="김치">
-
-                    <span>김치</span>
+                    <span>
+                        국
+                    </span>
 
                 </div>
 
-                <ul id="kimchi"></ul>
 
-            </div>
+                <ul id="soup"></ul>
 
-            <!-- 후식 -->
+            </section>
 
-            <div class="menu-card" id="card-dessert">
 
-                <div class="menu-title dessert">
+            <!-- =============================================
+             메인요리
+             ============================================= -->
 
-                    <img class="category-icon" src="../assets/icons/category/dessert.svg" alt="후식">
+            <section class="menu-card" id="card-main">
 
-                    <span>후식</span>
+                <div class="menu-title main">
+
+                    <img class="category-icon" src="../assets/icons/category/main.svg" alt="메인">
+
+                    <span>
+                        메인요리
+                    </span>
 
                 </div>
 
-                <ul id="dessert"></ul>
+
+                <ul id="main"></ul>
+
+            </section>
+
+
+            <!-- =============================================
+             반찬
+             ============================================= -->
+
+            <section class="menu-card" id="card-side">
+
+                <div class="menu-title side">
+
+                    <img class="category-icon" src="../assets/icons/category/side.svg" alt="반찬">
+
+                    <span>
+                        반찬
+                    </span>
+
+                </div>
+
+
+                <ul id="side"></ul>
+
+            </section>
+
+
+            <!-- =============================================
+             김치 + 후식
+             ------------------------------------------------
+             카드 자체가 세로로 쌓이는 것이 아니라
+             bottom-row 내부에서만 2열 배치
+             ============================================= -->
+
+            <div class="bottom-row">
+
+
+                <!-- =========================================
+                 김치
+                 ========================================= -->
+
+                <section class="menu-card" id="card-kimchi">
+
+                    <div class="menu-title kimchi">
+
+                        <img class="category-icon" src="../assets/icons/category/kimchi.svg" alt="김치">
+
+                        <span>
+                            김치
+                        </span>
+
+                    </div>
+
+
+                    <ul id="kimchi"></ul>
+
+                </section>
+
+
+                <!-- =========================================
+                 후식
+                 ========================================= -->
+
+                <section class="menu-card" id="card-dessert">
+
+                    <div class="menu-title dessert">
+
+                        <img class="category-icon" src="../assets/icons/category/dessert.svg" alt="후식">
+
+                        <span>
+                            후식
+                        </span>
+
+                    </div>
+
+
+                    <ul id="dessert"></ul>
+
+                </section>
+
 
             </div>
 
-        </section>
 
-        <!-- =======================
-                공지
-        ======================== -->
+            <!-- =============================================
+             공지사항
+             ============================================= -->
 
-        <section class="notice-card" id="noticeCard">
+            <section class="notice-card" id="noticeCard">
 
-            <div class="notice-title">
+                <div class="notice-title">
 
-                <img class="category-icon" src="../assets/icons/category/notice.svg" alt="공지">
+                    <img class="category-icon" src="../assets/icons/category/notice.svg" alt="공지">
 
-                <span>공지사항</span>
+                    <span>
+                        공지사항
+                    </span>
 
-            </div>
+                </div>
 
-            <div class="notice-wrap">
 
-                <div id="notice"></div>
+                <div class="notice-wrap">
 
-            </div>
+                    <div id="notice"></div>
 
-        </section>
-    </div>
-    </div>
-    <!-- ==========================================
-     Special Day Layout
-========================================== -->
+                </div>
 
-    <div id="specialLayout" class="hide">
+            </section>
 
-        <div class="special-header">
-
-            <div id="specialIcon" class="special-icon">
-
-            </div>
-
-            <h1 id="specialTitle">
-
-            </h1>
-
-            <p id="specialSubtitle">
-
-            </p>
 
         </div>
+        <!-- END #normalLayout -->
 
-        <div id="specialSections" class="special-sections">
+
+        <!-- =================================================
+         SPECIAL DAY LAYOUT
+         -------------------------------------------------
+         app.js의 renderSpecial()이 아래 요소를 제어합니다.
+
+         specialIcon
+         specialTitle
+         specialSubtitle
+         specialSections
+         ================================================= -->
+
+        <div id="specialLayout" class="hide">
+
+
+            <!-- =============================================
+             SPECIAL HEADER
+             ============================================= -->
+
+            <div class="special-header">
+
+
+                <div id="specialIcon" class="special-icon">
+                </div>
+
+
+                <h1 id="specialTitle">
+                </h1>
+
+
+                <p id="specialSubtitle">
+                </p>
+
+
+            </div>
+
+
+            <!-- =============================================
+             SPECIAL DAY MENU SECTIONS
+
+             app.js:
+             renderSpecial(menu)
+
+             menu.sections 배열을 기반으로
+             동적으로 카드 생성
+             ============================================= -->
+
+            <div id="specialSections" class="special-sections">
+            </div>
+
 
         </div>
+        <!-- END #specialLayout -->
+
+
+        <!-- =================================================
+         FOOTER
+         -------------------------------------------------
+         일반 메뉴 / 컨셉데이 공통
+         ================================================= -->
+
+        <footer>
+
+            <div id="updatedAt">
+                마지막 저장 : -
+            </div>
+
+        </footer>
+
 
     </div>
+    <!-- END .container -->
 
 
-    <!-- =======================
-            FOOTER
-    ======================== -->
-
-    <footer>
-
-        <div id="updatedAt">
-
-            마지막 저장 : -
-
-        </div>
-
-    </footer>
-
-
+    <!-- =====================================================
+     JAVASCRIPT
+     ===================================================== -->
 
     <script type="module" src="app.js">
-
     </script>
+    ```
 
 </body>
 

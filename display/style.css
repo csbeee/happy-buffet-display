@@ -1,17 +1,16 @@
 /* =========================================================
    행복을 담은 한식뷔페
-   DISPLAY STYLE v4.0
-   Branch: fix/concept-day-layout
+   DISPLAY STYLE v4.7
+   Branch: main
 
    Layout
    ---------------------------------------------------------
-   1. 세로형 전광판 기준
-   2. 일반 메뉴 카드 = 세로 방향
-   3. 카드 내부 메뉴만 필요 시 2열
-   4. 김치 / 후식 = 하단 2열
-   5. 일반 모드 / 컨셉데이 모드 완전 분리
+   1. 세로형 전광판 1080 x 1920 기준
+   2. 일반 메뉴 / 컨셉데이 완전 분리
+   3. 텍스트 가독성 우선
+   4. 테마 색상은 강조 요소에만 사용
+   5. 밝은 배경 + 진한 글자 조합으로 시인성 강화
    ========================================================= */
-
 
 /* =========================================================
    01. RESET
@@ -30,22 +29,18 @@ body {
 }
 
 body {
-    background: #f5f7f9;
+    background: #f4f6f8;
     color: #212529;
-
     font-family:
         system-ui,
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
         sans-serif;
-
     display: flex;
     justify-content: center;
-
     overflow-x: hidden;
 }
-
 
 /* =========================================================
    02. MAIN DISPLAY CONTAINER
@@ -54,12 +49,9 @@ body {
 .container {
     width: 1080px;
     min-height: 1920px;
-
     padding: 16px;
-
     margin: 0 auto;
 }
-
 
 /* =========================================================
    03. HEADER
@@ -67,26 +59,20 @@ body {
 
 header {
     width: 100%;
-
     display: flex;
     justify-content: space-between;
     align-items: center;
-
-    padding: 16px 24px;
+    padding: 18px 24px;
     margin-bottom: 16px;
-
     background: #ffffff;
-
-    border: 1px solid #e9ecef;
+    border: 2px solid #e5e7eb;
     border-radius: 16px;
 }
 
 .logo {
-    font-size: 44px;
+    font-size: 46px;
     font-weight: 900;
-
-    color: #1a1d20;
-
+    color: #111827;
     letter-spacing: -1px;
     line-height: 1.2;
 }
@@ -94,48 +80,28 @@ header {
 .info {
     display: flex;
     align-items: center;
-
     gap: 20px;
-
-    font-size: 22px;
-    font-weight: 700;
-
-    color: #868e96;
+    font-size: 24px;
+    font-weight: 800;
+    color: #4b5563;
 }
 
 #clock {
-    font-size: 26px;
-    font-weight: 800;
-
-    color: #495057;
+    font-size: 28px;
+    font-weight: 900;
+    color: #111827;
 }
-
 
 /* =========================================================
    04. NORMAL LAYOUT
-   ---------------------------------------------------------
-   중요:
-   #normalLayout 안에 일반 메뉴 전체가 들어가야 합니다.
-
-   일반적인 구조:
-
-   #normalLayout
-   ├── #card-soup
-   ├── #card-main
-   ├── #card-side
-   ├── .bottom-row
-   └── #noticeCard
    ========================================================= */
 
 #normalLayout {
     width: 100%;
-
     display: flex;
     flex-direction: column;
-
     gap: 16px;
 }
-
 
 /* =========================================================
    05. COMMON CARD
@@ -144,17 +110,12 @@ header {
 .menu-card,
 .notice-card {
     width: 100%;
-
     background: #ffffff;
-
-    border: 1px solid #dee2e6;
+    border: 2px solid #e5e7eb;
     border-radius: 20px;
-
     overflow: hidden;
-
     margin: 0;
 }
-
 
 /* =========================================================
    06. CATEGORY TITLE
@@ -163,60 +124,53 @@ header {
 .menu-title,
 .notice-title {
     width: 100%;
-
     display: flex;
     align-items: center;
-
     gap: 16px;
-
-    padding: 14px 24px;
-
+    padding: 16px 24px;
     color: #ffffff;
-
-    font-size: 34px;
-    font-weight: 800;
-
+    font-size: 36px;
+    font-weight: 900;
     line-height: 1.2;
 }
 
 .category-icon {
-    width: 38px;
-    height: 38px;
-
+    width: 42px;
+    height: 42px;
     object-fit: contain;
-
     flex-shrink: 0;
 }
 
-
 /* =========================================================
    07. CATEGORY COLORS
+   ---------------------------------------------------------
+   강한 색상은 제목 영역에만 사용하고
+   본문 메뉴는 흰색/연한 배경 + 진한 글자로 통일
    ========================================================= */
 
 .menu-title.soup {
-    background: #6d4c41;
+    background: #5d4037;
 }
 
 .menu-title.main {
-    background: #e8590c;
+    background: #c2410c;
 }
 
 .menu-title.side {
-    background: #2f9e44;
+    background: #166534;
 }
 
 .menu-title.kimchi {
-    background: #e03131;
+    background: #b91c1c;
 }
 
 .menu-title.dessert {
-    background: #845ef7;
+    background: #6d28d9;
 }
 
 .notice-title {
-    background: #f59f00;
+    background: #b45309;
 }
-
 
 /* =========================================================
    08. MENU LIST
@@ -224,14 +178,10 @@ header {
 
 .menu-card ul {
     width: 100%;
-
     list-style: none;
-
-    padding: 16px 24px;
-
+    padding: 18px 24px;
     margin: 0;
 }
-
 
 /* =========================================================
    09. NORMAL MENU ITEM
@@ -239,17 +189,12 @@ header {
 
 .menu-card li {
     width: 100%;
-
     display: flex;
     align-items: center;
-
     gap: 16px;
-
-    min-height: 64px;
-
-    padding: 6px 0;
-
-    border-bottom: 1px solid #f1f3f5;
+    min-height: 70px;
+    padding: 8px 0;
+    border-bottom: 2px solid #f1f3f5;
 }
 
 .menu-card li:last-child {
@@ -257,103 +202,74 @@ header {
 }
 
 .menu-icon {
-    width: 44px;
-    height: 44px;
-
+    width: 48px;
+    height: 48px;
     object-fit: contain;
-
     flex-shrink: 0;
 }
 
 .title {
     flex: 1;
-
-    font-size: 36px;
-    font-weight: 700;
-
+    font-size: 40px;
+    font-weight: 800;
     line-height: 1.3;
-
-    color: #343a40;
+    color: #111827;
 }
-
 
 /* =========================================================
    10. MAIN MENU
-   ---------------------------------------------------------
-   JS에서 main에 two-column을 붙이는 경우에도 대응
    ========================================================= */
 
 #main {
     display: grid;
-
     grid-template-columns: 1fr 1fr;
-
     column-gap: 24px;
     row-gap: 12px;
 }
 
 #main li {
-    min-height: 76px;
-
-    padding: 8px 16px;
-
-    background: #fdf2e9;
-
-    border: none;
-    border-radius: 12px;
+    min-height: 82px;
+    padding: 10px 16px;
+    background: #fff7ed;
+    border: 2px solid #fed7aa;
+    border-radius: 14px;
 }
 
 #main .menu-icon {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
 }
 
 #main .title {
-    font-size: 40px;
-    font-weight: 800;
-
-    color: #d9480f;
+    font-size: 44px;
+    font-weight: 900;
+    color: #7c2d12;
 }
-
 
 /* =========================================================
    11. MAIN TWO COLUMN
-   ---------------------------------------------------------
-   JS에서 .two-column을 붙여도 동일하게 작동
    ========================================================= */
 
 #main.two-column {
     display: grid;
-
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
     column-gap: 24px;
     row-gap: 12px;
 }
 
-
 /* =========================================================
    12. SIDE MENU
-   ---------------------------------------------------------
-   기본 = 1열
-   6개 이상 = JS가 .two-column 추가
    ========================================================= */
 
 #side {
     display: flex;
     flex-direction: column;
-
     gap: 0;
 }
 
-
-/* 반찬 2열 */
-
 #side.two-column {
     display: grid;
-
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
     column-gap: 24px;
     row-gap: 8px;
 }
@@ -362,51 +278,37 @@ header {
     border-bottom: none;
 }
 
-
 /* =========================================================
    13. SMALL / LARGE TEXT
-   ---------------------------------------------------------
-   app.js에서 자동으로 추가
    ========================================================= */
 
 .menu-card ul.large-text .title {
-    font-size: 36px;
+    font-size: 40px;
 }
 
 .menu-card ul.small-text .title {
-    font-size: 30px;
+    font-size: 34px;
 }
-
-
-/* 메인 메뉴는 별도 크기 유지 */
 
 #main.large-text .title,
 #main .large-text .title {
-    font-size: 40px;
+    font-size: 44px;
 }
 
 #main.small-text .title,
 #main .small-text .title {
-    font-size: 34px;
+    font-size: 36px;
 }
-
 
 /* =========================================================
    14. KIMCHI + DESSERT
-   ---------------------------------------------------------
-   카드 자체를 가로 배치하는 것이 아니라
-   bottom-row 안에서만 2열
    ========================================================= */
 
 .bottom-row {
     width: 100%;
-
     display: grid;
-
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
     gap: 16px;
-
     margin: 0;
 }
 
@@ -414,38 +316,34 @@ header {
     width: 100%;
 }
 
+/* 하단 카드 메뉴는 메인보다 작게, 일반 메뉴보다 크게 */
+.bottom-row .title {
+    font-size: 36px;
+}
 
 /* =========================================================
    15. NOTICE
    ========================================================= */
 
 .notice-title {
-    font-size: 32px;
+    font-size: 36px;
 }
 
 .notice-wrap {
     width: 100%;
-
     overflow: hidden;
-
     white-space: nowrap;
-
-    padding: 20px 24px;
-
-    background: #fff9db;
+    padding: 22px 24px;
+    background: #fffbeb;
 }
 
 #notice {
     display: inline-block;
-
-    font-size: 36px;
-    font-weight: 700;
-
-    color: #f08c00;
-
+    font-size: 40px;
+    font-weight: 800;
+    color: #92400e;
     white-space: nowrap;
 }
-
 
 /* =========================================================
    16. NOTICE SCROLL
@@ -453,30 +351,22 @@ header {
 
 .notice-scroll {
     display: inline-block;
-
     white-space: nowrap;
-
     padding-left: 100%;
-
     animation-name: noticeSlide;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
-
     will-change: transform;
 }
 
 @keyframes noticeSlide {
-
     from {
         transform: translateX(0);
     }
-
     to {
         transform: translateX(-100%);
     }
-
 }
-
 
 /* =========================================================
    17. FOOTER
@@ -484,18 +374,15 @@ header {
 
 footer {
     width: 100%;
-
     margin-top: 12px;
-
     text-align: center;
 }
 
 #updatedAt {
     font-size: 22px;
-
-    color: #adb5bd;
+    font-weight: 700;
+    color: #6b7280;
 }
-
 
 /* =========================================================
    18. GENERAL ANIMATION
@@ -506,30 +393,23 @@ footer {
 }
 
 @keyframes menuFade {
-
     from {
         opacity: 0;
         transform: translateY(4px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
-
 }
-
 
 /* =========================================================
    19. HIDE
-   ---------------------------------------------------------
-   app.js의 setDisplayMode()에서 사용
    ========================================================= */
 
 .hide {
     display: none !important;
 }
-
 
 /* =========================================================
    20. SPECIAL DAY LAYOUT
@@ -538,18 +418,14 @@ footer {
 #specialLayout {
     width: 1080px;
     min-height: 1920px;
-
     padding: 32px;
-
     margin: 0 auto;
-
-    background: #f5f7f9;
+    background: #f4f6f8;
 }
 
 #specialLayout.hide {
     display: none !important;
 }
-
 
 /* =========================================================
    21. SPECIAL HEADER
@@ -557,61 +433,45 @@ footer {
 
 .special-header {
     width: 100%;
-
     display: flex;
     flex-direction: column;
-
     align-items: center;
     justify-content: center;
-
     text-align: center;
-
     margin-bottom: 40px;
 }
 
 .special-icon {
-    width: 120px;
-    height: 120px;
-
+    width: 140px;
+    height: 140px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    margin-bottom: 20px;
-
-    font-size: 72px;
-
-    background: #fff3e0;
-
+    margin-bottom: 24px;
+    font-size: 84px;
+    background: #ffffff;
+    border: 4px solid var(--special-color, #2563eb);
     border-radius: 50%;
-
-    box-shadow:
-        0 6px 18px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.10);
 }
 
 #specialTitle {
     margin: 0;
-
-    font-size: 56px;
-    font-weight: 800;
-
+    font-size: 68px;
+    font-weight: 900;
     line-height: 1.2;
-
-    color: var(--special-color, #d84315);
+    color: #111827;
+    letter-spacing: -1px;
 }
 
 #specialSubtitle {
     max-width: 900px;
-
-    margin-top: 16px;
-
-    font-size: 26px;
-
-    color: #666666;
-
+    margin-top: 18px;
+    font-size: 32px;
+    font-weight: 700;
+    color: #374151;
     line-height: 1.5;
 }
-
 
 /* =========================================================
    22. SPECIAL SECTIONS
@@ -619,13 +479,10 @@ footer {
 
 .special-sections {
     width: 100%;
-
     display: flex;
     flex-direction: column;
-
     gap: 24px;
 }
-
 
 /* =========================================================
    23. SPECIAL SECTION CARD
@@ -633,76 +490,51 @@ footer {
 
 .special-section {
     width: 100%;
-
-    padding: 28px;
-
+    padding: 32px;
     background: #ffffff;
-
     border-radius: 20px;
-
-    box-shadow:
-        0 6px 20px rgba(0, 0, 0, 0.08);
+    border-left: 10px solid var(--special-color, #2563eb);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .special-section h2 {
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-
-    font-size: 40px;
+    margin-bottom: 22px;
+    padding-bottom: 12px;
+    font-size: 46px;
+    font-weight: 900;
     text-align: center;
-
-    color: var(--special-color, #d84315);
-
-    border-bottom: 3px solid #ffe0b2;
+    color: #111827;
+    border-bottom: 4px solid var(--special-color, #2563eb);
 }
 
-/* 
-.special-section li {
+.special-section ul {
     width: 100%;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    min-height: 64px;
-
-    padding: 12px 18px;
-
-    font-size: 28px;
-    font-weight: 700;
-
-    text-align: center;
-
-    background: #fff8e1;
-
-    border-radius: 12px;
-} */
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    list-style: none;
+}
 
 .special-section li {
     display: flex;
     align-items: center;
     justify-content: center;
-
-    min-height: 64px;
-
-    padding: 12px 18px;
-
-    font-size: 36px;
-    font-weight: 700;
-
+    min-height: 76px;
+    padding: 14px 20px;
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.3;
     text-align: center;
-
-    background: #fff8e1;
-
-    border-radius: 12px;
+    color: #111827;
+    background: #f8fafc;
+    border: 2px solid #e5e7eb;
+    border-radius: 14px;
 }
 
+/* 기존 🍽 아이콘 제거 - 메뉴 텍스트 집중 */
 .special-section li::before {
-    content: "🍽";
-
-    margin-right: 12px;
+    content: none;
 }
-
 
 /* =========================================================
    24. SPECIAL ANIMATION
@@ -713,25 +545,18 @@ footer {
 }
 
 @keyframes specialFadeIn {
-
     from {
         opacity: 0;
         transform: translateY(8px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
-
 }
-
 
 /* =========================================================
    25. RESPONSIVE
-   ---------------------------------------------------------
-   기본 전광판은 1080px 기준
-   작은 화면에서만 자동 축소
    ========================================================= */
 
 @media (max-width: 1100px) {
@@ -740,14 +565,12 @@ footer {
     #specialLayout {
         width: 100%;
     }
-
 }
 
 @media (max-width: 700px) {
 
     .container {
         min-height: auto;
-
         padding: 10px;
     }
 
@@ -771,7 +594,6 @@ footer {
     .menu-title,
     .notice-title {
         font-size: 26px;
-
         padding: 12px 16px;
     }
 
@@ -808,12 +630,27 @@ footer {
         font-size: 42px;
     }
 
+    #specialSubtitle {
+        font-size: 22px;
+    }
+
+    .special-section {
+        padding: 20px;
+    }
+
+    .special-section h2 {
+        font-size: 34px;
+    }
+
     .special-section ul {
         grid-template-columns: 1fr;
     }
 
+    .special-section li {
+        font-size: 30px;
+        min-height: 60px;
+    }
 }
-
 
 /* =========================================================
    END

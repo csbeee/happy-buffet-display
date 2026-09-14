@@ -161,11 +161,15 @@ header {
 
 .title {
     flex: 1;
+    min-width: 0;
     font-size: 50px;
     font-weight: 850;
     line-height: 1.22;
     color: #0b1220;
     letter-spacing: -0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
 }
 
 /* 10. MAIN MENU */
@@ -417,6 +421,7 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 0;
     min-height: 92px;
     padding: 16px 22px;
     font-size: 50px;
@@ -427,6 +432,9 @@ footer {
     background: #f8fafc;
     border: 3px solid #d9dee5;
     border-radius: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
 }
 
 .special-section li::before {

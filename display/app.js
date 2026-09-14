@@ -44,6 +44,47 @@ setInterval(updateClock, 1000);
 
 
 /* ============================================
+       메뉴명 한 줄 맞춤
+       긴 메뉴는 글자 크기를 단계적으로 축소
+       - 줄바꿈 없음
+       - 메뉴명은 생략하지 않음
+============================================ */
+
+function fitMenuText(elements, maxFontSize, minFontSize) {
+
+    if (!elements || elements.length === 0) {
+        return;
+    }
+
+    requestAnimationFrame(() => {
+
+        elements.forEach(title => {
+
+            if (!title) {
+                return;
+            }
+
+            title.style.fontSize = `${maxFontSize}px`;
+
+            let size = maxFontSize;
+
+            /* 글자가 영역을 넘으면 조금씩 축소 */
+            while (
+                title.scrollWidth > title.clientWidth &&
+                size > minFontSize
+            ) {
+                size -= 1;
+                title.style.fontSize = `${size}px`;
+            }
+
+        });
+
+    });
+
+}
+
+
+/* ============================================
             일반 메뉴 출력
 ============================================ */
 
@@ -113,6 +154,8 @@ function draw(category, items = []) {
        메뉴 생성
     ---------------------------------------- */
 
+    const titles = [];
+
     items.forEach(menu => {
 
         const li = document.createElement("li");
@@ -142,7 +185,23 @@ function draw(category, items = []) {
 
         ul.appendChild(li);
 
+        titles.push(title);
+
     });
+
+
+    /* ----------------------------------------
+       카테고리별 한 줄 맞춤
+       메인: 기본 56px / 최소 42px
+       반찬: 기본 50px / 최소 40px
+       기타: 기본 50px / 최소 40px
+    ---------------------------------------- */
+
+    if (category === "main") {
+        fitMenuText(titles, 56, 42);
+    } else {
+        fitMenuText(titles, 50, 40);
+    }
 
 }
 
@@ -713,6 +772,8 @@ function renderSpecial(menu) {
                     : [];
 
 
+            const itemTitles = [];
+
             items.forEach(
                 item => {
 
@@ -725,10 +786,11 @@ function renderSpecial(menu) {
                     li.textContent =
                         item;
 
-
                     list.appendChild(
                         li
                     );
+
+                    itemTitles.push(li);
 
                 }
             );
@@ -746,6 +808,14 @@ function renderSpecial(menu) {
 
             sections.appendChild(
                 card
+            );
+
+
+            /* 컨셉데이 메뉴도 한 줄 유지 */
+            fitMenuText(
+                itemTitles,
+                50,
+                38
             );
 
         }

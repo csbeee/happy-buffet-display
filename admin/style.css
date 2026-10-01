@@ -574,3 +574,27 @@ button.danger:hover {
         width: 100%;
     }
 }
+
+
+/* ============================================
+   Mobile menu drag stability
+   - 드래그 핸들을 잡을 때 브라우저의 기본 페이지 스크롤/제스처가
+     Sortable 동작과 충돌하지 않도록 합니다.
+============================================ */
+
+.drag {
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+@media (max-width: 768px) {
+    .menu-item {
+        scroll-margin-top: 16px;
+    }
+
+    .menu-input {
+        min-width: 0;
+    }
+}

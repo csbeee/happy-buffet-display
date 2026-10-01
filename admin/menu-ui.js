@@ -322,12 +322,18 @@ export function addMenu(categoryKey, value = "") {
 
     if (!list) return;
 
+    // 모바일에서 메뉴 추가 시 브라우저가 새 DOM 위치로 포커스를
+    // 재계산하면서 화면이 최상단으로 이동하는 현상을 방지합니다.
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
     list.appendChild(
-
         createMenuItem(value)
-
     );
 
+    requestAnimationFrame(() => {
+        window.scrollTo(scrollX, scrollY);
+    });
 }
 
 /* ============================================
@@ -450,6 +456,9 @@ export function initSortable() {
 
         if (!list) return;
 
+        let dragScrollX = 0;
+        let dragScrollY = 0;
+
         Sortable.create(
 
             list,
@@ -464,9 +473,30 @@ export function initSortable() {
 
                 chosenClass: "chosen",
 
-                forceFallback: true,
+                // 모바일에서는 네이티브 touch drag를 우선 사용합니다.
+                // forceFallback은 일부 모바일 브라우저에서 드래그 시작/종료 시
+                // 페이지 스크롤 위치가 최상단으로 튀는 현상을 만들 수 있습니다.
+                forceFallback: false,
 
-                fallbackTolerance: 3
+                fallbackTolerance: 3,
+
+                onStart() {
+                    dragScrollX = window.scrollX;
+                    dragScrollY = window.scrollY;
+                },
+
+                onEnd() {
+                    // 드래그 종료 직후 브라우저가 자동으로 바꾼 스크롤 위치 복원
+                    requestAnimationFrame(() => {
+                        window.scrollTo(dragScrollX, dragScrollY);
+
+                        // 한 프레임 더 보정하여 모바일 Safari/Chrome의
+                        // touch drag 후 자동 스크롤도 차단합니다.
+                        requestAnimationFrame(() => {
+                            window.scrollTo(dragScrollX, dragScrollY);
+                        });
+                    });
+                }
 
             }
 

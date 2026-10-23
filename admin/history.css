@@ -62,3 +62,9 @@ button.secondary { background: #e9eef5; color: #263548; }
   .menu-groups { grid-template-columns: 1fr; }
   .history-card { padding: 14px; }
 }
+.header-links { display: flex; flex-wrap: wrap; gap: 14px; }
+.restore-btn { flex: 0 0 auto; align-self: flex-start; }
+@media (max-width: 600px) {
+  .header-links { width: 100%; justify-content: space-between; }
+  .restore-btn { width: 100%; }
+}

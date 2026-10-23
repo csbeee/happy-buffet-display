@@ -25,23 +25,28 @@ function dayOf(entry) {
 
 function allDishes(entry) {
   const dishes = [];
-  const add = (name, category) => {
+  const add = (name, category, meal = "점심") => {
     if (typeof name !== "string") return;
     const clean = name.trim();
-    if (clean) dishes.push({ name: clean, category });
+    if (clean) dishes.push({name:clean,category,meal});
   };
   if (entry.displayMode === "special" && Array.isArray(entry.sections)) {
-    for (const section of entry.sections) {
-      const title = section.title || "특별 메뉴";
-      if (Array.isArray(section.items)) section.items.forEach(name => add(name, title));
-    }
+    for (const section of entry.sections) if (Array.isArray(section.items)) section.items.forEach(name => add(name,section.title || "특별 메뉴","특별일"));
     return dishes;
   }
-  for (const [key, label] of Object.entries(categoryLabels)) {
+  for (const [key,label] of Object.entries(categoryLabels)) {
     const items = entry[key];
-    if (Array.isArray(items)) items.forEach(name => add(name, label));
-    else if (typeof items === "string") add(items, label);
+    if (Array.isArray(items)) items.forEach(name => add(name,label,"점심"));
+    else if (typeof items === "string") add(items,label,"점심");
   }
+  const dinner = entry.dinner && typeof entry.dinner === "object" ? entry.dinner : {};
+  for (const [key,label] of Object.entries(categoryLabels)) {
+    const items = dinner[key];
+    if (Array.isArray(items)) items.forEach(name => add(name,label,"저녁 별도"));
+    else if (typeof items === "string") add(items,label,"저녁 별도");
+  }
+  const leftovers = Array.isArray(dinner.leftovers) ? dinner.leftovers : (Array.isArray(entry.dinnerLeftovers) ? entry.dinnerLeftovers : []);
+  leftovers.forEach(item => typeof item === "string" ? add(item,"점심 잔여 메뉴","저녁 잔여") : item && add(item.name,"점심 잔여 메뉴","저녁 잔여"));
   return dishes;
 }
 
@@ -115,7 +120,7 @@ function renderRecommendationCards(container, items, emptyMessage) {
     const meta = document.createElement("div");
     meta.className = "recommend-meta";
     const gapText = item.daysSinceLast === null ? "간격 확인 불가" : "마지막 제공 후 " + item.daysSinceLast + "일";
-    meta.textContent = item.category + " · 기록상 제공 " + item.count + "일 · 마지막 기록 " +
+    meta.textContent = item.meal + " · " + item.category + " · 기록상 제공 " + item.count + "일 · 마지막 기록 " +
       (item.lastDate || "날짜 없음") + " · " + gapText;
     const button = document.createElement("button");
     button.type = "button";
@@ -150,12 +155,12 @@ async function load() {
       if (day.startsWith("unknown-")) continue;
       for (const dish of allDishes(entry)) {
         const normalizedName = dish.name.toLocaleLowerCase("ko");
-        const dishKey = dish.category + "|" + normalizedName;
+        const dishKey = dish.meal + "|" + dish.category + "|" + normalizedName;
         const dedupeDishKey = day + "|" + dishKey;
         if (!dayDishSeen.has(dedupeDishKey)) {
           dayDishSeen.add(dedupeDishKey);
           const item = dishes.get(dishKey) || {
-            name: dish.name, category: dish.category, count: 0, lastDate: ""
+            name: dish.name, category: dish.category, meal: dish.meal, count: 0, lastDate: ""
           };
           item.count += 1;
           if (!item.lastDate || day > item.lastDate) item.lastDate = day;
@@ -178,21 +183,21 @@ async function load() {
     const sortedPopular = [...dishList].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ko"));
 
     const mainRecommendations = dishList
-      .filter(item => item.category === "메인 메뉴" && item.daysSinceLast !== null && item.daysSinceLast >= MAIN_MIN_GAP_DAYS)
+      .filter(item => item.category === "메인 메뉴" && ["점심", "저녁 별도"].includes(item.meal) && item.daysSinceLast !== null && item.daysSinceLast >= MAIN_MIN_GAP_DAYS)
       .sort((a, b) => b.daysSinceLast - a.daysSinceLast || a.count - b.count || a.name.localeCompare(b.name, "ko"))
       .slice(0, 12);
     const sideRecommendations = dishList
-      .filter(item => ["반찬", "추가 반찬"].includes(item.category) && item.daysSinceLast !== null)
+      .filter(item => ["반찬", "추가 반찬", "점심 잔여 메뉴"].includes(item.category) && item.daysSinceLast !== null)
       .sort((a, b) => b.daysSinceLast - a.daysSinceLast || a.count - b.count || a.name.localeCompare(b.name, "ko"))
       .slice(0, 12);
 
     summaryEl.replaceChildren();
     showMetric("분석한 저장 기록", String(valid.length), "최근 최대 200건");
     showMetric("기록된 날짜", String(days.size), "중복 날짜 제외");
-    showMetric("서로 다른 메뉴", String(dishList.length), "메뉴 분류별 집계");
+    showMetric("서로 다른 메뉴", String(new Set(dishList.map(item => item.name.toLocaleLowerCase("ko"))).size), "점심·저녁 제공 유형 분리");
     showMetric("가장 많이 나온 메뉴", sortedPopular[0]?.name || "-", sortedPopular[0] ? sortedPopular[0].count + "일 기록" : "이력 없음");
 
-    renderRank(popularEl, sortedPopular.slice(0, 10), item => item.count + "일 · " + item.category);
+    renderRank(popularEl, sortedPopular.slice(0, 10), item => item.count + "일 · " + item.meal);
     renderRecommendationCards(
       mainRecommendEl,
       mainRecommendations,
@@ -209,7 +214,7 @@ async function load() {
     renderRank(categoryEl, categoryEntries, item => item.count + "일");
 
     statusEl.textContent = valid.length
-      ? "통계 계산 완료 · " + valid.length + "건 분석 · " + dishList.length + "개 메뉴 · 메인 간격 기준 " + MAIN_MIN_GAP_DAYS + "일"
+      ? "통계 계산 완료 · " + valid.length + "건 분석 · 점심/저녁 별도/점심 잔여 구분 · 메인 간격 기준 " + MAIN_MIN_GAP_DAYS + "일"
       : "아직 저장된 메뉴 이력이 없습니다.";
   } catch (error) {
     console.error("메뉴 추천/통계 조회 실패:", error);

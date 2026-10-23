@@ -34,6 +34,8 @@ import {
 
     orderBy,
 
+    limit,
+
     where,
     
     onSnapshot
@@ -139,6 +141,26 @@ export async function saveTodayMenu(menu) {
     });
 
     await batch.commit();
+}
+
+/* ============================================
+   메뉴 이력 조회
+   - 최근 200개 이력을 최신순으로 반환
+============================================ */
+
+export async function getMenuHistory(maxItems = 200) {
+    const historyCollection = collection(db, "menuHistory");
+    const historyQuery = query(
+        historyCollection,
+        orderBy("savedAt", "desc"),
+        limit(Math.max(1, Math.min(Number(maxItems) || 200, 500)))
+    );
+    const snapshot = await getDocs(historyQuery);
+
+    return snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data()
+    }));
 }
 
 /* ============================================

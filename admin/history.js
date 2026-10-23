@@ -82,6 +82,20 @@ function makeCard(entry) {
   saved.textContent = timeString(entry.savedAt);
   left.append(date, saved);
   top.appendChild(left);
+  const restoreButton = document.createElement("button");
+  restoreButton.type = "button";
+  restoreButton.className = "restore-btn";
+  restoreButton.textContent = "이 메뉴 불러오기";
+  restoreButton.addEventListener("click", () => {
+    try {
+      sessionStorage.setItem("happyBuffetHistoryDraft", JSON.stringify(entry));
+      window.location.href = "./index.html";
+    } catch (error) {
+      console.error("과거 메뉴 임시 저장 실패:", error);
+      alert("메뉴를 불러오지 못했습니다. 다시 시도해 주세요.");
+    }
+  });
+  top.appendChild(restoreButton);
   card.appendChild(top);
 
   const groups = document.createElement("div");

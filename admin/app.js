@@ -160,9 +160,11 @@ function applyHistoryDraft() {
 
         // 이력 페이지에서 불러온 데이터는 편집기에만 채웁니다.
         // 저장 버튼을 누르기 전까지 현재 전광판 메뉴는 변경되지 않습니다.
+        // 먼저 모드를 전환한 뒤 이력 데이터를 렌더링해야
+        // 일반 모드 전환 과정에서 현재 메뉴가 이력 데이터를 덮어쓰지 않습니다.
+        setDisplayMode(draft.displayMode === "special" ? "special" : "normal");
         renderMenu(draft);
         restoreConcept(draft);
-        setDisplayMode(draft.displayMode === "special" ? "special" : "normal");
         if (saveInfo) {
             saveInfo.textContent = "과거 메뉴를 불러왔습니다. 수정 후 저장하면 오늘 메뉴로 적용됩니다.";
         }

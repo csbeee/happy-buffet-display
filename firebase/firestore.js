@@ -16,6 +16,8 @@ import {
 
     setDoc,
 
+    writeBatch,
+
     collection,
 
     getDocs,
@@ -101,45 +103,42 @@ export function watchTodayMenu(callback) {
 }
 
 export async function saveTodayMenu(menu) {
+    // 현재 메뉴 문서와 이력 문서를 한 번의 batch로 저장합니다.
+    // 한글 날짜는 한국 시간 기준으로 기록합니다.
+    const now = new Date();
+    const menuDate = new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(now);
 
-    await setDoc(
+    const savedMenu = {
+        ...menu,
+        displayMode: menu.displayMode ?? "normal",
+        concept: menu.concept ?? {
+            enabled: false,
+            title: "",
+            subtitle: "",
+            icon: ""
+        },
+        sections: Array.isArray(menu.sections) ? menu.sections : [],
+        updatedAt: serverTimestamp()
+    };
 
-        TODAY_DOC,
+    const historyRef = doc(collection(db, "menuHistory"));
+    const batch = writeBatch(db);
 
-        {
+    batch.set(TODAY_DOC, savedMenu);
 
-            ...menu,
+    batch.set(historyRef, {
+        ...savedMenu,
+        menuDate,
+        savedAt: serverTimestamp(),
+        source: "admin-save"
+    });
 
-            displayMode:
-                menu.displayMode ?? "normal",
-
-            concept:
-                menu.concept ?? {
-
-                    enabled: false,
-
-                    title: "",
-
-                    subtitle: "",
-
-                    icon: ""
-
-                },
-
-            sections:
-                Array.isArray(menu.sections)
-
-                    ? menu.sections
-
-                    : [],
-
-            updatedAt:
-                serverTimestamp()
-
-        }
-
-    );
-
+    await batch.commit();
 }
 
 /* ============================================

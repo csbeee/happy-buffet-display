@@ -6,6 +6,9 @@ import {
     getMenuIcon
 } from "../shared/icon-map.js";
 
+let latestMenu = null;
+let lastMealMode = null;
+
 
 /* ============================================
                 날짜 / 시간
@@ -35,6 +38,15 @@ function updateClock() {
                 weekday: "short"
             });
     }
+
+    const hour = Number(new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Seoul", hour: "2-digit", hourCycle: "h23"
+    }).format(now));
+    const currentMealMode = hour >= 15 ? "dinner" : "lunch";
+    if (lastMealMode !== null && currentMealMode !== lastMealMode && latestMenu) {
+        renderToday(latestMenu);
+    }
+    lastMealMode = currentMealMode;
 
 }
 
@@ -852,6 +864,7 @@ watchTodayMenu(
         }
 
 
+        latestMenu = menu;
         console.log(
             "Display Today Menu:",
             menu

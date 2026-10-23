@@ -150,6 +150,30 @@ function restoreConcept(menu) {
     }
 }
 
+function applyHistoryDraft() {
+    let raw = null;
+    try {
+        raw = sessionStorage.getItem("happyBuffetHistoryDraft");
+        if (!raw) return false;
+        const draft = JSON.parse(raw);
+        sessionStorage.removeItem("happyBuffetHistoryDraft");
+
+        // 이력 페이지에서 불러온 데이터는 편집기에만 채웁니다.
+        // 저장 버튼을 누르기 전까지 현재 전광판 메뉴는 변경되지 않습니다.
+        renderMenu(draft);
+        restoreConcept(draft);
+        setDisplayMode(draft.displayMode === "special" ? "special" : "normal");
+        if (saveInfo) {
+            saveInfo.textContent = "과거 메뉴를 불러왔습니다. 수정 후 저장하면 오늘 메뉴로 적용됩니다.";
+        }
+        return true;
+    } catch (error) {
+        console.error("과거 메뉴 불러오기 실패:", error);
+        try { sessionStorage.removeItem("happyBuffetHistoryDraft"); } catch (_) {}
+        return false;
+    }
+}
+
 /* ============================================
    Load Today
    중요:
@@ -172,6 +196,7 @@ async function loadToday() {
             resetConceptEditor();
             setDisplayMode("normal");
             updateSaveInfo(null);
+            applyHistoryDraft();
             return;
         }
 
@@ -193,6 +218,7 @@ async function loadToday() {
         }
 
         updateSaveInfo(menu.updatedAt);
+        applyHistoryDraft();
 
     } catch (error) {
         console.error("오늘 메뉴 불러오기 실패:", error);

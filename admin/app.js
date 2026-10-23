@@ -19,6 +19,9 @@ const conceptSectionsList = document.getElementById("conceptSectionsList");
 const addConceptSectionBtn = document.getElementById("addConceptSectionBtn");
 const conceptTheme = document.getElementById("conceptTheme");
 const normalMenuEditor = document.getElementById("normalMenuEditor");
+const dinnerEditor = document.getElementById("dinnerEditor");
+const dinnerKeys = ["soup", "main", "side", "kimchi", "dessert", "notice"];
+const dinnerLabels = { soup: "국", main: "메인", side: "반찬", kimchi: "김치", dessert: "후식", notice: "공지" };
 
 let currentDisplayMode = "normal";
 let todayMenuData = null;
@@ -54,6 +57,7 @@ function setDisplayMode(mode) {
 
     normalMenuEditor?.classList.toggle("hidden", isSpecial);
     conceptEditor?.classList.toggle("hidden", !isSpecial);
+    dinnerEditor?.classList.toggle("hidden", isSpecial);
 
     // 모드 전환 시에도 기존 일반 메뉴 데이터를 다시 화면에 채웁니다.
     // 현재 Firestore 문서가 special이어도 일반 메뉴 필드가 함께 존재한다면 표시할 수 있습니다.
@@ -176,6 +180,64 @@ function applyHistoryDraft() {
     }
 }
 
+/* Lunch/dinner editor helpers */
+function linesFrom(id) {
+    return (document.getElementById(id)?.value || "").split("\n").map(v => v.trim()).filter(Boolean);
+}
+function fillLines(id, values) {
+    const field = document.getElementById(id);
+    if (field) field.value = Array.isArray(values) ? values.join("\n") : "";
+}
+function lunchDishChoices(lunchMenu, selected = []) {
+    const container = document.getElementById("dinnerLeftoverChoices");
+    if (!container) return;
+    container.replaceChildren();
+    const selectedKeys = new Set((Array.isArray(selected) ? selected : []).map(item =>
+        typeof item === "string" ? item : `${item.category || ""}|${item.name || ""}`
+    ));
+    let count = 0;
+    for (const key of ["soup", "main", "side", "kimchi", "dessert"]) {
+        const items = Array.isArray(lunchMenu?.[key]) ? lunchMenu[key] : [];
+        for (const rawName of items) {
+            if (typeof rawName !== "string" || !rawName.trim()) continue;
+            const name = rawName.trim(), uniqueKey = key + "|" + name;
+            const label = document.createElement("label"); label.className = "leftover-choice";
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox"; checkbox.value = name; checkbox.dataset.category = key;
+            checkbox.checked = selectedKeys.has(uniqueKey) || selectedKeys.has(name);
+            const text = document.createElement("span");
+            text.textContent = `${dinnerLabels[key]} · ${name}`;
+            label.append(checkbox, text); container.appendChild(label); count++;
+        }
+    }
+    if (!count) {
+        const empty = document.createElement("p"); empty.className = "empty-leftovers";
+        empty.textContent = "먼저 일반 메뉴(점심 메뉴)를 입력하면 잔여 메뉴를 선택할 수 있습니다.";
+        container.appendChild(empty);
+    }
+}
+function collectDinnerData() {
+    const dinner = {};
+    for (const key of dinnerKeys) dinner[key] = linesFrom("dinner" + key[0].toUpperCase() + key.slice(1));
+    dinner.leftovers = [...document.querySelectorAll("#dinnerLeftoverChoices input[type=checkbox]:checked")]
+        .map(input => ({name: input.value, category: input.dataset.category}));
+    return dinner;
+}
+function restoreDinner(menu) {
+    const dinner = menu?.dinner && typeof menu.dinner === "object" ? menu.dinner : {};
+    for (const key of dinnerKeys) fillLines("dinner" + key[0].toUpperCase() + key.slice(1), dinner[key]);
+    lunchDishChoices(menu || {}, dinner.leftovers || menu?.dinnerLeftovers || []);
+}
+function bindLunchLeftoverRefresh() {
+    const container = document.getElementById("menuContainer");
+    if (!container) return;
+    container.addEventListener("change", () => {
+        const selected = [...document.querySelectorAll("#dinnerLeftoverChoices input:checked")]
+            .map(input => ({name: input.value, category: input.dataset.category}));
+        lunchDishChoices(collectMenu(), selected);
+    });
+}
+
 /* ============================================
    Load Today
    중요:
@@ -196,6 +258,7 @@ async function loadToday() {
         if (!menu) {
             resetMenu();
             resetConceptEditor();
+            restoreDinner({});
             setDisplayMode("normal");
             updateSaveInfo(null);
             applyHistoryDraft();
@@ -206,6 +269,7 @@ async function loadToday() {
         // 현재 displayMode가 special이어도 일반 메뉴 편집 화면을 열 수 있게 합니다.
         try {
             renderMenu(menu);
+            restoreDinner(menu);
             console.log("✅ 일반 메뉴 데이터 렌더링 완료");
         } catch (error) {
             console.error("일반 메뉴 데이터 렌더링 실패:", error);
@@ -248,6 +312,7 @@ async function saveToday() {
             saveData = {
                 ...(todayMenuData || {}),
                 ...normalMenu,
+                dinner: collectDinnerData(),
                 ...collectConcept(),
                 displayMode: "special"
             };
@@ -258,6 +323,7 @@ async function saveToday() {
             saveData = {
                 ...(todayMenuData || {}),
                 ...normalMenu,
+                dinner: collectDinnerData(),
                 displayMode: "normal"
             };
         }
@@ -326,6 +392,7 @@ async function init() {
     }
 
     bindEvents();
+    bindLunchLeftoverRefresh();
     await loadToday();
 
     console.log("③ admin init 완료");

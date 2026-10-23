@@ -543,3 +543,10 @@ footer {
 }
 
 /* END v4.8 */
+
+.meal-label { margin:0 0 14px; padding:14px 20px; text-align:center; border-radius:16px; background:#1d4ed8; color:#fff; font-size:42px; font-weight:950; letter-spacing:1px; }
+.menu-title.leftover { background:#92400e; }
+#dinnerLeftovers { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+#dinnerLeftovers li { min-height:70px; padding:12px 16px; background:#fffbeb; border:2px dashed #d97706; border-radius:12px; font-size:42px; font-weight:850; color:#78350f; display:flex; align-items:center; justify-content:center; text-align:center; }
+#dinnerLeftovers li::before { content:"잔여 · "; font-size:24px; font-weight:900; }
+@media (max-width:700px) { .meal-label { font-size:28px; } #dinnerLeftovers { grid-template-columns:1fr; } #dinnerLeftovers li { font-size:28px; } }

@@ -169,7 +169,9 @@ async function load() {
       }
     }
 
-    const latestDay = [...days].sort().pop() || "";
+    const latestDay = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(new Date());
     const dishList = [...dishes.values()].map(item => ({
       ...item, daysSinceLast: daysBetween(item.lastDate, latestDay)
     }));

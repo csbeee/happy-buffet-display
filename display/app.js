@@ -385,131 +385,26 @@ function drawUpdatedTime(updatedAt) {
 ============================================ */
 
 function renderNormal(menu) {
-
-    if (!menu) {
-        return;
+    if (!menu) return;
+    const hour = Number(new Intl.DateTimeFormat("en-US", {timeZone:"Asia/Seoul",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
+    const dinnerMode = hour >= 15;
+    const dinner = menu.dinner && typeof menu.dinner === "object" ? menu.dinner : {};
+    const leftovers = Array.isArray(dinner.leftovers) ? dinner.leftovers : (Array.isArray(menu.dinnerLeftovers) ? menu.dinnerLeftovers : []);
+    const label = document.getElementById("mealLabel");
+    if (label) label.textContent = dinnerMode ? "저녁 메뉴" : "점심 메뉴";
+    const keys = ["soup","main","side","kimchi","dessert"], values = {};
+    for (const key of keys) {
+        values[key] = dinnerMode ? (Array.isArray(dinner[key]) ? dinner[key] : []) : (Array.isArray(menu[key]) ? menu[key] : []);
+        draw(key, values[key]);
     }
-
-
-    /* ----------------------------------------
-       메뉴 데이터
-    ---------------------------------------- */
-
-    const soup =
-        Array.isArray(menu.soup)
-            ? menu.soup
-            : [];
-
-
-    const main =
-        Array.isArray(menu.main)
-            ? menu.main
-            : [];
-
-
-    const side =
-        Array.isArray(menu.side)
-            ? menu.side
-            : [];
-
-
-    const kimchi =
-        Array.isArray(menu.kimchi)
-            ? menu.kimchi
-            : [];
-
-
-    const dessert =
-        Array.isArray(menu.dessert)
-            ? menu.dessert
-            : [];
-
-
-    /* ----------------------------------------
-       메뉴 출력
-    ---------------------------------------- */
-
-    draw(
-        "soup",
-        soup
-    );
-
-
-    draw(
-        "main",
-        main
-    );
-
-
-    draw(
-        "side",
-        side
-    );
-
-
-    draw(
-        "kimchi",
-        kimchi
-    );
-
-
-    draw(
-        "dessert",
-        dessert
-    );
-
-
-    /* ----------------------------------------
-       카드 표시 / 숨김
-    ---------------------------------------- */
-
-    toggleCard(
-        "card-soup",
-        soup
-    );
-
-
-    toggleCard(
-        "card-main",
-        main
-    );
-
-
-    toggleCard(
-        "card-side",
-        side
-    );
-
-
-    toggleCard(
-        "card-kimchi",
-        kimchi
-    );
-
-
-    toggleCard(
-        "card-dessert",
-        dessert
-    );
-
-
-    /* ----------------------------------------
-       공지
-    ---------------------------------------- */
-
-    drawNotice(
-        menu.notice
-    );
-
-
-    /* ----------------------------------------
-       저장 시간
-    ---------------------------------------- */
-
-    drawUpdatedTime(
-        menu.updatedAt
-    );
-
+    toggleCard("card-soup", values.soup); toggleCard("card-main", values.main);
+    toggleCard("card-side", values.side); toggleCard("card-kimchi", values.kimchi);
+    toggleCard("card-dessert", values.dessert);
+    const leftoverNames = dinnerMode ? leftovers.map(item => typeof item === "string" ? item : item?.name).filter(name => typeof name === "string" && name.trim()) : [];
+    draw("dinnerLeftovers", leftoverNames);
+    toggleCard("card-dinner-leftovers", leftoverNames);
+    drawNotice(dinnerMode ? (dinner.notice || menu.notice) : menu.notice);
+    drawUpdatedTime(menu.updatedAt);
 }
 
 

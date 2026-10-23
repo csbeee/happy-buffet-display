@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>추천 메뉴·통계 | 행복을 담은 한식뷔페</title>
+  <link rel="stylesheet" href="./recommendations.css">
+</head>
+<body>
+  <header class="page-header">
+    <div>
+      <h1>추천 메뉴 · 과거 메뉴 통계</h1>
+      <p>저장된 메뉴 이력을 바탕으로 자주 제공한 메뉴와 오랫동안 제공하지 않은 메뉴를 확인합니다.</p>
+    </div>
+    <nav>
+      <a href="./index.html">관리자 화면</a>
+      <a href="./history.html">메뉴 이력</a>
+    </nav>
+  </header>
+  <main class="main">
+    <section class="toolbar">
+      <div>
+        <strong>분석 범위</strong>
+        <p>최근 저장 이력 최대 200건 · 동일 날짜의 중복 저장은 통계에서 한 번만 계산합니다.</p>
+      </div>
+      <button id="refreshBtn" type="button">통계 새로고침</button>
+    </section>
+    <div id="status" class="status" role="status">통계를 계산하는 중입니다.</div>
+    <section id="summary" class="summary-grid"></section>
+    <section class="panel">
+      <div class="panel-heading">
+        <h2>과거에 가장 많이 제공한 메뉴</h2>
+        <p>메뉴가 등장한 날짜 수 기준</p>
+      </div>
+      <div id="popularList" class="rank-list"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-heading">
+        <h2>오랫동안 제공하지 않은 메뉴 추천</h2>
+        <p>과거 기록에는 있지만 최근 기록에서 드물거나 오래전에 나온 메뉴입니다.</p>
+      </div>
+      <div id="recommendList" class="recommend-list"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-heading">
+        <h2>카테고리별 제공 비중</h2>
+        <p>메뉴가 등장한 날짜 수 기준이며, 한 날짜에 여러 번 저장한 기록은 중복 제거합니다.</p>
+      </div>
+      <div id="categoryList" class="rank-list"></div>
+    </section>
+    <p class="footnote">통계는 현재 저장된 최근 200건의 이력만 분석합니다. 이력 기능을 도입하기 전에 제공한 메뉴나 기록되지 않은 메뉴는 포함되지 않습니다.</p>
+  </main>
+  <script type="module" src="./recommendations.js"></script>
+</body>
+</html>

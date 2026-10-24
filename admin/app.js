@@ -49,21 +49,19 @@ function updateSaveInfo(timestamp) {
 ============================================ */
 
 function setDisplayMode(mode) {
-    currentDisplayMode = mode === "special" ? "special" : "normal";
+    currentDisplayMode = ["lunch", "dinner", "special"].includes(mode) ? mode : "lunch";
     const isSpecial = currentDisplayMode === "special";
+    const isDinner = currentDisplayMode === "dinner";
 
-    normalModeBtn?.classList.toggle("active", !isSpecial);
+    document.getElementById("lunchModeBtn")?.classList.toggle("active", currentDisplayMode === "lunch");
+    document.getElementById("dinnerModeBtn")?.classList.toggle("active", isDinner);
     specialModeBtn?.classList.toggle("active", isSpecial);
 
-    normalMenuEditor?.classList.toggle("hidden", isSpecial);
+    normalMenuEditor?.classList.toggle("hidden", isSpecial || isDinner);
+    dinnerEditor?.classList.toggle("hidden", isSpecial || !isDinner);
     conceptEditor?.classList.toggle("hidden", !isSpecial);
-    dinnerEditor?.classList.toggle("hidden", isSpecial);
 
-    // 모드 전환 시에도 기존 일반 메뉴 데이터를 다시 화면에 채웁니다.
-    // 현재 Firestore 문서가 special이어도 일반 메뉴 필드가 함께 존재한다면 표시할 수 있습니다.
-    if (!isSpecial && todayMenuData) {
-        renderMenu(todayMenuData);
-    }
+    if (todayMenuData && !isSpecial) renderMenu(todayMenuData);
 }
 
 /* ============================================
@@ -166,7 +164,7 @@ function applyHistoryDraft() {
         // 저장 버튼을 누르기 전까지 현재 전광판 메뉴는 변경되지 않습니다.
         // 먼저 모드를 전환한 뒤 이력 데이터를 렌더링해야
         // 일반 모드 전환 과정에서 현재 메뉴가 이력 데이터를 덮어쓰지 않습니다.
-        setDisplayMode(draft.displayMode === "special" ? "special" : "normal");
+        setDisplayMode(draft.displayMode === "special" ? "special" : draft.displayMode === "dinner" ? "dinner" : "lunch");
         renderMenu(draft);
         restoreConcept(draft);
         if (saveInfo) {
@@ -280,7 +278,7 @@ async function loadToday() {
             setDisplayMode("special");
         } else {
             resetConceptEditor();
-            setDisplayMode("normal");
+            setDisplayMode(menu.displayMode === "dinner" ? "dinner" : "lunch");
         }
 
         updateSaveInfo(menu.updatedAt);
@@ -324,7 +322,7 @@ async function saveToday() {
                 ...(todayMenuData || {}),
                 ...normalMenu,
                 dinner: collectDinnerData(),
-                displayMode: "normal"
+                displayMode: currentDisplayMode
             };
         }
 
@@ -350,13 +348,9 @@ async function saveToday() {
 ============================================ */
 
 function bindEvents() {
-    normalModeBtn?.addEventListener("click", () => {
-        setDisplayMode("normal");
-    });
-
-    specialModeBtn?.addEventListener("click", () => {
-        setDisplayMode("special");
-    });
+    document.getElementById("lunchModeBtn")?.addEventListener("click", () => setDisplayMode("lunch"));
+    document.getElementById("dinnerModeBtn")?.addEventListener("click", () => setDisplayMode("dinner"));
+    specialModeBtn?.addEventListener("click", () => setDisplayMode("special"));
 
     addConceptSectionBtn?.addEventListener("click", () => {
         addConceptSection();

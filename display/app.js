@@ -7,7 +7,6 @@ import {
 } from "../shared/icon-map.js";
 
 let latestMenu = null;
-let lastMealMode = null;
 
 
 /* ============================================
@@ -39,14 +38,7 @@ function updateClock() {
             });
     }
 
-    const hour = Number(new Intl.DateTimeFormat("en-US", {
-        timeZone: "Asia/Seoul", hour: "2-digit", hourCycle: "h23"
-    }).format(now));
-    const currentMealMode = hour >= 15 ? "dinner" : "lunch";
-    if (lastMealMode !== null && currentMealMode !== lastMealMode && latestMenu) {
-        renderToday(latestMenu);
-    }
-    lastMealMode = currentMealMode;
+    // 메뉴 모드는 관리자가 저장한 displayMode를 따릅니다. 시각에 따른 자동 전환은 하지 않습니다.
 
 }
 
@@ -398,19 +390,20 @@ function drawUpdatedTime(updatedAt) {
 
 function renderNormal(menu) {
     if (!menu) return;
-    const hour = Number(new Intl.DateTimeFormat("en-US", {timeZone:"Asia/Seoul",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
-    const dinnerMode = hour >= 15;
+    const dinnerMode = menu.displayMode === "dinner";
     const dinner = menu.dinner && typeof menu.dinner === "object" ? menu.dinner : {};
     const leftovers = Array.isArray(dinner.leftovers) ? dinner.leftovers : (Array.isArray(menu.dinnerLeftovers) ? menu.dinnerLeftovers : []);
     const label = document.getElementById("mealLabel");
     if (label) label.textContent = dinnerMode ? "저녁 메뉴" : "점심 메뉴";
-    const keys = ["soup","main","side","kimchi","dessert"], values = {};
+    const keys = ["soup", "main", "side", "kimchi", "dessert"], values = {};
     for (const key of keys) {
         values[key] = dinnerMode ? (Array.isArray(dinner[key]) ? dinner[key] : []) : (Array.isArray(menu[key]) ? menu[key] : []);
         draw(key, values[key]);
     }
-    toggleCard("card-soup", values.soup); toggleCard("card-main", values.main);
-    toggleCard("card-side", values.side); toggleCard("card-kimchi", values.kimchi);
+    toggleCard("card-soup", values.soup);
+    toggleCard("card-main", values.main);
+    toggleCard("card-side", values.side);
+    toggleCard("card-kimchi", values.kimchi);
     toggleCard("card-dessert", values.dessert);
     const leftoverNames = dinnerMode ? leftovers.map(item => typeof item === "string" ? item : item?.name).filter(name => typeof name === "string" && name.trim()) : [];
     draw("dinnerLeftovers", leftoverNames);
@@ -418,7 +411,6 @@ function renderNormal(menu) {
     drawNotice(dinnerMode ? (dinner.notice || menu.notice) : menu.notice);
     drawUpdatedTime(menu.updatedAt);
 }
-
 
 /* ============================================
             컨셉데이 테마
@@ -805,10 +797,11 @@ function renderToday(menu) {
     }
 
 
-    const mode =
-        menu.displayMode === "special"
-            ? "special"
-            : "normal";
+    const mode = menu.displayMode === "special"
+        ? "special"
+        : menu.displayMode === "dinner"
+            ? "dinner"
+            : "lunch";
 
 
     /* ----------------------------------------
@@ -824,7 +817,7 @@ function renderToday(menu) {
        일반 메뉴
     ---------------------------------------- */
 
-    if (mode === "normal") {
+    if (mode === "lunch" || mode === "dinner") {
 
         renderNormal(
             menu

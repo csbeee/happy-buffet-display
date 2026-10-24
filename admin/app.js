@@ -291,18 +291,6 @@ function lunchDishChoices(lunchMenu, selected = []) {
         container.appendChild(empty);
     }
 }
-function collectDinnerData() {
-    const dinner = {};
-    for (const key of dinnerKeys) dinner[key] = linesFrom("dinner" + key[0].toUpperCase() + key.slice(1));
-    dinner.leftovers = [...document.querySelectorAll("#dinnerLeftoverChoices input[type=checkbox]:checked")]
-        .map(input => ({name: input.value, category: input.dataset.category}));
-    return dinner;
-}
-function restoreDinner(menu) {
-    const dinner = menu?.dinner && typeof menu.dinner === "object" ? menu.dinner : {};
-    for (const key of dinnerKeys) fillLines("dinner" + key[0].toUpperCase() + key.slice(1), dinner[key]);
-    lunchDishChoices(menu || {}, dinner.leftovers || menu?.dinnerLeftovers || []);
-}
 function bindLunchLeftoverRefresh() {
     const container = document.getElementById("menuContainer");
     if (!container) return;

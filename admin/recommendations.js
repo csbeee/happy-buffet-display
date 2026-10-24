@@ -41,7 +41,7 @@ function dishesForEntry(entry) {
   const result = [];
   if (entry.displayMode === "special") return result;
   if (activeFilter === "lunch") {
-    if (entry.displayMode && !["lunch", "normal"].includes(entry.displayMode)) return result;
+    if (entry.displayMode !== "lunch") return result;
     for (const [key, label] of Object.entries(categoryLabels)) {
       addLines(result, entry[key], label, "점심");
     }
@@ -134,11 +134,13 @@ function renderSelectedStats() {
   const categories = new Map();
   const dayDishSeen = new Set();
   const dayCategorySeen = new Set();
+  const selectedDays = new Set();
 
   for (const entry of valid) {
     const day = dayOf(entry);
     if (day.startsWith("unknown-")) continue;
     for (const dish of dishesForEntry(entry)) {
+      selectedDays.add(day);
       const normalizedName = dish.name.toLocaleLowerCase("ko");
       const dishKey = dish.meal + "|" + dish.category + "|" + normalizedName;
       const dedupeDishKey = day + "|" + dishKey;
@@ -179,7 +181,7 @@ function renderSelectedStats() {
   summaryEl.replaceChildren();
   const filterLabel = activeFilter === "lunch" ? "점심" : activeFilter === "dinner" ? "저녁 신규 메뉴" : "점심 잔여 메뉴";
   showMetric("분석 유형", filterLabel, "선택한 제공 유형만 집계");
-  showMetric("기록된 날짜", String(new Set(dishList.map(item => item.lastDate)).size), "중복 날짜 제외");
+  showMetric("기록된 날짜", String(selectedDays.size), "중복 날짜 제외");
   showMetric("서로 다른 메뉴", String(dishList.length), "메뉴·제공 유형별 분리");
   showMetric("가장 많이 나온 메뉴", sortedPopular[0]?.name || "-", sortedPopular[0] ? sortedPopular[0].count + "일 기록" : "해당 유형 기록 없음");
 

@@ -45,14 +45,9 @@
 
 <section id="dinnerEditor" class="dinner-editor">
   <div class="concept-editor-header"><h2>저녁 메뉴 설정</h2><p>아래 메뉴는 저녁용으로 별도 준비한 메뉴입니다. 점심 잔여 메뉴는 아래 목록에서 선택하세요.</p></div>
-  <div class="dinner-grid">
-    <div class="editor-group"><label for="dinnerSoup">저녁 국</label><textarea id="dinnerSoup" rows="2" placeholder="저녁용 국 메뉴를 한 줄씩 입력"></textarea></div>
-    <div class="editor-group"><label for="dinnerMain">저녁 메인 메뉴</label><textarea id="dinnerMain" rows="3" placeholder="저녁용 메인 메뉴를 한 줄씩 입력"></textarea></div>
-    <div class="editor-group"><label for="dinnerSide">저녁 반찬</label><textarea id="dinnerSide" rows="4" placeholder="저녁용 반찬을 한 줄씩 입력"></textarea></div>
-    <div class="editor-group"><label for="dinnerKimchi">저녁 김치</label><textarea id="dinnerKimchi" rows="2" placeholder="저녁용 김치 메뉴를 한 줄씩 입력"></textarea></div>
-    <div class="editor-group"><label for="dinnerDessert">저녁 후식</label><textarea id="dinnerDessert" rows="2" placeholder="저녁용 후식을 한 줄씩 입력"></textarea></div>
-    <div class="editor-group"><label for="dinnerNotice">저녁 공지</label><textarea id="dinnerNotice" rows="2" placeholder="저녁 공지사항 (선택)"></textarea></div>
-  </div>
+  <main class="page dinner-menu-page">
+    <section id="dinnerMenuContainer" class="menuContainer"></section>
+  </main>
   <div class="leftover-panel"><h3>점심 잔여 메뉴 — 저녁에도 제공</h3><p>체크한 메뉴는 저녁 잔여 메뉴로 표시됩니다. 별도 저녁 메뉴로 중복 입력하지 마세요.</p><div id="dinnerLeftoverChoices" class="leftover-choices"></div></div>
 </section>
 

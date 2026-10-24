@@ -3,7 +3,8 @@
 // ============================================
 
 import { getTodayMenu, saveTodayMenu, formatUpdatedAt } from "../firebase/firestore.js";
-import { renderMenu, resetMenu, collectMenu, initMenuUI } from "./menu-ui.js";
+import { renderMenu, resetMenu, collectMenu, initMenuUI, createMenuItem } from "./menu-ui.js";
+import { MENU_CATEGORY } from "../shared/menu-category.js";
 import { initLibraryModal, loadLibrary } from "./library-modal.js";
 import { loadAutocomplete } from "./autocomplete.js";
 
@@ -179,12 +180,88 @@ function applyHistoryDraft() {
 }
 
 /* Lunch/dinner editor helpers */
-function linesFrom(id) {
-    return (document.getElementById(id)?.value || "").split("\n").map(v => v.trim()).filter(Boolean);
+function buildDinnerMenuUI() {
+    const container = document.getElementById("dinnerMenuContainer");
+    if (!container || container.dataset.initialized === "true") return;
+    container.dataset.initialized = "true";
+    container.replaceChildren();
+
+    for (const category of MENU_CATEGORY) {
+        const card = document.createElement("section");
+        card.className = "category dinner-category";
+
+        const header = document.createElement("div");
+        header.className = "category-header";
+        const title = document.createElement("div");
+        title.className = "category-title";
+        title.textContent = category.title.replace(/^\\S+\\s*/, "저녁 · ");
+        const addButton = document.createElement("button");
+        addButton.type = "button";
+        addButton.className = "add-btn";
+        addButton.dataset.dinnerAdd = category.key;
+        addButton.textContent = "+ 추가";
+        header.append(title, addButton);
+
+        const list = document.createElement("div");
+        list.className = "menu-list";
+        list.id = dinnerListId(category.key);
+        card.append(header, list);
+        container.appendChild(card);
+
+        if (window.Sortable) {
+            Sortable.create(list, {
+                animation: 180,
+                handle: ".drag",
+                ghostClass: "dragging",
+                chosenClass: "chosen",
+                forceFallback: false,
+                fallbackTolerance: 3
+            });
+        }
+    }
+
+    container.addEventListener("click", event => {
+        const addButton = event.target.closest("[data-dinner-add]");
+        if (addButton) {
+            const list = document.getElementById(dinnerListId(addButton.dataset.dinnerAdd));
+            if (list) list.appendChild(createMenuItem());
+            return;
+        }
+
+        const button = event.target.closest(".menu-item button");
+        const row = button?.closest(".menu-item");
+        if (!button || !row) return;
+        if (button.classList.contains("delete")) row.remove();
+        if (button.classList.contains("up") && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+        if (button.classList.contains("down") && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
+    });
 }
-function fillLines(id, values) {
-    const field = document.getElementById(id);
-    if (field) field.value = Array.isArray(values) ? values.join("\n") : "";
+
+function dinnerListId(key) {
+    return "dinner" + key[0].toUpperCase() + key.slice(1) + "List";
+}
+function collectDinnerData() {
+    const dinner = {};
+    for (const category of MENU_CATEGORY) {
+        dinner[category.key] = [...(document.getElementById(dinnerListId(category.key))?.querySelectorAll(".menu-input") || [])]
+            .map(input => input.value.trim()).filter(Boolean);
+    }
+    dinner.leftovers = [...document.querySelectorAll("#dinnerLeftoverChoices input[type=checkbox]:checked")]
+        .map(input => ({name: input.value, category: input.dataset.category}));
+    return dinner;
+}
+function restoreDinner(menu) {
+    const dinner = menu?.dinner && typeof menu.dinner === "object" ? menu.dinner : {};
+    for (const category of MENU_CATEGORY) {
+        const list = document.getElementById(dinnerListId(category.key));
+        if (!list) continue;
+        list.replaceChildren();
+        const values = Array.isArray(dinner[category.key]) ? dinner[category.key] :
+            dinner[category.key] == null ? [] : [dinner[category.key]];
+        if (values.length) values.forEach(value => list.appendChild(createMenuItem(typeof value === "string" ? value : String(value ?? ""))));
+        else for (let i = 0; i < (category.min || 1); i++) list.appendChild(createMenuItem());
+    }
+    lunchDishChoices(menu || {}, dinner.leftovers || menu?.dinnerLeftovers || []);
 }
 function lunchDishChoices(lunchMenu, selected = []) {
     const container = document.getElementById("dinnerLeftoverChoices");
@@ -372,7 +449,8 @@ async function init() {
 
     try {
         initMenuUI();
-        console.log("② 일반 메뉴 UI 초기화 완료");
+        buildDinnerMenuUI();
+        console.log("② 점심·저녁 메뉴 UI 초기화 완료");
     } catch (error) {
         console.error("일반 메뉴 UI 초기화 실패:", error);
     }

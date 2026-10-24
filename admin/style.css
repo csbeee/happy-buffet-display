@@ -618,3 +618,9 @@ button.danger:hover {
 
 
 .mode-help { margin-top: 10px; color: #667085; font-size: 13px; }
+
+
+/* 저녁 메뉴 입력은 점심과 같은 카테고리 카드 UI를 사용 */
+.dinner-menu-page { padding-top: 0; }
+.dinner-menu-container { padding-top: 12px; }
+.dinner-category .category-title { color: #174a7e; }

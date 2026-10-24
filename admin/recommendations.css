@@ -44,3 +44,12 @@ h2 { font-size:19px; margin:0; }
  .rank-row { grid-template-columns:minmax(85px,1fr) minmax(60px,1fr) auto; gap:8px; font-size:13px; }
  .recommend-list { grid-template-columns:1fr; }
 }
+
+.meal-tabs { display:flex; gap:10px; margin:0 0 14px; }
+.meal-tab { flex:1; background:#e9eef5; color:#27364a; border:1px solid #d7e0eb; }
+.meal-tab.active { background:#1976d2; border-color:#1976d2; color:#fff; }
+#specialStatsNote { margin-top:0; }
+@media(max-width:600px) {
+  .meal-tabs { flex-direction:column; gap:7px; }
+  .meal-tab { width:100%; }
+}

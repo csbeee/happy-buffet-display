@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173f35">
+  <title>식수 접수 | 행복을 담은 한식뷔페</title>
+  <link rel="stylesheet" href="./meal-entry.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div class="brand-mark" aria-hidden="true">행복</div>
+      <div>
+        <p class="eyebrow">HAPPY BUFFET</p>
+        <h1>행복을 담은 한식뷔페</h1>
+        <p class="subtitle">방문 그룹 식수 접수</p>
+      </div>
+      <div class="session-pill" id="mealSessionLabel">오늘 · 점심</div>
+    </header>
+
+    <section class="company-picker" aria-labelledby="companyHeading">
+      <div class="section-heading">
+        <div>
+          <p class="step-label">STEP 1</p>
+          <h2 id="companyHeading">어느 회사에서 오셨나요?</h2>
+        </div>
+        <span class="company-count" id="companyCount">거래처 불러오는 중</span>
+      </div>
+
+      <label class="search-box" for="companySearch">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="companySearch" type="search" autocomplete="off" placeholder="회사명 또는 별칭 검색" aria-describedby="searchHelp">
+        <button type="button" class="clear-search" id="clearSearch" aria-label="검색어 지우기" hidden>지우기</button>
+      </label>
+      <p class="helper" id="searchHelp">회사명 일부만 입력해도 찾을 수 있습니다.</p>
+
+      <section id="favoritesSection" class="company-section" hidden>
+        <div class="list-heading">
+          <h3>자주 이용하는 거래처</h3>
+          <span>즐겨찾기</span>
+        </div>
+        <div id="favoriteCompanies" class="company-grid"></div>
+      </section>
+
+      <section class="company-section">
+        <div class="list-heading">
+          <h3 id="resultsHeading">전체 거래처</h3>
+          <span id="resultsCount"></span>
+        </div>
+        <div id="companyGrid" class="company-grid" aria-live="polite"></div>
+        <div id="emptyState" class="empty-state" hidden>
+          <div class="empty-icon" aria-hidden="true">⌕</div>
+          <h3>검색 결과가 없습니다</h3>
+          <p>회사명이나 등록된 별칭을 다시 확인해 주세요.</p>
+        </div>
+      </section>
+
+      <div id="loadState" class="status-panel" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Firebase에서 거래처 목록을 불러오고 있습니다.</span>
+      </div>
+    </section>
+
+    <section id="codePanel" class="code-panel" aria-labelledby="codeHeading" hidden>
+      <div class="section-heading">
+        <div>
+          <p class="step-label">STEP 2</p>
+          <h2 id="codeHeading">거래처 확인</h2>
+        </div>
+        <button type="button" class="text-button" id="changeCompany">회사 다시 선택</button>
+      </div>
+      <div class="selected-company">
+        <span class="selected-company-label">선택한 거래처</span>
+        <strong id="selectedCompanyName"></strong>
+      </div>
+      <label class="field-label" for="companyCode">거래처 확인 코드</label>
+      <input id="companyCode" class="code-input" type="password" inputmode="numeric" autocomplete="off" placeholder="등록된 확인 코드 입력">
+      <p class="helper">회사명을 확인한 후 등록된 코드를 입력합니다.</p>
+      <div id="codeMessage" class="inline-message" role="status" hidden></div>
+      <button type="button" class="primary-button" id="verifyCodeButton">코드 확인 후 계속</button>
+      <p class="security-note">접수 전 단계의 화면입니다. 실제 코드 인증은 서버 검증 기능 연결 후 활성화됩니다.</p>
+    </section>
+
+    <footer class="app-footer">
+      <span>빠르고 정확한 식수 확인</span>
+      <span id="connectionState">연결 확인 중</span>
+    </footer>
+  </main>
+  <script type="module" src="./meal-entry.js"></script>
+</body>
+</html>

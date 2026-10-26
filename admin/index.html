@@ -16,6 +16,7 @@
     <div class="topButtons">
         <button id="resetBtn">초기화</button>
         <button id="libraryBtn">메뉴 라이브러리</button>
+        <button id="companyManagerToggle" type="button">거래처·비밀번호 관리</button>
         <button type="button" onclick="location.href='./history.html'">메뉴 이력</button>
         <button type="button" onclick="location.href='./recommendations.html'">추천 메뉴·통계</button>
     </div>
@@ -25,7 +26,26 @@
     <span id="saveInfo">저장 기록 없음</span>
 </section>
 
-<section class="displayModeArea">
+<section id="companyManagerPanel" class="company-manager-panel" hidden aria-labelledby="companyManagerHeading">
+    <div class="company-manager-header">
+      <div><h2 id="companyManagerHeading">거래처별 비밀번호 관리</h2><p>거래처마다 숫자 4자리 비밀번호를 설정하거나 변경합니다.</p></div>
+      <button id="companyManagerClose" type="button">닫기</button>
+    </div>
+    <div id="companyManagerStatus" class="company-manager-status" role="status">거래처 목록을 불러오는 중입니다.</div>
+    <div class="company-manager-form">
+      <label for="companyManagerSelect">거래처 선택</label>
+      <select id="companyManagerSelect"><option value="">거래처 선택</option></select>
+      <label for="companyManagerCode">새 비밀번호 (숫자 4자리)</label>
+      <input id="companyManagerCode" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="new-password" placeholder="예: 4826">
+      <div class="company-manager-actions">
+        <button id="companyManagerSave" class="primary" type="button">비밀번호 저장</button>
+        <button id="companyManagerClear" type="button">비밀번호 해제</button>
+      </div>
+      <p class="company-manager-note">저장 후 비밀번호 자체는 다시 표시하지 않습니다. A안은 간편 잠금 기능이며 실제 접근 권한 보안을 대신하지 않습니다.</p>
+    </div>
+  </section>
+
+  <section class="displayModeArea">
     <div class="displayModeHeader">
         <h2>전광판 모드</h2>
     </div>
@@ -151,6 +171,7 @@
 
 <!-- menu-ui.js의 initMenuUI()는 Sortable 전역 객체를 사용합니다. -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+<script type="module" src="company-management.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

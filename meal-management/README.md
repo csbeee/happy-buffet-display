@@ -8,11 +8,13 @@
 - 회사명 및 `aliases` 별칭으로 실시간 검색합니다.
 - `favorite: true`인 거래처를 상단 즐겨찾기로 보여 줍니다.
 - 거래처를 선택하면 확인 코드 화면으로 이동합니다.
+- 확인 코드 버튼은 `verifyCompanyCode` Callable Cloud Function을 호출하도록 연결했습니다.
+- `firebase/firebase-config.js`에서 Firebase App Check 초기화를 준비했습니다.
 - 태블릿 크기에 맞춘 큰 버튼과 모바일 반응형 레이아웃을 제공합니다.
 
 ## 아직 연결하지 않은 기능
 
-- 거래처 확인 코드의 서버 측 검증
+- App Check 웹 사이트 키 등록 및 실제 인증 성공 확인
 - 방문 그룹 식수 입력(숫자/명단/혼합)
 - 대표자 서명 저장
 - 접수 번호 생성, 중복 제출 방지, 월말 마감
@@ -43,8 +45,10 @@
 1. Firebase Authentication 및 Firestore Security Rules를 먼저 설계합니다.
 2. 현재 저장소의 루트 `firestore.rules`는 만료일이 지난 테스트 규칙이므로 운영에 그대로 사용하지 않습니다.
 3. 거래처 조회 권한은 필요한 범위로 제한합니다.
-4. 서버 측 확인 코드 검증과 접수 저장 API를 구현합니다.
-5. 실제 거래처 데이터로 검색 별칭과 즐겨찾기를 검수합니다.
-6. 두 대 이상의 태블릿에서 동시 접수 및 중복 제출 테스트를 진행합니다.
+4. `firebase/firebase-config.js`의 `APP_CHECK_SITE_KEY`에 Firebase 콘솔에서 발급한 reCAPTCHA Enterprise 사이트 키를 입력합니다.
+5. Cloud Functions를 배포하고 `verifyCompanyCode`를 실제 기기에서 검증합니다.
+6. 접수 저장 API, 서명 저장, 중복 제출 방지를 구현합니다.
+7. 실제 거래처 데이터로 검색 별칭과 즐겨찾기를 검수합니다.
+8. 두 대 이상의 태블릿에서 동시 접수 및 중복 제출 테스트를 진행합니다.
 
 이 화면은 별도 URL `/meal-management/`에서 제공하도록 추가되었습니다. 기존 `/display/` 전광판 파일은 수정하지 않았습니다.

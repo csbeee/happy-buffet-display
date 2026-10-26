@@ -7,12 +7,12 @@
 - Firestore의 `companies` 컬렉션에서 거래처를 읽습니다.
 - 회사명 및 `aliases` 별칭으로 실시간 검색합니다.
 - `favorite: true`인 거래처를 상단 즐겨찾기로 보여 줍니다.
-- 거래처를 선택하면 확인 코드 화면으로 이동합니다.
-- 확인 코드 버튼은 `verifyCompanyCode` Callable Cloud Function을 호출하도록 연결했습니다.
-- 인증 성공 후 STEP 3 식수 입력 초안 화면을 보여 줍니다.
+- 거래처를 선택하면 해당 거래처에 관리자가 설정한 숫자 4자리 비밀번호를 입력합니다.
+- 비밀번호는 관리자 페이지의 **거래처·비밀번호 관리**에서 거래처별로 설정·변경·해제합니다.
+- 비밀번호 해시와 salt는 `companies` 문서의 `accessCodeHash`, `accessCodeSalt` 필드에 저장합니다. 평문 비밀번호는 저장하지 않습니다.
+- 일치하면 STEP 3 식수 입력 초안 화면을 보여 줍니다.
 - 총 인원/명단/혼합 입력 방식을 선택할 수 있고, 대표자 서명을 화면에 그릴 수 있습니다.
 - 입력 내용 확인은 브라우저 안에서만 동작하며 현재 Firestore에는 저장하지 않습니다.
-- `firebase/firebase-config.js`에서 Firebase App Check 초기화를 준비했습니다.
 - 태블릿 크기에 맞춘 큰 버튼과 모바일 반응형 레이아웃을 제공합니다.
 
 ## 아직 연결하지 않은 기능
@@ -23,7 +23,7 @@
 - 접수 번호 생성, 중복 제출 방지, 월말 마감
 - 관리자 페이지 및 변경 승인
 
-확인 코드는 브라우저 JavaScript에서 비교하거나 Firestore 문서에 평문으로 저장하면 안 됩니다. 실제 검증은 Firebase Callable Cloud Function 또는 동등한 서버 측 기능으로 수행해야 합니다.
+A안은 직원 편의를 위한 간편 잠금입니다. 비밀번호 해시를 브라우저에서 비교하므로 실제 접근 권한을 보호하는 인증 수단이 아닙니다. 4자리 숫자는 가능한 조합이 적어 해시를 통해 추측할 수 있습니다. 실제 운영 데이터 보호가 필요하면 Firebase Authentication과 제한적인 Firestore Security Rules, 서버 측 검증을 별도로 구성해야 합니다. 기존 `verifyCompanyCode` Cloud Function은 이 간편 잠금 흐름에서 호출하지 않습니다.
 
 ## Firestore 거래처 문서 예시
 
@@ -48,8 +48,8 @@
 1. Firebase Authentication 및 Firestore Security Rules를 먼저 설계합니다.
 2. 현재 저장소의 루트 `firestore.rules`는 만료일이 지난 테스트 규칙이므로 운영에 그대로 사용하지 않습니다.
 3. 거래처 조회 권한은 필요한 범위로 제한합니다.
-4. `firebase/firebase-config.js`의 `APP_CHECK_SITE_KEY`에 Firebase 콘솔에서 발급한 reCAPTCHA Enterprise 사이트 키를 입력합니다.
-5. Cloud Functions를 배포하고 `verifyCompanyCode`를 실제 기기에서 검증합니다.
+4. 관리자 페이지에서 테스트 거래처에 4자리 비밀번호를 설정하고 식수 화면에서 일치/불일치 동작을 확인합니다.
+5. Firestore Security Rules에서 관리자 쓰기 권한을 제한합니다. 현재 저장소의 만료된 테스트 규칙은 운영에 사용하지 않습니다.
 6. 접수 저장 API, 서명 저장, 중복 제출 방지를 구현합니다.
 7. 실제 거래처 데이터로 검색 별칭과 즐겨찾기를 검수합니다.
 8. 두 대 이상의 태블릿에서 동시 접수 및 중복 제출 테스트를 진행합니다.

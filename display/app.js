@@ -405,7 +405,7 @@ function renderNormal(menu) {
     toggleCard("card-side", values.side);
     toggleCard("card-kimchi", values.kimchi);
     toggleCard("card-dessert", values.dessert);
-    const leftoverNames = dinnerMode ? leftovers.map(item => typeof item === "string" ? item : item?.name).filter(name => typeof name === "string" && name.trim()) : [];
+    const leftoverNames = dinnerMode ? leftovers.map(item => typeof item === "string" ? item : item?.name).filter(name => typeof name === "string" && name.trim()).map(name => name.replace(/^잔여\s*/, "").trim()).filter(Boolean) : [];
     draw("dinnerLeftovers", leftoverNames);
     toggleCard("card-dinner-leftovers", leftoverNames);
     drawNotice(dinnerMode ? (dinner.notice || menu.notice) : menu.notice);

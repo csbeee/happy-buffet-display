@@ -76,13 +76,13 @@ toggle?.addEventListener("click", async () => {
 close?.addEventListener("click", () => { panel.hidden = true; });
 select?.addEventListener("change", updateSelectionStatus);
 codeInput?.addEventListener("input", () => {
-  codeInput.value = codeInput.value.replace(/\\D/g, "").slice(0, 4);
+  codeInput.value = codeInput.value.replace(/\D/g, "").slice(0, 4);
 });
 saveButton?.addEventListener("click", async () => {
   const company = selectedCompany();
   const code = codeInput.value.trim();
   if (!company) { setStatus("먼저 거래처를 선택해 주세요.", true); return; }
-  if (!/^\\d{4}$/.test(code)) { setStatus("비밀번호는 숫자 4자리로 입력해 주세요.", true); codeInput.focus(); return; }
+  if (!/^\d{4}$/.test(code)) { setStatus("비밀번호는 숫자 4자리로 입력해 주세요.", true); codeInput.focus(); return; }
   saveButton.disabled = true;
   setStatus(`${company.name} 비밀번호를 저장하고 있습니다.`);
   try {

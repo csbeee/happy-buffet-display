@@ -210,7 +210,7 @@ verifyCodeButton.addEventListener("click", async () => {
     return;
   }
   const code = codeInput.value.trim();
-  if (!/^\\d{4,8}$/.test(code)) { codeMessage.textContent = "확인 코드는 숫자 4~8자리로 입력해 주세요."; codeInput.focus(); return; }
+  if (!/^\d{4,8}$/.test(code)) { codeMessage.textContent = "확인 코드는 숫자 4~8자리로 입력해 주세요."; codeInput.focus(); return; }
   verifyCodeButton.disabled = true;
   verifyCodeButton.textContent = "확인 중…";
   codeMessage.textContent = "서버에서 거래처 코드를 확인하고 있습니다.";

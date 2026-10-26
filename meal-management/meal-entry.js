@@ -23,6 +23,17 @@ const selectedCompanyName = $("selectedCompanyName");
 const codeInput = $("companyCode");
 const codeMessage = $("codeMessage");
 const verifyCodeButton = $("verifyCodeButton");
+const entryPanel = $("entryPanel");
+const entryCompanyName = $("entryCompanyName");
+const entryMode = $("entryMode");
+const totalCountWrap = $("totalCountWrap");
+const totalCountInput = $("totalCount");
+const representativeNameInput = $("representativeName");
+const signatureCanvas = $("signatureCanvas");
+const signatureMessage = $("signatureMessage");
+const entryMessage = $("entryMessage");
+const reviewEntryButton = $("reviewEntryButton");
+
 
 let companies = [];
 let selectedCompany = null;
@@ -134,6 +145,7 @@ function chooseCompany(company) {
   codeInput.value = "";
   codeMessage.hidden = true;
   codeMessage.textContent = "";
+  entryPanel.hidden = true;
   codePanel.hidden = false;
   codePanel.scrollIntoView({ behavior: "smooth", block: "start" });
   window.setTimeout(() => codeInput.focus({ preventScroll: true }), 180);
@@ -143,6 +155,7 @@ function resetCompanySelection() {
   selectedCompany = null;
   codeInput.value = "";
   codePanel.hidden = true;
+  entryPanel.hidden = true;
   codeMessage.hidden = true;
   codeMessage.textContent = "";
   searchInput.focus();
@@ -220,9 +233,15 @@ verifyCodeButton.addEventListener("click", async () => {
     const response = await verifyCompanyCode({ companyId: selectedCompany.id, code });
     verifiedTicket = response.data?.ticket || null;
     codeInput.value = "";
-    codeMessage.textContent = verifiedTicket
-      ? "거래처 확인이 완료되었습니다. 식수 입력·서명 저장 기능은 아직 연결 중이며, 현재는 식수가 저장되지 않았습니다."
-      : "서버 응답을 확인할 수 없습니다. 다시 시도해 주세요.";
+    if (verifiedTicket) {
+      codeMessage.textContent = "거래처 확인이 완료되었습니다. 아래는 미저장 입력 화면입니다.";
+      entryCompanyName.textContent = selectedCompany.name;
+      entryPanel.hidden = false;
+      entryPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      resizeSignatureCanvas();
+    } else {
+      codeMessage.textContent = "서버 응답을 확인할 수 없습니다. 다시 시도해 주세요.";
+    }
   } catch (error) {
     console.error("거래처 코드 검증 실패:", error);
     const errorCode = error?.code || "";
@@ -239,5 +258,69 @@ verifyCodeButton.addEventListener("click", async () => {
 codeInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") verifyCodeButton.click();
 });
+
+
+const rosterNotice = $("rosterNotice");
+entryMode.addEventListener("change", () => {
+  totalCountWrap.hidden = entryMode.value === "roster";
+  rosterNotice.hidden = entryMode.value === "total";
+});
+$("backToCompanyButton").addEventListener("click", () => {
+  entryPanel.hidden = true;
+  codePanel.hidden = false;
+  codePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+function resizeSignatureCanvas() {
+  if (entryPanel.hidden) return;
+  const rect = signatureCanvas.getBoundingClientRect();
+  if (!rect.width) return;
+  const old = signatureCanvas.toDataURL();
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  signatureCanvas.width = Math.round(rect.width * ratio);
+  signatureCanvas.height = Math.round(rect.height * ratio);
+  const ctx = signatureCanvas.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.lineWidth = 2.5; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#173f35";
+  if (old && old !== "data:,") { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height); img.src = old; }
+}
+let signatureDrawing = false;
+let signatureHasInk = false;
+function signaturePoint(event) {
+  const rect = signatureCanvas.getBoundingClientRect();
+  return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+}
+signatureCanvas.addEventListener("pointerdown", (event) => {
+  event.preventDefault(); signatureDrawing = true; signatureCanvas.setPointerCapture(event.pointerId);
+  const p = signaturePoint(event); const ctx = signatureCanvas.getContext("2d"); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+});
+signatureCanvas.addEventListener("pointermove", (event) => {
+  if (!signatureDrawing) return;
+  event.preventDefault(); const p = signaturePoint(event); const ctx = signatureCanvas.getContext("2d"); ctx.lineTo(p.x, p.y); ctx.stroke();
+  signatureHasInk = true; signatureMessage.textContent = "서명이 입력되었습니다. 아직 저장되지는 않았습니다.";
+});
+function finishSignature() { signatureDrawing = false; }
+signatureCanvas.addEventListener("pointerup", finishSignature);
+signatureCanvas.addEventListener("pointercancel", finishSignature);
+signatureCanvas.addEventListener("lostpointercapture", finishSignature);
+$("clearSignature").addEventListener("click", () => {
+  const ctx = signatureCanvas.getContext("2d"); ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+  signatureHasInk = false; signatureMessage.textContent = "서명이 지워졌습니다.";
+});
+reviewEntryButton.addEventListener("click", () => {
+  entryMessage.hidden = false;
+  const rep = representativeNameInput.value.trim();
+  const count = Number(totalCountInput.value);
+  if (!verifiedTicket) { entryMessage.textContent = "거래처 확인이 필요합니다."; return; }
+  if (!rep) { entryMessage.textContent = "그룹 대표자 이름을 입력해 주세요."; representativeNameInput.focus(); return; }
+  if (entryMode.value !== "roster" && (!Number.isInteger(count) || count < 1 || count > 500)) {
+    entryMessage.textContent = "식수 인원은 1~500명 사이의 정수로 입력해 주세요."; totalCountInput.focus(); return;
+  }
+  if (!signatureHasInk) { entryMessage.textContent = "그룹 대표자 서명을 입력해 주세요."; return; }
+  const mode = entryMode.options[entryMode.selectedIndex].text;
+  const group = $("groupLabel").value.trim() || "방문 그룹";
+  const countText = entryMode.value === "roster" ? "명단 확인 기능 연결 전" : String(count) + "명";
+  entryMessage.textContent = "입력 확인 완료(미저장): " + selectedCompany.name + " / " + group + " / " + mode + " / " + countText + " / 대표자 " + rep + ". 실제 접수 저장과 중복 방지는 다음 단계에서 연결합니다.";
+});
+window.addEventListener("resize", () => { if (!entryPanel.hidden) resizeSignatureCanvas(); });
 
 loadCompanies();

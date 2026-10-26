@@ -1,9 +1,8 @@
-import { db, appCheckReady } from "../firebase/firebase-config.js";
+import { db } from "../firebase/firebase-config.js";
 import {
   collection,
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-functions.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -214,44 +213,45 @@ clearSearchButton.addEventListener("click", () => {
 });
 $("changeCompany").addEventListener("click", resetCompanySelection);
 
+async function hashCompanyCode(salt, code) {
+  const bytes = new TextEncoder().encode(salt + ":" + code);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 verifyCodeButton.addEventListener("click", async () => {
   codeMessage.hidden = false;
   codeMessage.className = "inline-message";
   if (!selectedCompany) { codeMessage.textContent = "거래처를 먼저 선택해 주세요."; return; }
-  if (!appCheckReady) {
-    codeMessage.textContent = "보안 설정이 아직 완료되지 않았습니다. 관리자에게 Firebase App Check 웹 사이트 키 설정을 요청해 주세요. 확인 코드는 검증되지 않았습니다.";
+  const code = codeInput.value.trim();
+  if (!/^\\d{4}$/.test(code)) { codeMessage.textContent = "비밀번호는 숫자 4자리로 입력해 주세요."; codeInput.focus(); return; }
+  if (!selectedCompany.accessCodeSalt || !selectedCompany.accessCodeHash) {
+    codeMessage.textContent = "이 거래처의 비밀번호가 아직 등록되지 않았습니다. 관리자에게 비밀번호 설정을 요청해 주세요.";
     return;
   }
-  const code = codeInput.value.trim();
-  if (!/^\d{4,8}$/.test(code)) { codeMessage.textContent = "확인 코드는 숫자 4~8자리로 입력해 주세요."; codeInput.focus(); return; }
   verifyCodeButton.disabled = true;
   verifyCodeButton.textContent = "확인 중…";
-  codeMessage.textContent = "서버에서 거래처 코드를 확인하고 있습니다.";
+  codeMessage.textContent = "비밀번호를 확인하고 있습니다.";
   try {
-    const functions = getFunctions(undefined, "us-central1");
-    const verifyCompanyCode = httpsCallable(functions, "verifyCompanyCode");
-    const response = await verifyCompanyCode({ companyId: selectedCompany.id, code });
-    verifiedTicket = response.data?.ticket || null;
+    const actualHash = await hashCompanyCode(selectedCompany.accessCodeSalt, code);
+    verifiedTicket = actualHash === selectedCompany.accessCodeHash ? "local-ok" : null;
     codeInput.value = "";
     if (verifiedTicket) {
-      codeMessage.textContent = "거래처 확인이 완료되었습니다. 아래는 미저장 입력 화면입니다.";
+      codeMessage.textContent = "비밀번호가 확인되었습니다. 아래는 미저장 입력 화면입니다.";
       entryCompanyName.textContent = selectedCompany.name;
       entryPanel.hidden = false;
       entryPanel.scrollIntoView({ behavior: "smooth", block: "start" });
       resizeSignatureCanvas();
     } else {
-      codeMessage.textContent = "서버 응답을 확인할 수 없습니다. 다시 시도해 주세요.";
+      codeMessage.textContent = "비밀번호가 올바르지 않습니다. 다시 확인해 주세요.";
+      codeInput.focus();
     }
   } catch (error) {
-    console.error("거래처 코드 검증 실패:", error);
-    const errorCode = error?.code || "";
-    if (errorCode.includes("resource-exhausted")) codeMessage.textContent = "확인 시도가 많습니다. 잠시 후 다시 시도해 주세요.";
-    else if (errorCode.includes("permission-denied")) codeMessage.textContent = "거래처 또는 확인 코드가 올바르지 않습니다. 다시 확인해 주세요.";
-    else if (errorCode.includes("failed-precondition") || errorCode.includes("app-check")) codeMessage.textContent = "보안 검증이 완료되지 않았습니다. Firebase App Check 설정을 확인해 주세요.";
-    else codeMessage.textContent = "코드 확인에 실패했습니다. 네트워크와 Cloud Functions 배포 상태를 확인해 주세요.";
+    console.error("거래처 비밀번호 확인 실패:", error);
+    codeMessage.textContent = "비밀번호 확인에 실패했습니다. 브라우저 연결 상태를 확인해 주세요.";
   } finally {
     verifyCodeButton.disabled = false;
-    verifyCodeButton.textContent = "코드 확인 후 계속";
+    verifyCodeButton.textContent = "비밀번호 확인 후 계속";
   }
 });
 

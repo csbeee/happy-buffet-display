@@ -267,3 +267,18 @@ button:focus-visible, input:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* Meal-entry draft UI; not connected to persistent storage yet. */
+.entry-panel { padding: clamp(18px, 3vw, 28px); background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 4px 14px rgb(24 48 37 / 4%); }
+.draft-pill { padding: 7px 10px; border-radius: 999px; color: #8b4d16; background: #fff1d8; font-size: 12px; font-weight: 800; }
+.entry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.entry-control { width: 100%; min-height: 58px; padding: 12px 14px; border: 1px solid #bac9c0; border-radius: 14px; background: #fff; color: var(--ink); font-size: 17px; }
+.count-control { font-size: 22px; font-weight: 800; }
+.info-panel { margin-top: 16px; padding: 16px; border-radius: 14px; background: #fff6e8; color: #744314; font-size: 14px; line-height: 1.55; }
+.info-panel p { margin: 6px 0 0; }
+.signature-section { margin-top: 24px; }
+.signature-canvas { display: block; width: 100%; height: 190px; margin-top: 12px; border: 2px dashed #9fb4a7; border-radius: 14px; background: #fff; touch-action: none; }
+.signature-message { margin: 8px 2px 0; color: var(--muted); font-size: 13px; }
+.secondary-button { width: 100%; min-height: 54px; margin-top: 10px; border: 1px solid var(--line); border-radius: 14px; color: var(--green-800); background: #fff; font-size: 16px; font-weight: 800; }
+@media (max-width: 680px) { .entry-panel { padding: 17px 14px; border-radius: 18px; } .entry-grid { grid-template-columns: 1fr; gap: 12px; } .signature-canvas { height: 170px; } }

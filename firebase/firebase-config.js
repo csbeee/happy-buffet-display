@@ -1,6 +1,7 @@
 // firebase/firebase-config.js
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app-check.js";
 import {
   getFirestore
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
@@ -17,4 +18,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-export { db };
+// Firebase Console > App Check > Web app에서 발급한 사이트 키를 입력합니다.
+const APP_CHECK_SITE_KEY = "REPLACE_WITH_RECAPTCHA_ENTERPRISE_SITE_KEY";
+let appCheckReady = false;
+if (APP_CHECK_SITE_KEY && !APP_CHECK_SITE_KEY.startsWith("REPLACE_")) {
+  try {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+      isTokenAutoRefreshEnabled: true
+    });
+    appCheckReady = true;
+  } catch (error) {
+    console.error("Firebase App Check 초기화 실패:", error);
+  }
+}
+
+export { app, db, appCheckReady };

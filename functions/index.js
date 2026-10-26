@@ -61,57 +61,68 @@ exports.verifyCompanyCode = onCall(
     const attemptRef = db.collection("companyCodeAttempts").doc(attemptId);
     const companyRef = db.collection("companies").doc(companyId);
 
-    const [companySnap, attemptSnap] = await Promise.all([
-      companyRef.get(),
-      attemptRef.get()
-    ]);
-
+    // Generate the ticket once outside the transaction so transaction retries
+    // cannot return different tickets from the same invocation.
+    const ticket = crypto.randomBytes(32).toString("base64url");
+    const ticketRef = db.collection("companyAccessTickets").doc(hashKey(ticket));
     const now = Date.now();
-    const attemptData = attemptSnap.exists ? attemptSnap.data() : {};
-    const windowStartedAt = attemptData.windowStartedAt?.toMillis?.() ?? 0;
-    const isSameWindow = now - windowStartedAt < CODE_ATTEMPT_WINDOW_MS;
-    const failedAttempts = isSameWindow ? Number(attemptData.failedAttempts || 0) : 0;
-    const blockedUntil = attemptData.blockedUntil?.toMillis?.() ?? 0;
 
-    if (blockedUntil > now || failedAttempts >= CODE_ATTEMPT_LIMIT) {
+    const result = await db.runTransaction(async (tx) => {
+      const [companySnap, attemptSnap] = await Promise.all([
+        tx.get(companyRef),
+        tx.get(attemptRef)
+      ]);
+
+      const attemptData = attemptSnap.exists ? attemptSnap.data() : {};
+      const windowStartedAt = attemptData.windowStartedAt?.toMillis?.() ?? 0;
+      const isSameWindow = now - windowStartedAt < CODE_ATTEMPT_WINDOW_MS;
+      const failedAttempts = isSameWindow ? Number(attemptData.failedAttempts || 0) : 0;
+      const blockedUntil = attemptData.blockedUntil?.toMillis?.() ?? 0;
+
+      if (blockedUntil > now || failedAttempts >= CODE_ATTEMPT_LIMIT) {
+        return { ok: false, blocked: true };
+      }
+
+      const company = companySnap.exists ? companySnap.data() : null;
+      const codeMatches = Boolean(
+        company &&
+        company.active !== false &&
+        await verifyScryptCode(code, company.accessCodeSalt, company.accessCodeHash)
+      );
+
+      if (!codeMatches) {
+        const nextFailedAttempts = failedAttempts + 1;
+        tx.set(attemptRef, {
+          companyId,
+          failedAttempts: nextFailedAttempts,
+          windowStartedAt: isSameWindow ? attemptData.windowStartedAt : Timestamp.fromMillis(now),
+          blockedUntil: nextFailedAttempts >= CODE_ATTEMPT_LIMIT
+            ? Timestamp.fromMillis(now + CODE_ATTEMPT_WINDOW_MS)
+            : null,
+          updatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        return { ok: false, blocked: false };
+      }
+
+      tx.create(ticketRef, {
+        companyId,
+        createdAt: FieldValue.serverTimestamp(),
+        expiresAt: Timestamp.fromMillis(now + TICKET_TTL_MS),
+        usedAt: null,
+        appId: cleanString(request.app?.appId, 200) || null
+      });
+
+      return { ok: true };
+    });
+
+    if (!result.ok && result.blocked) {
       throw new HttpsError("resource-exhausted", "확인 시도가 많습니다. 잠시 후 다시 시도해 주세요.");
     }
-
-    const company = companySnap.exists ? companySnap.data() : null;
-    const codeMatches = Boolean(
-      company &&
-      company.active !== false &&
-      await verifyScryptCode(code, company.accessCodeSalt, company.accessCodeHash)
-    );
-
-    if (!codeMatches) {
-      const nextFailedAttempts = failedAttempts + 1;
-      const newWindowStart = isSameWindow ? attemptData.windowStartedAt : Timestamp.fromMillis(now);
-      await attemptRef.set({
-        companyId,
-        failedAttempts: nextFailedAttempts,
-        windowStartedAt: newWindowStart,
-        blockedUntil: nextFailedAttempts >= CODE_ATTEMPT_LIMIT
-          ? Timestamp.fromMillis(now + CODE_ATTEMPT_WINDOW_MS)
-          : null,
-        updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
-
-      // Same message for missing/inactive company and incorrect code.
+    if (!result.ok) {
       throw new HttpsError("permission-denied", "거래처 또는 확인 코드를 확인해 주세요.");
     }
 
-    const ticket = crypto.randomBytes(32).toString("base64url");
-    const ticketRef = db.collection("companyAccessTickets").doc(hashKey(ticket));
-    await ticketRef.create({
-      companyId,
-      createdAt: FieldValue.serverTimestamp(),
-      expiresAt: Timestamp.fromMillis(now + TICKET_TTL_MS),
-      usedAt: null,
-      appId: cleanString(request.app?.appId, 200) || null
-    });
-
-    // Do not return company data or the stored ticket document ID.
     return {
       ok: true,
       ticket,

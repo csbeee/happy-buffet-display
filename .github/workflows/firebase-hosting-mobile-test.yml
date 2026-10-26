@@ -1,0 +1,25 @@
+name: Firebase Hosting Mobile Test
+
+on:
+  push:
+    branches:
+      - feature/meal-management-tablet
+  workflow_dispatch:
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy_preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy feature branch to Firebase Hosting preview channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_TODAYMENU_30FE7 }}'
+          projectId: todaymenu-30fe7
+          channelId: mobile-test
+          expires: 30d

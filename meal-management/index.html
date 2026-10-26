@@ -82,6 +82,32 @@
       <p class="security-note">접수 전 단계의 화면입니다. 실제 코드 인증은 서버 검증 기능 연결 후 활성화됩니다.</p>
     </section>
 
+
+    <section id="entryPanel" class="entry-panel" hidden>
+      <div class="section-heading">
+        <div><p class="step-label">STEP 3</p><h2>방문 그룹 식수 입력</h2></div>
+        <span class="draft-pill">저장 전 화면</span>
+      </div>
+      <div class="selected-company"><span class="selected-company-label">접수 거래처</span><strong id="entryCompanyName"></strong></div>
+      <div class="entry-grid">
+        <div><label class="field-label" for="entryMode">입력 방식</label><select id="entryMode" class="entry-control"><option value="total">총 인원 입력</option><option value="roster">명단 확인</option><option value="mixed">명단 확인 + 추가 인원</option></select></div>
+        <div><label class="field-label" for="groupLabel">방문 그룹 구분 (선택)</label><input id="groupLabel" class="entry-control" maxlength="40" placeholder="예: 1차 방문, 현장팀"></div>
+        <div><label class="field-label" for="representativeName">그룹 대표자 이름</label><input id="representativeName" class="entry-control" maxlength="40" placeholder="대표자 이름"></div>
+        <div id="totalCountWrap"><label class="field-label" for="totalCount">총 식수 인원</label><input id="totalCount" class="entry-control count-control" type="number" inputmode="numeric" min="1" max="500" step="1" placeholder="인원수"></div>
+      </div>
+      <div id="rosterNotice" class="info-panel" hidden><strong>명단 확인 기능은 다음 단계에서 연결됩니다.</strong><p>혼합 방식의 추가 인원은 명단 체크 인원과 중복되지 않도록 별도 계산해야 합니다.</p></div>
+      <div class="signature-section">
+        <div class="list-heading"><h3>그룹 대표자 서명</h3><button type="button" class="text-button" id="clearSignature">서명 지우기</button></div>
+        <p class="helper">손가락이나 마우스로 서명하세요. 현재 단계에서는 서버에 저장되지 않습니다.</p>
+        <canvas id="signatureCanvas" class="signature-canvas" aria-label="대표자 서명 영역"></canvas>
+        <p id="signatureMessage" class="signature-message" role="status">위 영역에 서명해 주세요.</p>
+      </div>
+      <div id="entryMessage" class="inline-message" role="status" hidden></div>
+      <button type="button" class="primary-button" id="reviewEntryButton">입력 내용 확인</button>
+      <button type="button" class="secondary-button" id="backToCompanyButton">거래처 선택으로 돌아가기</button>
+      <p class="security-note">개발 단계 화면입니다. 식수·서명은 저장되지 않으며 매출에 반영되지 않습니다.</p>
+    </section>
+
     <footer class="app-footer">
       <span>빠르고 정확한 식수 확인</span>
       <span id="connectionState">연결 확인 중</span>

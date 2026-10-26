@@ -1,8 +1,9 @@
-import { db } from "../firebase/firebase-config.js";
+import { db, appCheckReady } from "../firebase/firebase-config.js";
 import {
   collection,
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-functions.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -25,6 +26,7 @@ const verifyCodeButton = $("verifyCodeButton");
 
 let companies = [];
 let selectedCompany = null;
+let verifiedTicket = null;
 
 function getKoreaSessionLabel() {
   const now = new Date();
@@ -199,9 +201,39 @@ clearSearchButton.addEventListener("click", () => {
 });
 $("changeCompany").addEventListener("click", resetCompanySelection);
 
-verifyCodeButton.addEventListener("click", () => {
-  codeMessage.textContent = "현재는 화면 시안 단계입니다. 실제 접수 전에 서버 측 확인 코드 검증(Cloud Functions)과 Firebase 보안 규칙을 연결해야 합니다. 아직 코드를 검증하거나 식수를 저장하지 않았습니다.";
+verifyCodeButton.addEventListener("click", async () => {
   codeMessage.hidden = false;
+  codeMessage.className = "inline-message";
+  if (!selectedCompany) { codeMessage.textContent = "거래처를 먼저 선택해 주세요."; return; }
+  if (!appCheckReady) {
+    codeMessage.textContent = "보안 설정이 아직 완료되지 않았습니다. 관리자에게 Firebase App Check 웹 사이트 키 설정을 요청해 주세요. 확인 코드는 검증되지 않았습니다.";
+    return;
+  }
+  const code = codeInput.value.trim();
+  if (!/^\\d{4,8}$/.test(code)) { codeMessage.textContent = "확인 코드는 숫자 4~8자리로 입력해 주세요."; codeInput.focus(); return; }
+  verifyCodeButton.disabled = true;
+  verifyCodeButton.textContent = "확인 중…";
+  codeMessage.textContent = "서버에서 거래처 코드를 확인하고 있습니다.";
+  try {
+    const functions = getFunctions(undefined, "us-central1");
+    const verifyCompanyCode = httpsCallable(functions, "verifyCompanyCode");
+    const response = await verifyCompanyCode({ companyId: selectedCompany.id, code });
+    verifiedTicket = response.data?.ticket || null;
+    codeInput.value = "";
+    codeMessage.textContent = verifiedTicket
+      ? "거래처 확인이 완료되었습니다. 식수 입력·서명 저장 기능은 아직 연결 중이며, 현재는 식수가 저장되지 않았습니다."
+      : "서버 응답을 확인할 수 없습니다. 다시 시도해 주세요.";
+  } catch (error) {
+    console.error("거래처 코드 검증 실패:", error);
+    const errorCode = error?.code || "";
+    if (errorCode.includes("resource-exhausted")) codeMessage.textContent = "확인 시도가 많습니다. 잠시 후 다시 시도해 주세요.";
+    else if (errorCode.includes("permission-denied")) codeMessage.textContent = "거래처 또는 확인 코드가 올바르지 않습니다. 다시 확인해 주세요.";
+    else if (errorCode.includes("failed-precondition") || errorCode.includes("app-check")) codeMessage.textContent = "보안 검증이 완료되지 않았습니다. Firebase App Check 설정을 확인해 주세요.";
+    else codeMessage.textContent = "코드 확인에 실패했습니다. 네트워크와 Cloud Functions 배포 상태를 확인해 주세요.";
+  } finally {
+    verifyCodeButton.disabled = false;
+    verifyCodeButton.textContent = "코드 확인 후 계속";
+  }
 });
 
 codeInput.addEventListener("keydown", (event) => {

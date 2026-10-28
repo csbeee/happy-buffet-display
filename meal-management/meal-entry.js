@@ -239,6 +239,7 @@ verifyCodeButton.addEventListener("click", async () => {
     if (verifiedTicket) {
       codeMessage.textContent = "비밀번호가 확인되었습니다. 아래는 미저장 입력 화면입니다.";
       entryCompanyName.textContent = selectedCompany.name;
+      configureEntryMode(selectedCompany);
       entryPanel.hidden = false;
       entryPanel.scrollIntoView({ behavior: "smooth", block: "start" });
       resizeSignatureCanvas();
@@ -261,10 +262,49 @@ codeInput.addEventListener("keydown", (event) => {
 
 
 const rosterNotice = $("rosterNotice");
-entryMode.addEventListener("change", () => {
+
+function configureEntryMode(company) {
+  const validModes = ["mixed", "count", "roster"];
+  const configuredMode = validModes.includes(company.mealEntryMode) ? company.mealEntryMode : "mixed";
+  const rosterMode = ["optional", "required", "none"].includes(company.rosterMode) ? company.rosterMode : "optional";
+  const allowOverride = company.allowDailyModeOverride !== false;
+  const allowedModes = rosterMode === "none"
+    ? ["count"]
+    : rosterMode === "required"
+      ? ["roster", "mixed"]
+      : ["count", "roster", "mixed"];
+
+  const labels = {
+    count: "총 인원 입력",
+    roster: "명단 확인",
+    mixed: "명단 확인 + 추가 인원"
+  };
+  entryMode.replaceChildren(...allowedModes.map((mode) => new Option(labels[mode], mode === "count" ? "total" : mode)));
+  const preferred = rosterMode === "none"
+    ? "total"
+    : rosterMode === "required" && configuredMode === "count"
+      ? "mixed"
+      : configuredMode === "count" ? "total" : configuredMode;
+  entryMode.value = [...entryMode.options].some((option) => option.value === preferred)
+    ? preferred
+    : entryMode.options[0]?.value || "total";
+  entryMode.disabled = !allowOverride;
+  entryMode.title = allowOverride ? "" : "관리자가 설정한 기본 입력 방식으로 고정되어 있습니다.";
+  updateEntryModeVisibility();
+}
+
+function updateEntryModeVisibility() {
   totalCountWrap.hidden = entryMode.value === "roster";
   rosterNotice.hidden = entryMode.value === "total";
-});
+  if (entryMode.value === "roster") {
+    rosterNotice.querySelector("strong").textContent = "명단 확인 기능은 아직 연결 전입니다.";
+    rosterNotice.querySelector("p").textContent = "현재는 설정된 입력 방식만 적용됩니다. 실제 명단 체크와 식수 합산은 다음 단계에서 구현합니다.";
+  } else if (entryMode.value === "mixed") {
+    rosterNotice.querySelector("strong").textContent = "혼합 방식 안내";
+    rosterNotice.querySelector("p").textContent = "현재 추가 인원 입력만 미리 확인할 수 있습니다. 명단 체크 인원과 추가 인원을 합산하는 기능은 다음 단계에서 연결합니다.";
+  }
+}
+entryMode.addEventListener("change", updateEntryModeVisibility);
 $("backToCompanyButton").addEventListener("click", () => {
   entryPanel.hidden = true;
   codePanel.hidden = false;

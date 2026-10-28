@@ -684,3 +684,10 @@ body.company-management-open .topButtons button[onclick*="recommendations.html"]
   .company-registration-actions button { width:100%; min-height:48px; }
   .company-registration-options { flex-direction:column; gap:10px; }
 }
+
+
+/* Company roster manager */
+.roster-manager-list { display: grid; gap: 6px; margin-top: 12px; max-height: 320px; overflow-y: auto; }
+.roster-manager-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #e0e7e2; border-radius: 10px; background: #fff; }
+.roster-manager-row span:last-child { color: #687670; font-size: 12px; white-space: nowrap; }
+#rosterNamesInput { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #cbd6ce; border-radius: 10px; font: inherit; }

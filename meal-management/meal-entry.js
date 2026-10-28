@@ -1,7 +1,10 @@
 import { db } from "../firebase/firebase-config.js";
 import {
+  addDoc,
   collection,
-  getDocs
+  getDocs,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const $ = (id) => document.getElementById(id);
@@ -25,6 +28,7 @@ const verifyCodeButton = $("verifyCodeButton");
 const entryPanel = $("entryPanel");
 const entryCompanyName = $("entryCompanyName");
 const entryMode = $("entryMode");
+const groupNumberInput = $("groupNumber");
 const totalCountWrap = $("totalCountWrap");
 const totalCountInput = $("totalCount");
 const representativeNameInput = $("representativeName");
@@ -32,11 +36,25 @@ const signatureCanvas = $("signatureCanvas");
 const signatureMessage = $("signatureMessage");
 const entryMessage = $("entryMessage");
 const reviewEntryButton = $("reviewEntryButton");
+const rosterSection = $("rosterSection");
+const rosterList = $("rosterList");
+const rosterCountLabel = $("rosterCount");
+const rosterSearch = $("rosterSearch");
+const rosterEmpty = $("rosterEmpty");
+const calculatedCountLabel = $("calculatedCount");
+const countHelp = $("countHelp");
+const countInput = $("totalCount");
+const decreaseCountButton = $("decreaseCount");
+const increaseCountButton = $("increaseCount");
 
 
 let companies = [];
 let selectedCompany = null;
 let verifiedTicket = null;
+let rosterMembers = [];
+let checkedRosterIds = new Set();
+let sessionGroupNumbers = new Map();
+let rosterLoadFailed = false;
 
 function getKoreaSessionLabel() {
   const now = new Date();
@@ -240,6 +258,7 @@ verifyCodeButton.addEventListener("click", async () => {
       codeMessage.textContent = "비밀번호가 확인되었습니다. 아래는 미저장 입력 화면입니다.";
       entryCompanyName.textContent = selectedCompany.name;
       configureEntryMode(selectedCompany);
+      await loadRosterForCompany(selectedCompany);
       entryPanel.hidden = false;
       entryPanel.scrollIntoView({ behavior: "smooth", block: "start" });
       resizeSignatureCanvas();
@@ -266,6 +285,8 @@ const rosterNotice = $("rosterNotice");
 function configureEntryMode(company) {
   const validModes = ["mixed", "count", "roster"];
   const configuredMode = validModes.includes(company.mealEntryMode) ? company.mealEntryMode : "mixed";
+  groupNumberInput.value = String(sessionGroupNumbers.get(company.id) || 1);
+  countInput.value = "0";
   const rosterMode = ["optional", "required", "none"].includes(company.rosterMode) ? company.rosterMode : "optional";
   const allowOverride = company.allowDailyModeOverride !== false;
   const allowedModes = rosterMode === "none"
@@ -294,16 +315,101 @@ function configureEntryMode(company) {
 }
 
 function updateEntryModeVisibility() {
+  const usesRoster = entryMode.value === "roster" || entryMode.value === "mixed";
+  const countIsAdditional = entryMode.value === "mixed";
   totalCountWrap.hidden = entryMode.value === "roster";
-  rosterNotice.hidden = entryMode.value === "total";
-  if (entryMode.value === "roster") {
-    rosterNotice.querySelector("strong").textContent = "명단 확인 기능은 아직 연결 전입니다.";
-    rosterNotice.querySelector("p").textContent = "현재는 설정된 입력 방식만 적용됩니다. 실제 명단 체크와 식수 합산은 다음 단계에서 구현합니다.";
-  } else if (entryMode.value === "mixed") {
-    rosterNotice.querySelector("strong").textContent = "혼합 방식 안내";
-    rosterNotice.querySelector("p").textContent = "현재 추가 인원 입력만 미리 확인할 수 있습니다. 명단 체크 인원과 추가 인원을 합산하는 기능은 다음 단계에서 연결합니다.";
+  rosterSection.hidden = !usesRoster;
+  rosterNotice.hidden = true;
+  countHelp.textContent = countIsAdditional
+    ? "명단 체크 인원에 더할 추가 인원을 입력하세요."
+    : "총 인원을 입력하세요. + / − 버튼으로도 조절할 수 있습니다.";
+  updateCalculatedCount();
+}
+
+async function loadRosterForCompany(company) {
+  rosterMembers = [];
+  checkedRosterIds = new Set();
+  rosterLoadFailed = false;
+  rosterList.replaceChildren();
+  rosterSearch.value = "";
+  try {
+    const rosterQuery = query(collection(db, "companyRosters"), where("companyId", "==", company.id));
+    const snapshot = await getDocs(rosterQuery);
+    rosterMembers = snapshot.docs
+      .map((item) => ({ id: item.id, ...item.data() }))
+      .filter((member) => member.active !== false && typeof member.name === "string" && member.name.trim())
+      .sort((a, b) => String(a.name).localeCompare(String(b.name), "ko"));
+    renderRoster();
+  } catch (error) {
+    console.error("사전 등록 명단을 불러오지 못했습니다.", error);
+    rosterLoadFailed = true;
+    rosterEmpty.hidden = false;
+    rosterEmpty.querySelector("strong").textContent = "명단을 불러오지 못했습니다.";
+    rosterEmpty.querySelector("p").textContent = "Firestore 읽기 권한 또는 보안 규칙을 확인해 주세요.";
+    rosterCountLabel.textContent = "불러오기 실패";
   }
 }
+
+function renderRoster() {
+  const keyword = normalize(rosterSearch.value);
+  const visible = rosterMembers.filter((member) => normalize(member.name).includes(keyword));
+  rosterList.replaceChildren();
+  visible.forEach((member) => {
+    const label = document.createElement("label");
+    label.className = "roster-member" + (checkedRosterIds.has(member.id) ? " checked" : "");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = checkedRosterIds.has(member.id);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) checkedRosterIds.add(member.id);
+      else checkedRosterIds.delete(member.id);
+      label.classList.toggle("checked", checkbox.checked);
+      updateCalculatedCount();
+      rosterCountLabel.textContent = `${checkedRosterIds.size}/${rosterMembers.length}명 선택`;
+    });
+    const name = document.createElement("span");
+    name.textContent = member.name;
+    label.append(checkbox, name);
+    rosterList.append(label);
+  });
+  rosterEmpty.hidden = rosterMembers.length > 0;
+  if (!rosterMembers.length) {
+    rosterEmpty.querySelector("strong").textContent = "등록된 명단이 없습니다.";
+    rosterEmpty.querySelector("p").textContent = "관리자 화면의 거래처 명단 관리에서 이름을 먼저 등록해 주세요.";
+  }
+  rosterCountLabel.textContent = `${checkedRosterIds.size}/${rosterMembers.length}명 선택`;
+  updateCalculatedCount();
+}
+
+function getRosterCount() { return checkedRosterIds.size; }
+function getAdditionalCount() {
+  const value = Number(countInput.value);
+  return Number.isInteger(value) && value >= 0 ? Math.min(value, 500) : 0;
+}
+function getCalculatedCount() {
+  if (entryMode.value === "roster") return getRosterCount();
+  if (entryMode.value === "mixed") return getRosterCount() + getAdditionalCount();
+  return getAdditionalCount();
+}
+function updateCalculatedCount() {
+  calculatedCountLabel.textContent = `${getCalculatedCount()}명`;
+  decreaseCountButton.disabled = getAdditionalCount() <= 0;
+  increaseCountButton.disabled = getAdditionalCount() >= 500;
+}
+function adjustCount(delta) {
+  const next = Math.max(0, Math.min(500, getAdditionalCount() + delta));
+  countInput.value = String(next);
+  updateCalculatedCount();
+}
+decreaseCountButton.addEventListener("click", () => adjustCount(-1));
+increaseCountButton.addEventListener("click", () => adjustCount(1));
+countInput.addEventListener("input", () => {
+  const clean = String(countInput.value).replace(/[^0-9]/g, "").slice(0, 3);
+  if (countInput.value !== clean) countInput.value = clean;
+  if (Number(countInput.value) > 500) countInput.value = "500";
+  updateCalculatedCount();
+});
+rosterSearch.addEventListener("input", renderRoster);
 entryMode.addEventListener("change", updateEntryModeVisibility);
 $("backToCompanyButton").addEventListener("click", () => {
   entryPanel.hidden = true;
@@ -349,17 +455,23 @@ $("clearSignature").addEventListener("click", () => {
 reviewEntryButton.addEventListener("click", () => {
   entryMessage.hidden = false;
   const rep = representativeNameInput.value.trim();
-  const count = Number(totalCountInput.value);
+  const count = getCalculatedCount();
   if (!verifiedTicket) { entryMessage.textContent = "거래처 확인이 필요합니다."; return; }
   if (!rep) { entryMessage.textContent = "그룹 대표자 이름을 입력해 주세요."; representativeNameInput.focus(); return; }
-  if (entryMode.value !== "roster" && (!Number.isInteger(count) || count < 1 || count > 500)) {
-    entryMessage.textContent = "식수 인원은 1~500명 사이의 정수로 입력해 주세요."; totalCountInput.focus(); return;
+  if (rosterLoadFailed && entryMode.value !== "total") { entryMessage.textContent = "명단을 불러오지 못했습니다. 명단 확인 방식으로 접수할 수 없습니다."; return; }
+  if (entryMode.value === "roster" && getRosterCount() < 1) { entryMessage.textContent = "방문한 명단을 한 명 이상 체크해 주세요."; return; }
+  if (entryMode.value === "mixed" && count < 1) { entryMessage.textContent = "명단 체크 또는 추가 인원을 1명 이상 입력해 주세요."; return; }
+  if (entryMode.value === "total" && (!Number.isInteger(Number(countInput.value)) || Number(countInput.value) < 1 || Number(countInput.value) > 500)) {
+    entryMessage.textContent = "식수 인원은 1~500명 사이의 정수로 입력해 주세요."; countInput.focus(); return;
   }
+  if (count < 1 || count > 500) { entryMessage.textContent = "계산된 식수는 1~500명이어야 합니다."; return; }
   if (!signatureHasInk) { entryMessage.textContent = "그룹 대표자 서명을 입력해 주세요."; return; }
   const mode = entryMode.options[entryMode.selectedIndex].text;
-  const group = $("groupLabel").value.trim() || "방문 그룹";
-  const countText = entryMode.value === "roster" ? "명단 확인 기능 연결 전" : String(count) + "명";
-  entryMessage.textContent = "입력 확인 완료(미저장): " + selectedCompany.name + " / " + group + " / " + mode + " / " + countText + " / 대표자 " + rep + ". 실제 접수 저장과 중복 방지는 다음 단계에서 연결합니다.";
+  const groupNo = Number(groupNumberInput.value) || 1;
+  const countText = String(count) + "명";
+  entryMessage.textContent = "입력 확인 완료(미저장): " + selectedCompany.name + " / 방문 그룹 " + groupNo + " / " + mode + " / " + countText + " (명단 " + getRosterCount() + "명, 추가 " + getAdditionalCount() + "명) / 대표자 " + rep + ". 실제 저장 전 확인 화면입니다.";
+  sessionGroupNumbers.set(selectedCompany.id, groupNo + 1);
+  groupNumberInput.value = String(groupNo + 1);
 });
 window.addEventListener("resize", () => { if (!entryPanel.hidden) resizeSignatureCanvas(); });
 

@@ -44,6 +44,15 @@ async function loadCompanyRecords() {
 function selectedCompany() {
   return companyRecords.find((company) => company.id === select.value) || null;
 }
+// Older company records use the agreed safe defaults without requiring a bulk migration.
+function getCompanyEntrySettings(company) {
+  return {
+    mealEntryMode: ["mixed", "count", "roster"].includes(company?.mealEntryMode) ? company.mealEntryMode : "mixed",
+    rosterMode: ["optional", "required", "none"].includes(company?.rosterMode) ? company.rosterMode : "optional",
+    allowDailyModeOverride: company?.allowDailyModeOverride !== false
+  };
+}
+
 function updateSelectionStatus() {
   codeInput.value = "";
   const company = selectedCompany();
@@ -186,6 +195,9 @@ registrationForm?.addEventListener("submit", async (event) => {
       contactPhone,
       mealPrice,
       billingType,
+      mealEntryMode: $("newCompanyMealEntryMode").value || "mixed",
+      rosterMode: $("newCompanyRosterMode").value || "optional",
+      allowDailyModeOverride: $("newCompanyAllowDailyModeOverride").checked,
       note,
       active,
       favorite,
@@ -198,6 +210,9 @@ registrationForm?.addEventListener("submit", async (event) => {
     renderCompanyOptions();
     registrationForm.reset();
     $("newCompanyMealPrice").value = "7000";
+    $("newCompanyMealEntryMode").value = "mixed";
+    $("newCompanyRosterMode").value = "optional";
+    $("newCompanyAllowDailyModeOverride").checked = true;
     $("newCompanyActive").checked = true;
     $("newCompanyFavorite").checked = false;
     select.value = created.id;

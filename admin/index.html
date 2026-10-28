@@ -16,7 +16,7 @@
     <div class="topButtons">
         <button id="resetBtn">초기화</button>
         <button id="libraryBtn">메뉴 라이브러리</button>
-        <button id="companyManagerToggle" type="button">거래처·비밀번호 관리</button>
+        <button id="companyManagerToggle" type="button">거래처 등록·비밀번호 관리</button>
         <button type="button" onclick="location.href='./history.html'">메뉴 이력</button>
         <button type="button" onclick="location.href='./recommendations.html'">추천 메뉴·통계</button>
     </div>
@@ -28,10 +28,62 @@
 
 <section id="companyManagerPanel" class="company-manager-panel" hidden aria-labelledby="companyManagerHeading">
     <div class="company-manager-header">
-      <div><h2 id="companyManagerHeading">거래처별 비밀번호 관리</h2><p>거래처마다 숫자 4자리 비밀번호를 설정하거나 변경합니다.</p></div>
+      <div><h2 id="companyManagerHeading">거래처 관리</h2><p>거래처 정보를 등록하고, 식수 접수용 비밀번호를 관리합니다.</p></div>
       <button id="companyManagerClose" type="button">닫기</button>
     </div>
     <div id="companyManagerStatus" class="company-manager-status" role="status">거래처 목록을 불러오는 중입니다.</div>
+    <section class="company-registration" aria-labelledby="companyRegistrationHeading">
+      <div class="company-registration-heading">
+        <div><h3 id="companyRegistrationHeading">새 거래처 등록</h3><p>회사명은 필수이며, 나머지 항목은 필요한 만큼 입력할 수 있습니다.</p></div>
+      </div>
+      <form id="companyRegistrationForm" class="company-registration-form">
+        <div class="company-field">
+          <label for="newCompanyName">거래처명 <span class="required-mark">필수</span></label>
+          <input id="newCompanyName" name="name" type="text" maxlength="80" autocomplete="organization" required placeholder="예: 가나다건설">
+        </div>
+        <div class="company-field">
+          <label for="newCompanyAliases">검색 별칭</label>
+          <input id="newCompanyAliases" name="aliases" type="text" maxlength="200" placeholder="쉼표로 구분 (예: 가나다, 현장 A)">
+          <small>식수 접수 화면에서 별칭으로도 거래처를 찾을 수 있습니다.</small>
+        </div>
+        <div class="company-field">
+          <label for="newCompanyContactName">연락 담당자 이름</label>
+          <input id="newCompanyContactName" name="contactName" type="text" maxlength="50" autocomplete="name" placeholder="담당자 이름">
+        </div>
+        <div class="company-field">
+          <label for="newCompanyContactPhone">연락처</label>
+          <input id="newCompanyContactPhone" name="contactPhone" type="tel" maxlength="20" autocomplete="tel" inputmode="tel" placeholder="예: 010-1234-5678">
+        </div>
+        <div class="company-field">
+          <label for="newCompanyMealPrice">1인 식대 (원)</label>
+          <input id="newCompanyMealPrice" name="mealPrice" type="number" min="0" max="1000000" step="100" inputmode="numeric" value="7000" required>
+          <small>거래처별 식대가 다를 경우에만 수정하세요.</small>
+        </div>
+        <div class="company-field">
+          <label for="newCompanyBillingType">정산 방식</label>
+          <select id="newCompanyBillingType" name="billingType">
+            <option value="monthly">월말 정산</option>
+            <option value="prepaid">선불</option>
+            <option value="daily">일별 정산</option>
+            <option value="other">기타 / 협의</option>
+          </select>
+        </div>
+        <div class="company-field company-field-wide">
+          <label for="newCompanyNote">관리 메모</label>
+          <textarea id="newCompanyNote" name="note" rows="3" maxlength="500" placeholder="예: 세금계산서 발행, 담당자 연락 가능 시간, 현장명 등"></textarea>
+        </div>
+        <div class="company-registration-options company-field-wide">
+          <label class="company-check"><input id="newCompanyActive" type="checkbox" checked> 식수 접수 화면에 표시</label>
+          <label class="company-check"><input id="newCompanyFavorite" type="checkbox"> 자주 이용하는 거래처로 표시</label>
+        </div>
+        <div class="company-field-wide company-registration-actions">
+          <button id="companyRegistrationSubmit" class="primary" type="submit">거래처 등록</button>
+          <button id="companyRegistrationReset" type="reset">입력 초기화</button>
+        </div>
+      </form>
+    </section>
+
+    <div class="company-subsection-heading"><h3>거래처 비밀번호 관리</h3><p>등록된 거래처를 선택해 숫자 4자리 비밀번호를 설정하거나 해제합니다.</p></div>
     <div class="company-manager-form">
       <label for="companyManagerSelect">거래처 선택</label>
       <select id="companyManagerSelect"><option value="">거래처 선택</option></select>

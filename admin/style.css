@@ -641,3 +641,32 @@ button.danger:hover {
 .company-manager-actions button { min-height:46px; }
 .company-manager-note { line-height:1.6; margin-top:4px; }
 @media(max-width:768px) { .company-manager-panel { margin:12px; padding:14px; } .company-manager-header h2 { font-size:19px; } .company-manager-actions button { flex:1; } }
+
+
+/* Company registration form: desktop grid with thumb-friendly mobile controls */
+.company-registration { margin:20px 0 24px; padding:18px; border:1px solid #e3e9e6; border-radius:12px; background:#f9fbfa; }
+.company-registration-heading { margin-bottom:14px; }
+.company-registration-heading h3,.company-subsection-heading h3 { font-size:18px; margin-bottom:5px; }
+.company-registration-heading p,.company-subsection-heading p { color:#667085; font-size:13px; line-height:1.5; }
+.company-registration-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.company-field { min-width:0; display:flex; flex-direction:column; gap:6px; }
+.company-field label { font-weight:700; font-size:14px; }
+.company-field input:not([type="checkbox"]),.company-field select,.company-field textarea { width:100%; min-height:46px; border:1px solid #d0d5dd; border-radius:8px; padding:10px 12px; font:inherit; background:#fff; color:#222; }
+.company-field textarea { resize:vertical; min-height:80px; }
+.company-field small { color:#667085; font-size:12px; line-height:1.45; }
+.company-field-wide { grid-column:1 / -1; }
+.required-mark { display:inline-block; margin-left:4px; color:#b42318; font-size:11px; }
+.company-registration-options { display:flex; flex-wrap:wrap; gap:16px; }
+.company-check { display:inline-flex; align-items:center; gap:8px; font-weight:500 !important; }
+.company-check input { width:18px; height:18px; accent-color:#1976d2; }
+.company-registration-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.company-registration-actions button { min-height:46px; }
+.company-subsection-heading { margin:8px 0 14px; padding-top:18px; border-top:1px solid #e5e7eb; }
+@media(max-width:768px) {
+  .company-registration { padding:14px; margin:14px 0 20px; }
+  .company-registration-form { grid-template-columns:1fr; gap:12px; }
+  .company-field-wide { grid-column:auto; }
+  .company-registration-actions { flex-direction:column; }
+  .company-registration-actions button { width:100%; min-height:48px; }
+  .company-registration-options { flex-direction:column; gap:10px; }
+}

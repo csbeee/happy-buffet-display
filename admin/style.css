@@ -626,6 +626,20 @@ button.danger:hover {
 .dinner-category .category-title { color: #174a7e; }
 
 
+/* Keep the company registration screen focused: hide menu-editing controls while open. */
+body.company-management-open .saveArea,
+body.company-management-open .displayModeArea,
+body.company-management-open #normalMenuEditor,
+body.company-management-open #dinnerEditor,
+body.company-management-open #conceptEditor,
+body.company-management-open .bottomBar,
+body.company-management-open #resetBtn,
+body.company-management-open #libraryBtn,
+body.company-management-open .topButtons button[onclick*="history.html"],
+body.company-management-open .topButtons button[onclick*="recommendations.html"] {
+  display: none !important;
+}
+
 /* Company password management panel */
 .company-manager-panel { max-width:1200px; margin:18px auto; padding:20px; background:#fff; border:1px solid #dbe4e0; border-radius:14px; box-shadow:0 3px 12px rgba(0,0,0,.04); }
 .company-manager-panel[hidden] { display:none !important; }

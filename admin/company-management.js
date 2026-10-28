@@ -285,7 +285,7 @@ rosterReloadButton?.addEventListener("click", loadRosterManagerList);
 rosterSaveButton?.addEventListener("click", async () => {
   const companyId = rosterCompanySelect.value;
   const company = companyRecords.find((item) => item.id === companyId);
-  const names = [...new Set(rosterNamesInput.value.split(/\\r?\\n/).map((name) => name.trim().replace(/\\s+/g, " ")).filter(Boolean))];
+  const names = [...new Set(rosterNamesInput.value.split(/\r?\n/).map((name) => name.trim().replace(/\\s+/g, " ")).filter(Boolean))];
   if (!company) { setRosterStatus("먼저 거래처를 선택해 주세요.", true); return; }
   if (!names.length) { setRosterStatus("등록할 이름을 한 줄에 한 명씩 입력해 주세요.", true); return; }
   rosterSaveButton.disabled = true;
@@ -293,7 +293,12 @@ rosterSaveButton?.addEventListener("click", async () => {
     const snapshot = await getDocs(collection(db, "companyRosters"));
     const existing = snapshot.docs.map((item) => ({ id: item.id, ...item.data() })).filter((member) => member.companyId === companyId);
     const known = new Set(existing.map((member) => normalizeCompanyName(member.name)));
-    const newNames = names.filter((name) => !known.has(normalizeCompanyName(name)));
+    const newNames = names.filter((name) => {
+      const key = normalizeCompanyName(name);
+      if (known.has(key)) return false;
+      known.add(key);
+      return true;
+    });
     if (!newNames.length) { setRosterStatus("새로 추가할 이름이 없습니다. 기존 명단과 중복됩니다.", true); return; }
     const now = new Date().toISOString();
     for (const [index, name] of newNames.entries()) {

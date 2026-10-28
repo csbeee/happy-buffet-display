@@ -1,6 +1,6 @@
 import { db } from "../firebase/firebase-config.js";
 import {
-  collection, deleteField, doc, getDocs, updateDoc
+  addDoc, collection, deleteField, doc, getDocs, updateDoc
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const $ = (id) => document.getElementById(id);
@@ -12,6 +12,8 @@ const codeInput = $("companyManagerCode");
 const saveButton = $("companyManagerSave");
 const clearButton = $("companyManagerClear");
 const status = $("companyManagerStatus");
+const registrationForm = $("companyRegistrationForm");
+const registrationSubmit = $("companyRegistrationSubmit");
 let companyRecords = [];
 
 function setStatus(message, isError = false) {
@@ -127,3 +129,85 @@ clearButton?.addEventListener("click", async () => {
 });
 saveButton.disabled = true;
 clearButton.disabled = true;
+
+
+// 새 거래처 등록: 기존 companies 컬렉션과 식수 접수 화면에서 바로 사용할 수 있는 필드만 저장합니다.
+function normalizeCompanyName(value) {
+  return String(value ?? "").trim().replace(/\\s+/g, " ").toLocaleLowerCase("ko-KR");
+}
+function splitAliases(value) {
+  return [...new Set(String(value ?? "").split(",").map((item) => item.trim()).filter(Boolean))];
+}
+registrationForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const name = $("newCompanyName").value.trim().replace(/\\s+/g, " ");
+  const aliases = splitAliases($("newCompanyAliases").value);
+  const contactName = $("newCompanyContactName").value.trim();
+  const contactPhone = $("newCompanyContactPhone").value.trim();
+  const mealPrice = Number($("newCompanyMealPrice").value);
+  const billingType = $("newCompanyBillingType").value;
+  const note = $("newCompanyNote").value.trim();
+  const active = $("newCompanyActive").checked;
+  const favorite = $("newCompanyFavorite").checked;
+
+  if (!name) {
+    setStatus("거래처명을 입력해 주세요.", true);
+    $("newCompanyName").focus();
+    return;
+  }
+  if (!Number.isFinite(mealPrice) || mealPrice < 0 || mealPrice > 1000000) {
+    setStatus("1인 식대는 0원 이상 1,000,000원 이하로 입력해 주세요.", true);
+    $("newCompanyMealPrice").focus();
+    return;
+  }
+  const duplicate = companyRecords.find((company) => normalizeCompanyName(company.name) === normalizeCompanyName(name));
+  if (duplicate) {
+    setStatus(`'${name}' 거래처가 이미 등록되어 있습니다. 기존 거래처를 확인해 주세요.`, true);
+    return;
+  }
+
+  registrationSubmit.disabled = true;
+  registrationSubmit.textContent = "등록 중…";
+  setStatus(`${name} 거래처를 등록하고 있습니다.`);
+  try {
+    const nextSortOrder = companyRecords.reduce((max, company) => {
+      const order = Number(company.sortOrder);
+      return Number.isFinite(order) ? Math.max(max, order) : max;
+    }, 0) + 10;
+    const now = new Date().toISOString();
+    const payload = {
+      name,
+      aliases,
+      contactName,
+      contactPhone,
+      mealPrice,
+      billingType,
+      note,
+      active,
+      favorite,
+      sortOrder: nextSortOrder,
+      createdAt: now,
+      updatedAt: now
+    };
+    const created = await addDoc(collection(db, "companies"), payload);
+    companyRecords.push({ id: created.id, ...payload });
+    renderCompanyOptions();
+    registrationForm.reset();
+    $("newCompanyMealPrice").value = "7000";
+    $("newCompanyActive").checked = true;
+    $("newCompanyFavorite").checked = false;
+    setStatus(`'${name}' 거래처 등록이 완료되었습니다. 비밀번호는 아래 거래처 비밀번호 관리에서 별도로 설정해 주세요.`);
+    select.value = created.id;
+    updateSelectionStatus();
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    console.error("거래처 등록 실패:", error);
+    const message = error?.code === "permission-denied"
+      ? "거래처를 등록할 권한이 없습니다. Firestore 보안 규칙을 확인해 주세요."
+      : "거래처 등록에 실패했습니다. 인터넷 연결과 Firestore 쓰기 권한을 확인해 주세요.";
+    setStatus(message, true);
+  } finally {
+    registrationSubmit.disabled = false;
+    registrationSubmit.textContent = "거래처 등록";
+  }
+});

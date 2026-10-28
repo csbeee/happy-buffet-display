@@ -282,3 +282,21 @@ button:focus-visible, input:focus-visible {
 .signature-message { margin: 8px 2px 0; color: var(--muted); font-size: 13px; }
 .secondary-button { width: 100%; min-height: 54px; margin-top: 10px; border: 1px solid var(--line); border-radius: 14px; color: var(--green-800); background: #fff; font-size: 16px; font-weight: 800; }
 @media (max-width: 680px) { .entry-panel { padding: 17px 14px; border-radius: 18px; } .entry-grid { grid-template-columns: 1fr; gap: 12px; } .signature-canvas { height: 170px; } }
+
+
+/* Touch-friendly meal count and roster selection */
+.group-number-control { max-width: 150px; background: #f0f5f1; font-weight: 850; }
+.count-stepper { display: grid; grid-template-columns: 64px minmax(70px, 1fr) 64px; align-items: stretch; gap: 8px; }
+.count-step-button { min-height: 58px; border: 0; border-radius: 14px; color: #fff; background: var(--green-800); font-size: 30px; font-weight: 900; }
+.count-step-button:disabled { opacity: .4; cursor: not-allowed; }
+.count-stepper .count-control { min-width: 0; text-align: center; }
+.roster-section { margin-top: 20px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #fbfdfb; }
+.roster-search { margin: 10px 0; }
+.roster-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 340px; overflow-y: auto; }
+.roster-member { display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font-size: 15px; font-weight: 700; }
+.roster-member input { width: 22px; height: 22px; accent-color: var(--green-800); flex: 0 0 auto; }
+.roster-member.checked { border-color: #7da995; background: var(--green-100); }
+.calculated-count-panel { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; padding: 16px 18px; border-radius: 14px; background: var(--green-950); color: #fff; }
+.calculated-count-panel span { font-size: 14px; }
+.calculated-count-panel strong { font-size: 28px; }
+@media (max-width: 480px) { .count-stepper { grid-template-columns: 56px minmax(60px, 1fr) 56px; gap: 6px; } .roster-list { grid-template-columns: 1fr; } .roster-member { min-height: 58px; } }

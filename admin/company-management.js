@@ -35,6 +35,14 @@ async function loadCompanyRecords() {
     const snapshot = await getDocs(collection(db, "companies"));
     companyRecords = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
     renderCompanyOptions();
+    if (rosterCompanySelect) {
+      const selectedRosterCompany = rosterCompanySelect.value;
+      rosterCompanySelect.replaceChildren(new Option("거래처 선택", ""));
+      companyRecords.filter((company) => typeof company.name === "string" && company.name.trim())
+        .sort((a, b) => a.name.localeCompare(b.name, "ko"))
+        .forEach((company) => rosterCompanySelect.append(new Option(company.name, company.id)));
+      if (selectedRosterCompany) rosterCompanySelect.value = selectedRosterCompany;
+    }
     setStatus(`거래처 ${companyRecords.length}개를 불러왔습니다. 비밀번호는 등록 여부만 확인할 수 있습니다.`);
   } catch (error) {
     console.error("거래처 관리 목록 로드 실패:", error);
@@ -221,3 +229,87 @@ registrationForm?.addEventListener("submit", async (event) => {
     registrationSubmit.textContent = "거래처 등록";
   }
 });
+
+// 사전 등록 명단 관리. 명단 문서는 companyRosters 컬렉션에 저장합니다.
+const rosterCompanySelect = $("rosterCompanySelect");
+const rosterNamesInput = $("rosterNamesInput");
+const rosterSaveButton = $("rosterSaveButton");
+const rosterReloadButton = $("rosterReloadButton");
+const rosterManagerStatus = $("rosterManagerStatus");
+const rosterManagerList = $("rosterManagerList");
+
+function setRosterStatus(message, isError = false) {
+  rosterManagerStatus.textContent = message;
+  rosterManagerStatus.classList.toggle("error", isError);
+}
+function renderRosterManagerList(members) {
+  rosterManagerList.replaceChildren();
+  if (!members.length) {
+    rosterManagerList.textContent = "등록된 명단이 없습니다.";
+    return;
+  }
+  members.forEach((member) => {
+    const row = document.createElement("div");
+    row.className = "roster-manager-row";
+    const name = document.createElement("span");
+    name.textContent = member.name;
+    const state = document.createElement("span");
+    state.textContent = member.active === false ? "미사용" : "사용 중";
+    row.append(name, state);
+    rosterManagerList.append(row);
+  });
+}
+async function loadRosterManagerList() {
+  const companyId = rosterCompanySelect.value;
+  if (!companyId) {
+    renderRosterManagerList([]);
+    setRosterStatus("거래처를 선택해 주세요.");
+    return;
+  }
+  setRosterStatus("등록 명단을 불러오는 중입니다.");
+  try {
+    const snapshot = await getDocs(collection(db, "companyRosters"));
+    const members = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
+      .filter((member) => member.companyId === companyId)
+      .sort((a, b) => String(a.name).localeCompare(String(b.name), "ko"));
+    renderRosterManagerList(members);
+    setRosterStatus(`${members.length}명 등록됨`);
+  } catch (error) {
+    console.error("사전 명단 로드 실패:", error);
+    renderRosterManagerList([]);
+    setRosterStatus("명단을 불러오지 못했습니다. Firestore 읽기 권한과 보안 규칙을 확인해 주세요.", true);
+  }
+}
+rosterCompanySelect?.addEventListener("change", loadRosterManagerList);
+rosterReloadButton?.addEventListener("click", loadRosterManagerList);
+rosterSaveButton?.addEventListener("click", async () => {
+  const companyId = rosterCompanySelect.value;
+  const company = companyRecords.find((item) => item.id === companyId);
+  const names = [...new Set(rosterNamesInput.value.split(/\\r?\\n/).map((name) => name.trim().replace(/\\s+/g, " ")).filter(Boolean))];
+  if (!company) { setRosterStatus("먼저 거래처를 선택해 주세요.", true); return; }
+  if (!names.length) { setRosterStatus("등록할 이름을 한 줄에 한 명씩 입력해 주세요.", true); return; }
+  rosterSaveButton.disabled = true;
+  try {
+    const snapshot = await getDocs(collection(db, "companyRosters"));
+    const existing = snapshot.docs.map((item) => ({ id: item.id, ...item.data() })).filter((member) => member.companyId === companyId);
+    const known = new Set(existing.map((member) => normalizeCompanyName(member.name)));
+    const newNames = names.filter((name) => !known.has(normalizeCompanyName(name)));
+    if (!newNames.length) { setRosterStatus("새로 추가할 이름이 없습니다. 기존 명단과 중복됩니다.", true); return; }
+    const now = new Date().toISOString();
+    for (const [index, name] of newNames.entries()) {
+      await addDoc(collection(db, "companyRosters"), {
+        companyId, companyName: company.name, name, active: true,
+        sortOrder: existing.length + index + 1, createdAt: now, updatedAt: now
+      });
+    }
+    rosterNamesInput.value = "";
+    setRosterStatus(`${newNames.length}명 추가 등록했습니다.`);
+    await loadRosterManagerList();
+  } catch (error) {
+    console.error("사전 명단 저장 실패:", error);
+    setRosterStatus("명단 저장에 실패했습니다. Firestore 쓰기 권한과 보안 규칙을 확인해 주세요.", true);
+  } finally {
+    rosterSaveButton.disabled = false;
+  }
+});
+

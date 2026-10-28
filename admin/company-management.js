@@ -69,13 +69,17 @@ async function makeCodeHash(code) {
 }
 toggle?.addEventListener("click", async () => {
   panel.hidden = !panel.hidden;
+  document.body.classList.toggle("company-management-open", !panel.hidden);
   if (!panel.hidden) {
     await loadCompanyRecords();
     updateSelectionStatus();
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 });
-close?.addEventListener("click", () => { panel.hidden = true; });
+close?.addEventListener("click", () => {
+  panel.hidden = true;
+  document.body.classList.remove("company-management-open");
+});
 select?.addEventListener("change", updateSelectionStatus);
 codeInput?.addEventListener("input", () => {
   codeInput.value = codeInput.value.replace(/\D/g, "").slice(0, 4);

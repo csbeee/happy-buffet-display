@@ -24,9 +24,9 @@ function renderCompanyOptions() {
   const selectedId = select.value;
   select.replaceChildren(new Option("거래처 선택", ""));
   companyRecords
-    .filter((company) => company.active !== false && typeof company.name === "string" && company.name.trim())
+    .filter((company) => typeof company.name === "string" && company.name.trim())
     .sort((a, b) => a.name.localeCompare(b.name, "ko"))
-    .forEach((company) => select.append(new Option(company.name, company.id)));
+    .forEach((company) => select.append(new Option(company.active === false ? company.name + " (미사용)" : company.name, company.id)));
   if (selectedId && [...select.options].some((option) => option.value === selectedId)) select.value = selectedId;
 }
 async function loadCompanyRecords() {
@@ -133,14 +133,14 @@ clearButton.disabled = true;
 
 // 새 거래처 등록: 기존 companies 컬렉션과 식수 접수 화면에서 바로 사용할 수 있는 필드만 저장합니다.
 function normalizeCompanyName(value) {
-  return String(value ?? "").trim().replace(/\\s+/g, " ").toLocaleLowerCase("ko-KR");
+  return String(value ?? "").trim().replace(/\s+/g, " ").toLocaleLowerCase("ko-KR");
 }
 function splitAliases(value) {
   return [...new Set(String(value ?? "").split(",").map((item) => item.trim()).filter(Boolean))];
 }
 registrationForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const name = $("newCompanyName").value.trim().replace(/\\s+/g, " ");
+  const name = $("newCompanyName").value.trim().replace(/\s+/g, " ");
   const aliases = splitAliases($("newCompanyAliases").value);
   const contactName = $("newCompanyContactName").value.trim();
   const contactPhone = $("newCompanyContactPhone").value.trim();
@@ -196,9 +196,9 @@ registrationForm?.addEventListener("submit", async (event) => {
     $("newCompanyMealPrice").value = "7000";
     $("newCompanyActive").checked = true;
     $("newCompanyFavorite").checked = false;
-    setStatus(`'${name}' 거래처 등록이 완료되었습니다. 비밀번호는 아래 거래처 비밀번호 관리에서 별도로 설정해 주세요.`);
     select.value = created.id;
     updateSelectionStatus();
+    setStatus(`'${name}' 거래처 등록이 완료되었습니다. 비밀번호는 아래 거래처 비밀번호 관리에서 별도로 설정해 주세요.`);
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     console.error("거래처 등록 실패:", error);

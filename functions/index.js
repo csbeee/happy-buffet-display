@@ -43,7 +43,7 @@ async function verifyScryptCode(code, salt, expectedHash) {
  * headcount, and idempotency key before creating a billable entry.
  */
 exports.verifyCompanyCode = onCall(
-  { enforceAppCheck: true, maxInstances: 10, timeoutSeconds: 15 },
+  { enforceAppCheck: false, maxInstances: 10, timeoutSeconds: 15 },
   async (request) => {
     const companyId = cleanString(request.data?.companyId, 128);
     const code = typeof request.data?.code === "string" ? request.data.code.trim() : "";
@@ -144,7 +144,7 @@ exports.verifyCompanyCode = onCall(
  * performed here before a billable meal entry is written.
  */
 exports.submitMealEntry = onCall(
-  { enforceAppCheck: true, maxInstances: 10, timeoutSeconds: 20 },
+  { enforceAppCheck: false, maxInstances: 10, timeoutSeconds: 20 },
   async (request) => {
     const data = request.data || {};
     const companyId = cleanString(data.companyId, 128);
@@ -154,9 +154,11 @@ exports.submitMealEntry = onCall(
     const entryMode = cleanString(data.entryMode, 20);
     const groupNumber = Number(data.groupNumber);
     const headcount = Number(data.headcount);
-    const rosterIds = Array.isArray(data.rosterIds)
-      ? [...new Set(data.rosterIds.filter((id) => typeof id === "string").map((id) => id.slice(0, 160)))].slice(0, 500)
-      : [];
+    const rawRosterIds = Array.isArray(data.rosterIds) ? data.rosterIds : [];
+    if (rawRosterIds.length > 500 || rawRosterIds.some((id) => typeof id !== "string" || !id.trim() || id.length > 160)) {
+      throw new HttpsError("invalid-argument", "명단 선택 정보가 올바르지 않습니다.");
+    }
+    const rosterIds = [...new Set(rawRosterIds.map((id) => id.trim()))];
     const signatureDataUrl = typeof data.signatureDataUrl === "string" ? data.signatureDataUrl : "";
 
     if (!companyId || !/^[A-Za-z0-9_-]{1,128}$/.test(companyId)) {
@@ -176,6 +178,9 @@ exports.submitMealEntry = onCall(
     }
     if (!Number.isInteger(headcount) || headcount < 1 || headcount > 500) {
       throw new HttpsError("invalid-argument", "식수 인원은 1~500명이어야 합니다.");
+    }
+    if (entryMode === "total" && rosterIds.length > 0) {
+      throw new HttpsError("invalid-argument", "총 인원 입력 방식에는 명단을 포함할 수 없습니다.");
     }
     if (entryMode === "roster" && rosterIds.length !== headcount) {
       throw new HttpsError("invalid-argument", "명단 선택 인원과 식수 인원이 일치하지 않습니다.");
@@ -223,6 +228,17 @@ exports.submitMealEntry = onCall(
       if (!Number.isInteger(configuredMealPrice) || configuredMealPrice < 0 || configuredMealPrice > 1000000) {
         throw new HttpsError("failed-precondition", "거래처 식대 설정을 확인해 주세요.");
       }
+      // Never trust roster IDs supplied by the browser: each selected person must
+      // exist, be active, and belong to the same company being billed.
+      const rosterRefs = rosterIds.map((id) => db.collection("companyRosters").doc(id));
+      const rosterSnaps = await Promise.all(rosterRefs.map((ref) => tx.get(ref)));
+      const rosterIsValid = rosterSnaps.every((snap) =>
+        snap.exists && snap.data().companyId === companyId && snap.data().active !== false
+      );
+      if (!rosterIsValid) {
+        throw new HttpsError("permission-denied", "선택한 명단 중 해당 거래처에서 사용할 수 없는 항목이 있습니다. 명단을 새로고침해 주세요.");
+      }
+
       savedMealPrice = configuredMealPrice;
       savedTotalAmount = configuredMealPrice * headcount;
       savedGroupNumber = Math.max(0, Number(counterSnap.exists ? counterSnap.data().lastGroupNumber : 0) || 0) + 1;

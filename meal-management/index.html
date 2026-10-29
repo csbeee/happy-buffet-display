@@ -66,7 +66,7 @@
       <div class="section-heading">
         <div>
           <p class="step-label">STEP 2</p>
-          <h2 id="codeHeading">비밀번호 확인</h2>
+          <h2 id="codeHeading">장부 확인번호</h2>
         </div>
         <button type="button" class="text-button" id="changeCompany">회사 다시 선택</button>
       </div>
@@ -74,12 +74,12 @@
         <span class="selected-company-label">선택한 거래처</span>
         <strong id="selectedCompanyName"></strong>
       </div>
-      <label class="field-label" for="companyCode">거래처 비밀번호 (숫자 4자리)</label>
-      <input id="companyCode" class="code-input" type="password" inputmode="numeric" autocomplete="off" placeholder="관리자가 부여한 4자리 비밀번호">
-      <p class="helper">선택한 거래처의 4자리 비밀번호를 입력합니다.</p>
+      <label class="field-label" for="companyCode">장부 확인번호 (숫자 3자리)</label>
+      <input id="companyCode" class="code-input" type="text" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="예: 003">
+      <p class="helper">선택한 거래처의 장부 번호 3자리를 입력합니다. 예: 장부 3번은 003</p>
       <div id="codeMessage" class="inline-message" role="status" hidden></div>
-      <button type="button" class="primary-button" id="verifyCodeButton">비밀번호 확인 후 계속</button>
-      <p class="security-note">간편 잠금 화면입니다. 실제 데이터 접근 권한을 보호하는 인증 수단은 아닙니다.</p>
+      <button type="button" class="primary-button" id="verifyCodeButton">확인번호 확인 후 계속</button>
+      <p class="security-note">장부 확인번호는 현장 확인용입니다. 실제 데이터 접근 권한을 보호하는 인증 수단은 아닙니다.</p>
     </section>
 
 

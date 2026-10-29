@@ -51,7 +51,7 @@ exports.verifyCompanyCode = onCall(
     if (!companyId || !/^[A-Za-z0-9_-]{1,128}$/.test(companyId)) {
       throw new HttpsError("invalid-argument", "거래처를 다시 선택해 주세요.");
     }
-    if (!/^\d{4,8}$/.test(code)) {
+    if (!/^(?:\d{3}|\d{4,8})$/.test(code)) {
       throw new HttpsError("invalid-argument", "확인 코드를 확인해 주세요.");
     }
 
@@ -86,8 +86,8 @@ exports.verifyCompanyCode = onCall(
       const company = companySnap.exists ? companySnap.data() : null;
       const ledgerCodeMatches = Boolean(
         company &&
-        /^\\d{3}$/.test(String(company.ledgerNumber ?? "")) &&
-        code === String(company.ledgerNumber)
+        /^\d{3}$/.test(String(company.ledgerNumber ?? "")) &&
+        /^\d{3}$/.test(String(company.ledgerNumber ?? "")) &&
       );
       const legacyCodeMatches = Boolean(
         company &&

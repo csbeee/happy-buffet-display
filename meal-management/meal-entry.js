@@ -1,4 +1,5 @@
-import { db } from "../firebase/firebase-config.js";
+import { app, db } from "../firebase/firebase-config.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-functions.js";
 import {
   addDoc,
   collection,
@@ -8,6 +9,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const $ = (id) => document.getElementById(id);
+
+const functions = getFunctions(app);
+const verifyCompanyCodeCall = httpsCallable(functions, "verifyCompanyCode");
+const submitMealEntryCall = httpsCallable(functions, "submitMealEntry");
 
 const searchInput = $("companySearch");
 const companyGrid = $("companyGrid");
@@ -249,18 +254,13 @@ verifyCodeButton.addEventListener("click", async () => {
   verifyCodeButton.textContent = "확인 중…";
   codeMessage.textContent = "비밀번호를 확인하고 있습니다.";
   try {
-    if (/^\d{3}$/.test(ledgerNumber)) {
-      verifiedTicket = code === ledgerNumber ? "local-ok" : null;
-    } else {
-      // Legacy compatibility for existing four-digit hashed codes.
-      const bytes = new TextEncoder().encode(selectedCompany.accessCodeSalt + ":" + code);
-      const digest = await crypto.subtle.digest("SHA-256", bytes);
-      const actualHash = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-      verifiedTicket = actualHash === selectedCompany.accessCodeHash ? "local-ok" : null;
-    }
+    const result = await verifyCompanyCodeCall({ companyId: selectedCompany.id, code });
+    verifiedTicket = result.data?.ok && typeof result.data.ticket === "string"
+      ? result.data.ticket
+      : null;
     codeInput.value = "";
     if (verifiedTicket) {
-      codeMessage.textContent = "장부 확인번호가 확인되었습니다. 아래는 미저장 입력 화면입니다.";
+      codeMessage.textContent = "장부 확인번호가 확인되었습니다. 입력 내용을 작성해 주세요.";
       entryCompanyName.textContent = selectedCompany.name;
       configureEntryMode(selectedCompany);
       await loadRosterForCompany(selectedCompany);
@@ -268,12 +268,14 @@ verifyCodeButton.addEventListener("click", async () => {
       entryPanel.scrollIntoView({ behavior: "smooth", block: "start" });
       resizeSignatureCanvas();
     } else {
-      codeMessage.textContent = "장부 확인번호가 올바르지 않습니다. 다시 확인해 주세요.";
+      codeMessage.textContent = "장부 확인번호를 확인하지 못했습니다. 다시 시도해 주세요.";
       codeInput.focus();
     }
   } catch (error) {
-    console.error("거래처 비밀번호 확인 실패:", error);
-    codeMessage.textContent = "확인번호 확인에 실패했습니다. 브라우저 연결 상태를 확인해 주세요.";
+    console.error("서버 거래처 확인 실패:", error);
+    codeMessage.textContent = error?.code === "functions/failed-precondition"
+      ? "보안 확인 설정이 필요합니다. 관리자에게 알려 주세요."
+      : error?.message || "확인번호 확인에 실패했습니다. 연결 상태를 확인해 주세요.";
   } finally {
     verifyCodeButton.disabled = false;
     verifyCodeButton.textContent = "확인번호 확인 후 계속";
@@ -457,11 +459,14 @@ $("clearSignature").addEventListener("click", () => {
   const ctx = signatureCanvas.getContext("2d"); ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
   signatureHasInk = false; signatureMessage.textContent = "서명이 지워졌습니다.";
 });
-reviewEntryButton.addEventListener("click", () => {
+let savingEntry = false;
+reviewEntryButton.textContent = "식수 접수 저장";
+reviewEntryButton.addEventListener("click", async () => {
+  if (savingEntry) return;
   entryMessage.hidden = false;
   const rep = representativeNameInput.value.trim();
   const count = getCalculatedCount();
-  if (!verifiedTicket) { entryMessage.textContent = "거래처 확인이 필요합니다."; return; }
+  if (!verifiedTicket || verifiedTicket === "local-ok") { entryMessage.textContent = "서버 확인이 만료되었습니다. 거래처 확인을 다시 진행해 주세요."; return; }
   if (!rep) { entryMessage.textContent = "그룹 대표자 이름을 입력해 주세요."; representativeNameInput.focus(); return; }
   if (rosterLoadFailed && entryMode.value !== "total") { entryMessage.textContent = "명단을 불러오지 못했습니다. 명단 확인 방식으로 접수할 수 없습니다."; return; }
   if (entryMode.value === "roster" && getRosterCount() < 1) { entryMessage.textContent = "방문한 명단을 한 명 이상 체크해 주세요."; return; }
@@ -471,10 +476,56 @@ reviewEntryButton.addEventListener("click", () => {
   }
   if (count < 1 || count > 500) { entryMessage.textContent = "계산된 식수는 1~500명이어야 합니다."; return; }
   if (!signatureHasInk) { entryMessage.textContent = "그룹 대표자 서명을 입력해 주세요."; return; }
-  const mode = entryMode.options[entryMode.selectedIndex].text;
+
+  const mode = entryMode.value;
   const groupNo = Number(groupNumberInput.value) || 1;
-  const countText = String(count) + "명";
-  entryMessage.textContent = "입력 검증 완료(아직 미저장): " + selectedCompany.name + " / 방문 그룹 " + groupNo + " / " + mode + " / " + countText + " (명단 " + getRosterCount() + "명, 추가 " + getAdditionalCount() + "명) / 대표자 " + rep + ". 현재는 화면 검증 단계이며 식수 기록이나 서명은 저장되지 않았습니다. 저장 기능 연결 후에만 다음 그룹 번호로 넘어갑니다.";
+  const signatureDataUrl = signatureCanvas.toDataURL("image/png");
+  if (!signatureDataUrl.startsWith("data:image/png;base64,") || signatureDataUrl.length > 200000) {
+    entryMessage.textContent = "서명 이미지가 너무 큽니다. 서명을 지우고 간단하게 다시 입력해 주세요.";
+    return;
+  }
+  if (!window.confirm(`거래처: ${selectedCompany.name}\n방문 그룹: ${groupNo}\n식수 인원: ${count}명\n대표자: ${rep}\n\n이 내용을 실제 식수 기록으로 저장할까요?`)) return;
+
+  savingEntry = true;
+  reviewEntryButton.disabled = true;
+  reviewEntryButton.textContent = "저장 중…";
+  try {
+    const response = await submitMealEntryCall({
+      companyId: selectedCompany.id,
+      ticket: verifiedTicket,
+      submissionId: crypto.randomUUID(),
+      groupNumber: groupNo,
+      entryMode: mode,
+      headcount: count,
+      rosterIds: [...checkedRosterIds],
+      representativeName: rep,
+      signatureDataUrl
+    });
+    const saved = response.data || {};
+    entryMessage.textContent = `저장 완료: ${selectedCompany.name} / ${saved.serviceDate || "날짜 확인 필요"} / ${saved.mealPeriod === "dinner" ? "저녁" : "점심"} / ${count}명. 상태: 관리자 확인 대기.`;
+    sessionGroupNumbers.set(selectedCompany.id, groupNo + 1);
+    verifiedTicket = null;
+    entryPanel.hidden = true;
+    codePanel.hidden = false;
+    codeMessage.hidden = false;
+    codeMessage.textContent = "한 번의 접수가 저장되었습니다. 다음 그룹 접수 전 장부 확인번호를 다시 입력해 주세요.";
+    codeInput.value = "";
+    representativeNameInput.value = "";
+    countInput.value = "0";
+    checkedRosterIds = new Set();
+    signatureCanvas.getContext("2d").clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    signatureHasInk = false;
+    signatureMessage.textContent = "위 영역에 서명해 주세요.";
+    groupNumberInput.value = String(groupNo + 1);
+    updateCalculatedCount();
+  } catch (error) {
+    console.error("식수 기록 저장 실패:", error);
+    entryMessage.textContent = error?.message || "저장하지 못했습니다. 입력 내용은 유지했으니 연결 상태를 확인한 뒤 다시 시도해 주세요.";
+  } finally {
+    savingEntry = false;
+    reviewEntryButton.disabled = false;
+    reviewEntryButton.textContent = "식수 접수 저장";
+  }
 });
 window.addEventListener("resize", () => { if (!entryPanel.hidden) resizeSignatureCanvas(); });
 

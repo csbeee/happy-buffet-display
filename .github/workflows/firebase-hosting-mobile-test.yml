@@ -1,9 +1,12 @@
 name: Firebase Hosting Mobile Test
 
-# Deliberately manual-only: never deploy a feature-branch push to the production project.
-# Configure FIREBASE_TEST_PROJECT_ID and FIREBASE_TEST_TOKEN as GitHub Actions secrets
-# after creating the isolated Firebase test project.
+# Deploy only to the isolated Firebase Hosting preview channel from the dedicated test branch.
+# Production project ID is explicitly rejected below. This workflow never deploys Functions or Firestore rules.
+# Required repository secrets: FIREBASE_TEST_PROJECT_ID=happybuffet-test and FIREBASE_TEST_TOKEN.
 on:
+  push:
+    branches:
+      - test/meal-management-ci-validation
   workflow_dispatch:
 
 jobs:
@@ -11,7 +14,7 @@ jobs:
     name: Deploy isolated mobile test preview
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout feature branch
+      - name: Checkout test branch
         uses: actions/checkout@v4
 
       - name: Validate test-only secrets
@@ -31,7 +34,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools

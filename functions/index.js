@@ -194,10 +194,12 @@ exports.submitMealEntry = onCall(
     const serviceDate = nowKorea.toISOString().slice(0, 10);
     const koreaHour = nowKorea.getUTCHours();
     const mealPeriod = koreaHour >= 16 ? "dinner" : "lunch";
+    const counterRef = db.collection("mealEntryCounters").doc(`${companyId}_${serviceDate}_${mealPeriod}`);
+    let savedGroupNumber = 0;
 
     await db.runTransaction(async (tx) => {
-      const [ticketSnap, companySnap, existingEntry] = await Promise.all([
-        tx.get(ticketRef), tx.get(companyRef), tx.get(entryRef)
+      const [ticketSnap, companySnap, existingEntry, counterSnap] = await Promise.all([
+        tx.get(ticketRef), tx.get(companyRef), tx.get(entryRef), tx.get(counterRef)
       ]);
       if (existingEntry.exists) {
         throw new HttpsError("already-exists", "이미 접수된 기록입니다. 중복 접수하지 않았습니다.");
@@ -214,13 +216,21 @@ exports.submitMealEntry = onCall(
         throw new HttpsError("not-found", "거래처를 찾을 수 없거나 비활성 상태입니다.");
       }
 
+      savedGroupNumber = Math.max(0, Number(counterSnap.exists ? counterSnap.data().lastGroupNumber : 0) || 0) + 1;
       tx.update(ticketRef, { usedAt: FieldValue.serverTimestamp() });
+      tx.set(counterRef, {
+        companyId,
+        serviceDate,
+        mealPeriod,
+        lastGroupNumber: savedGroupNumber,
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
       tx.create(entryRef, {
         companyId,
         companyName: cleanString(companySnap.data().name, 120),
         serviceDate,
         mealPeriod,
-        groupNumber,
+        groupNumber: savedGroupNumber,
         entryMode,
         headcount,
         rosterIds,
@@ -234,6 +244,6 @@ exports.submitMealEntry = onCall(
       });
     });
 
-    return { ok: true, entryId: submissionId, serviceDate, mealPeriod, status: "pending" };
+    return { ok: true, entryId: submissionId, serviceDate, mealPeriod, groupNumber: savedGroupNumber, status: "pending" };
   }
 );

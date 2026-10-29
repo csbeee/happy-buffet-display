@@ -236,9 +236,10 @@ verifyCodeButton.addEventListener("click", async () => {
   codeMessage.className = "inline-message";
   if (!selectedCompany) { codeMessage.textContent = "거래처를 먼저 선택해 주세요."; return; }
   const code = codeInput.value.trim();
-  if (!/^\d{4}$/.test(code)) { codeMessage.textContent = "비밀번호는 숫자 4자리로 입력해 주세요."; codeInput.focus(); return; }
-  if (!selectedCompany.accessCodeSalt || !selectedCompany.accessCodeHash) {
-    codeMessage.textContent = "이 거래처의 비밀번호가 아직 등록되지 않았습니다. 관리자에게 비밀번호 설정을 요청해 주세요.";
+  if (!/^\d{3}$/.test(code)) { codeMessage.textContent = "장부 확인번호는 숫자 3자리로 입력해 주세요. 예: 003"; codeInput.focus(); return; }
+  const ledgerNumber = String(selectedCompany.ledgerNumber ?? "");
+  if (!/^\d{3}$/.test(ledgerNumber) && (!selectedCompany.accessCodeSalt || !selectedCompany.accessCodeHash)) {
+    codeMessage.textContent = "이 거래처의 장부 확인번호가 아직 등록되지 않았습니다. 관리자에게 확인번호 설정을 요청해 주세요.";
     return;
   }
   verifyCodeButton.disabled = true;

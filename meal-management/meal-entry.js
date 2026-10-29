@@ -502,8 +502,9 @@ reviewEntryButton.addEventListener("click", async () => {
       signatureDataUrl
     });
     const saved = response.data || {};
-    entryMessage.textContent = `저장 완료: ${selectedCompany.name} / ${saved.serviceDate || "날짜 확인 필요"} / ${saved.mealPeriod === "dinner" ? "저녁" : "점심"} / ${count}명. 상태: 관리자 확인 대기.`;
-    sessionGroupNumbers.set(selectedCompany.id, groupNo + 1);
+    const savedGroupNo = Number(saved.groupNumber) || groupNo;
+    entryMessage.textContent = `저장 완료: ${selectedCompany.name} / ${saved.serviceDate || "날짜 확인 필요"} / 방문 그룹 ${savedGroupNo} / ${saved.mealPeriod === "dinner" ? "저녁" : "점심"} / ${count}명. 상태: 관리자 확인 대기.`;
+    sessionGroupNumbers.set(selectedCompany.id, savedGroupNo + 1);
     verifiedTicket = null;
     entryPanel.hidden = true;
     codePanel.hidden = false;
@@ -516,7 +517,7 @@ reviewEntryButton.addEventListener("click", async () => {
     signatureCanvas.getContext("2d").clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
     signatureHasInk = false;
     signatureMessage.textContent = "위 영역에 서명해 주세요.";
-    groupNumberInput.value = String(groupNo + 1);
+    groupNumberInput.value = String(savedGroupNo + 1);
     updateCalculatedCount();
   } catch (error) {
     console.error("식수 기록 저장 실패:", error);

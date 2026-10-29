@@ -94,13 +94,10 @@ saveButton?.addEventListener("click", async () => {
     const updatedAt = new Date().toISOString();
     await updateDoc(doc(db, "companies", company.id), {
       ledgerNumber: code, ledgerNumberUpdatedAt: updatedAt,
-      ledgerNumber: deleteField(), ledgerNumberUpdatedAt: deleteField(),
       accessCodeSalt: deleteField(), accessCodeHash: deleteField(), accessCodeUpdatedAt: deleteField()
     });
     company.ledgerNumber = code;
     company.ledgerNumberUpdatedAt = updatedAt;
-    delete company.ledgerNumber;
-    delete company.ledgerNumberUpdatedAt;
     delete company.accessCodeSalt;
     delete company.accessCodeHash;
     delete company.accessCodeUpdatedAt;

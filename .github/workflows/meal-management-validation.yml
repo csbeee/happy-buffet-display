@@ -1,0 +1,34 @@
+name: Meal Management Code Validation
+
+on:
+  push:
+    branches:
+      - test/meal-management-ci-validation
+  pull_request:
+    branches:
+      - feature/meal-management-tablet
+      - main
+    paths:
+      - "functions/**"
+      - "meal-management/**"
+      - "admin/**"
+      - "firebase/**"
+      - "tests/**"
+      - ".github/workflows/meal-management-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Static checks and server validation tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run JavaScript syntax and regression tests
+        run: node --test tests/*.test.cjs

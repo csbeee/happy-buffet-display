@@ -246,7 +246,7 @@ verifyCodeButton.addEventListener("click", async () => {
   verifyCodeButton.textContent = "확인 중…";
   codeMessage.textContent = "비밀번호를 확인하고 있습니다.";
   try {
-    if (/^\\d{3}$/.test(ledgerNumber)) {
+    if (/^\d{3}$/.test(ledgerNumber)) {
       verifiedTicket = code === ledgerNumber ? "local-ok" : null;
     } else {
       // Legacy compatibility for existing four-digit hashed codes.

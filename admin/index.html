@@ -16,6 +16,7 @@
     <div class="topButtons">
         <button id="resetBtn">초기화</button>
         <button id="libraryBtn">메뉴 라이브러리</button>
+        <button id="companyManagerToggle" type="button">거래처 등록·확인번호 관리</button>
         <button type="button" onclick="location.href='./history.html'">메뉴 이력</button>
         <button type="button" onclick="location.href='./recommendations.html'">추천 메뉴·통계</button>
     </div>
@@ -25,7 +26,113 @@
     <span id="saveInfo">저장 기록 없음</span>
 </section>
 
-<section class="displayModeArea">
+<section id="companyManagerPanel" class="company-manager-panel" hidden aria-labelledby="companyManagerHeading">
+    <div class="company-manager-header">
+      <div><h2 id="companyManagerHeading">거래처 관리</h2><p>거래처 정보를 등록하고, 식수 접수용 장부 확인번호를 관리합니다.</p></div>
+      <button id="companyManagerClose" type="button">닫기</button>
+    </div>
+    <div id="companyManagerStatus" class="company-manager-status" role="status">거래처 목록을 불러오는 중입니다.</div>
+    <section class="company-registration" aria-labelledby="companyRegistrationHeading">
+      <div class="company-registration-heading">
+        <div><h3 id="companyRegistrationHeading">새 거래처 등록</h3><p>회사명은 필수이며, 나머지 항목은 필요한 만큼 입력할 수 있습니다.</p></div>
+      </div>
+      <form id="companyRegistrationForm" class="company-registration-form">
+        <div class="company-field">
+          <label for="newCompanyName">거래처명 <span class="required-mark">필수</span></label>
+          <input id="newCompanyName" name="name" type="text" maxlength="80" autocomplete="organization" required placeholder="예: 가나다건설">
+        </div>
+        <div class="company-field">
+          <label for="newCompanyAliases">검색 별칭</label>
+          <input id="newCompanyAliases" name="aliases" type="text" maxlength="200" placeholder="쉼표로 구분 (예: 가나다, 현장 A)">
+          <small>식수 접수 화면에서 별칭으로도 거래처를 찾을 수 있습니다.</small>
+        </div>
+        <div class="company-field">
+          <label for="newCompanyContactName">연락 담당자 이름</label>
+          <input id="newCompanyContactName" name="contactName" type="text" maxlength="50" autocomplete="name" placeholder="담당자 이름">
+        </div>
+        <div class="company-field">
+          <label for="newCompanyContactPhone">연락처</label>
+          <input id="newCompanyContactPhone" name="contactPhone" type="tel" maxlength="20" autocomplete="tel" inputmode="tel" placeholder="예: 010-1234-5678">
+        </div>
+        <div class="company-field">
+          <label for="newCompanyMealPrice">1인 식대 (원)</label>
+          <input id="newCompanyMealPrice" name="mealPrice" type="number" min="0" max="1000000" step="100" inputmode="numeric" value="7000" required>
+          <small>거래처별 식대가 다를 경우에만 수정하세요.</small>
+        </div>
+        <div class="company-field">
+          <label for="newCompanyBillingType">정산 방식</label>
+          <select id="newCompanyBillingType" name="billingType">
+            <option value="monthly">월말 정산</option>
+            <option value="prepaid">선불</option>
+            <option value="daily">일별 정산</option>
+            <option value="other">기타 / 협의</option>
+          </select>
+        </div>
+        <div class="company-field company-field-wide">
+          <label for="newCompanyNote">관리 메모</label>
+          <textarea id="newCompanyNote" name="note" rows="3" maxlength="500" placeholder="예: 세금계산서 발행, 담당자 연락 가능 시간, 현장명 등"></textarea>
+        </div>
+        <div class="company-subsection-heading company-field-wide"><h3>식수 입력 방식 설정</h3><p>거래처별 기본 입력 방식을 정합니다. 기존 거래처는 별도 설정이 없어도 혼합 방식으로 동작합니다.</p></div>
+        <div class="company-field">
+          <label for="newCompanyMealEntryMode">기본 식수 입력 방식</label>
+          <select id="newCompanyMealEntryMode" name="mealEntryMode">
+            <option value="mixed" selected>명단 확인 + 추가 인원</option>
+            <option value="count">총 인원 입력</option>
+            <option value="roster">명단 확인</option>
+          </select>
+          <small>식수 접수 화면에 처음 들어왔을 때 선택되는 방식입니다.</small>
+        </div>
+        <div class="company-field">
+          <label for="newCompanyRosterMode">명단 등록 설정</label>
+          <select id="newCompanyRosterMode" name="rosterMode">
+            <option value="optional" selected>선택 사항 — 필요할 때 등록</option>
+            <option value="required">필수 — 명단 확인 필요</option>
+            <option value="none">사용 안 함</option>
+          </select>
+        </div>
+        <div class="company-registration-options company-field-wide">
+          <label class="company-check"><input id="newCompanyAllowDailyModeOverride" type="checkbox" checked> 당일 입력 방식 변경 허용</label>
+          <small>해제하면 접수 화면에서 입력 방식을 바꿀 수 없습니다.</small>
+        </div>
+        <div class="company-registration-options company-field-wide">
+          <label class="company-check"><input id="newCompanyActive" type="checkbox" checked> 식수 접수 화면에 표시</label>
+          <label class="company-check"><input id="newCompanyFavorite" type="checkbox"> 자주 이용하는 거래처로 표시</label>
+        </div>
+        <div class="company-field-wide company-registration-actions">
+          <button id="companyRegistrationSubmit" class="primary" type="submit">거래처 등록</button>
+          <button id="companyRegistrationReset" type="reset">입력 초기화</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="company-roster-manager" aria-labelledby="companyRosterHeading">
+      <div class="company-subsection-heading"><h3 id="companyRosterHeading">사전 등록 명단 관리</h3><p>거래처를 선택한 뒤 이름을 한 줄에 한 명씩 입력해 등록합니다. 이미 등록된 이름은 중복 저장하지 않습니다.</p></div>
+      <div class="company-manager-form">
+        <label for="rosterCompanySelect">명단 소속 거래처</label>
+        <select id="rosterCompanySelect"><option value="">거래처 선택</option></select>
+        <label for="rosterNamesInput">명단 이름 (한 줄에 한 명)</label>
+        <textarea id="rosterNamesInput" rows="5" maxlength="10000" placeholder="홍길동&#10;김영희&#10;박철수"></textarea>
+        <div class="company-manager-actions"><button id="rosterSaveButton" class="primary" type="button">명단 추가 등록</button><button id="rosterReloadButton" type="button">등록 명단 새로고침</button></div>
+        <div id="rosterManagerStatus" class="company-manager-status" role="status">거래처를 선택해 주세요.</div>
+        <div id="rosterManagerList" class="roster-manager-list"></div>
+      </div>
+    </section>
+
+    <div class="company-subsection-heading"><h3>거래처 장부 확인번호 관리</h3><p>등록된 거래처를 선택해 장부 번호에 맞는 숫자 3자리 확인번호를 설정하거나 해제합니다.</p></div>
+    <div class="company-manager-form">
+      <label for="companyManagerSelect">거래처 선택</label>
+      <select id="companyManagerSelect"><option value="">거래처 선택</option></select>
+      <label for="companyManagerCode">장부 확인번호 (숫자 3자리)</label>
+      <input id="companyManagerCode" type="text" inputmode="numeric" maxlength="3" pattern="[0-9]{3}" autocomplete="off" placeholder="예: 003">
+      <div class="company-manager-actions">
+        <button id="companyManagerSave" class="primary" type="button">확인번호 저장</button>
+        <button id="companyManagerClear" type="button">확인번호 해제</button>
+      </div>
+      <p class="company-manager-note">장부 번호를 3자리로 입력합니다. 예: 장부 3번 → 003. 확인번호는 편의용 확인값이며 보안 인증 수단이 아닙니다.</p>
+    </div>
+  </section>
+
+  <section class="displayModeArea">
     <div class="displayModeHeader">
         <h2>전광판 모드</h2>
     </div>
@@ -151,6 +258,8 @@
 
 <!-- menu-ui.js의 initMenuUI()는 Sortable 전역 객체를 사용합니다. -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+<script type="module" src="./auth.js"></script>
+<script type="module" src="company-management.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -1,0 +1,43 @@
+name: Firebase Hosting Mobile Test
+
+# Deliberately manual-only: never deploy a feature-branch push to the production project.
+# Configure FIREBASE_TEST_PROJECT_ID and FIREBASE_TEST_TOKEN as GitHub Actions secrets
+# after creating the isolated Firebase test project.
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_preview:
+    name: Deploy isolated mobile test preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+
+      - name: Validate test-only secrets
+        env:
+          TEST_PROJECT_ID: ${{ secrets.FIREBASE_TEST_PROJECT_ID }}
+          TEST_TOKEN: ${{ secrets.FIREBASE_TEST_TOKEN }}
+        run: |
+          if [ -z "$TEST_PROJECT_ID" ] || [ -z "$TEST_TOKEN" ]; then
+            echo "Missing FIREBASE_TEST_PROJECT_ID or FIREBASE_TEST_TOKEN. No deployment performed."
+            exit 1
+          fi
+          if [ "$TEST_PROJECT_ID" = "todaymenu-30fe7" ]; then
+            echo "Refusing to deploy preview to the production Firebase project."
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy to isolated preview channel
+        env:
+          TEST_PROJECT_ID: ${{ secrets.FIREBASE_TEST_PROJECT_ID }}
+          TEST_TOKEN: ${{ secrets.FIREBASE_TEST_TOKEN }}
+        run: firebase hosting:channel:deploy mobile-test --project "$TEST_PROJECT_ID" --token "$TEST_TOKEN" --expires 30d

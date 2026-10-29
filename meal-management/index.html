@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173f35">
+  <title>식수 접수 | 행복을 담은 한식뷔페</title>
+  <link rel="stylesheet" href="./meal-entry.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div class="brand-mark" aria-hidden="true">행복</div>
+      <div>
+        <p class="eyebrow">HAPPY BUFFET</p>
+        <h1>행복을 담은 한식뷔페</h1>
+        <p class="subtitle">방문 그룹 식수 접수</p>
+      </div>
+      <div class="session-pill" id="mealSessionLabel">오늘 · 점심</div>
+    </header>
+
+    <section class="company-picker" aria-labelledby="companyHeading">
+      <div class="section-heading">
+        <div>
+          <p class="step-label">STEP 1</p>
+          <h2 id="companyHeading">어느 회사에서 오셨나요?</h2>
+        </div>
+        <span class="company-count" id="companyCount">거래처 불러오는 중</span>
+      </div>
+
+      <label class="search-box" for="companySearch">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="companySearch" type="search" autocomplete="off" placeholder="회사명 또는 별칭 검색" aria-describedby="searchHelp">
+        <button type="button" class="clear-search" id="clearSearch" aria-label="검색어 지우기" hidden>지우기</button>
+      </label>
+      <p class="helper" id="searchHelp">회사명 일부만 입력해도 찾을 수 있습니다.</p>
+
+      <section id="favoritesSection" class="company-section" hidden>
+        <div class="list-heading">
+          <h3>자주 이용하는 거래처</h3>
+          <span>즐겨찾기</span>
+        </div>
+        <div id="favoriteCompanies" class="company-grid"></div>
+      </section>
+
+      <section class="company-section">
+        <div class="list-heading">
+          <h3 id="resultsHeading">전체 거래처</h3>
+          <span id="resultsCount"></span>
+        </div>
+        <div id="companyGrid" class="company-grid" aria-live="polite"></div>
+        <div id="emptyState" class="empty-state" hidden>
+          <div class="empty-icon" aria-hidden="true">⌕</div>
+          <h3>검색 결과가 없습니다</h3>
+          <p>회사명이나 등록된 별칭을 다시 확인해 주세요.</p>
+        </div>
+      </section>
+
+      <div id="loadState" class="status-panel" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Firebase에서 거래처 목록을 불러오고 있습니다.</span>
+      </div>
+    </section>
+
+    <section id="codePanel" class="code-panel" aria-labelledby="codeHeading" hidden>
+      <div class="section-heading">
+        <div>
+          <p class="step-label">STEP 2</p>
+          <h2 id="codeHeading">장부 확인번호</h2>
+        </div>
+        <button type="button" class="text-button" id="changeCompany">회사 다시 선택</button>
+      </div>
+      <div class="selected-company">
+        <span class="selected-company-label">선택한 거래처</span>
+        <strong id="selectedCompanyName"></strong>
+      </div>
+      <label class="field-label" for="companyCode">장부 확인번호 (숫자 3자리)</label>
+      <input id="companyCode" class="code-input" type="text" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="예: 003">
+      <p class="helper">선택한 거래처의 장부 번호 3자리를 입력합니다. 예: 장부 3번은 003</p>
+      <div id="codeMessage" class="inline-message" role="status" hidden></div>
+      <button type="button" class="primary-button" id="verifyCodeButton">확인번호 확인 후 계속</button>
+      <p class="security-note">장부 확인번호는 현장 확인용입니다. 실제 데이터 접근 권한을 보호하는 인증 수단은 아닙니다.</p>
+    </section>
+
+
+    <section id="entryPanel" class="entry-panel" hidden>
+      <div class="section-heading">
+        <div><p class="step-label">STEP 3</p><h2>방문 그룹 식수 입력</h2></div>
+        <span class="draft-pill">저장 전 화면</span>
+      </div>
+      <div class="selected-company"><span class="selected-company-label">접수 거래처</span><strong id="entryCompanyName"></strong></div>
+      <div class="entry-grid">
+        <div><label class="field-label" for="entryMode">입력 방식</label><select id="entryMode" class="entry-control"><option value="total">총 인원 입력</option><option value="roster">명단 확인</option><option value="mixed">명단 확인 + 추가 인원</option></select></div>
+        <div><label class="field-label" for="groupNumber">방문 그룹 번호 (자동)</label><input id="groupNumber" class="entry-control group-number-control" type="number" min="1" step="1" value="1" readonly><small class="helper">거래처별 방문 순서로 표시됩니다.</small></div>
+        <div><label class="field-label" for="representativeName">그룹 대표자 이름</label><input id="representativeName" class="entry-control" maxlength="40" placeholder="대표자 이름"></div>
+      </div>
+        <div id="totalCountWrap"><label class="field-label" for="totalCount">추가/총 식수 인원</label><div class="count-stepper"><button type="button" id="decreaseCount" class="count-step-button" aria-label="인원 1명 감소">−</button><input id="totalCount" class="entry-control count-control" type="number" inputmode="numeric" min="0" max="500" step="1" value="0" placeholder="인원수"><button type="button" id="increaseCount" class="count-step-button" aria-label="인원 1명 증가">+</button></div><small id="countHelp" class="helper">+ / − 버튼으로 인원을 조절할 수 있습니다.</small></div>
+      <section id="rosterSection" class="roster-section" hidden aria-labelledby="rosterHeading">
+        <div class="list-heading"><h3 id="rosterHeading">사전 등록 명단</h3><span id="rosterCount">0명</span></div>
+        <p class="helper">방문한 사람만 체크하세요. 혼합 방식은 체크 인원에 추가 인원을 더해 계산합니다.</p>
+        <input id="rosterSearch" class="entry-control roster-search" type="search" placeholder="이름 검색">
+        <div id="rosterList" class="roster-list"></div>
+        <div id="rosterEmpty" class="info-panel" hidden><strong>등록된 명단이 없습니다.</strong><p>관리자 화면의 거래처 명단 관리에서 이름을 먼저 등록해 주세요.</p></div>
+      </section>
+      <div id="rosterNotice" class="info-panel" hidden><strong>입력 안내</strong><p></p></div>
+      <div id="calculatedCountPanel" class="calculated-count-panel" aria-live="polite"><span>계산된 식수</span><strong id="calculatedCount">0명</strong></div>
+      <div class="signature-section">
+        <div class="list-heading"><h3>그룹 대표자 서명</h3><button type="button" class="text-button" id="clearSignature">서명 지우기</button></div>
+        <p class="helper">손가락이나 마우스로 서명하세요. 현재 단계에서는 서버에 저장되지 않습니다.</p>
+        <canvas id="signatureCanvas" class="signature-canvas" aria-label="대표자 서명 영역"></canvas>
+        <p id="signatureMessage" class="signature-message" role="status">위 영역에 서명해 주세요.</p>
+      </div>
+      <div id="entryMessage" class="inline-message" role="status" hidden></div>
+      <button type="button" class="primary-button" id="reviewEntryButton">입력 내용 확인</button>
+      <button type="button" class="secondary-button" id="backToCompanyButton">거래처 선택으로 돌아가기</button>
+      <p class="security-note">개발 단계 화면입니다. 식수·서명은 저장되지 않으며 매출에 반영되지 않습니다.</p>
+    </section>
+
+    <footer class="app-footer">
+      <span>빠르고 정확한 식수 확인</span>
+      <span id="connectionState">연결 확인 중</span>
+    </footer>
+  </main>
+  <script type="module" src="./meal-entry.js"></script>
+</body>
+</html>

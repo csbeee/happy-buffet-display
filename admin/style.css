@@ -624,3 +624,70 @@ button.danger:hover {
 .dinner-menu-page { padding-top: 0; }
 .dinner-menu-container { padding-top: 12px; }
 .dinner-category .category-title { color: #174a7e; }
+
+
+/* Keep the company registration screen focused: hide menu-editing controls while open. */
+body.company-management-open .saveArea,
+body.company-management-open .displayModeArea,
+body.company-management-open #normalMenuEditor,
+body.company-management-open #dinnerEditor,
+body.company-management-open #conceptEditor,
+body.company-management-open .bottomBar,
+body.company-management-open #resetBtn,
+body.company-management-open #libraryBtn,
+body.company-management-open .topButtons button[onclick*="history.html"],
+body.company-management-open .topButtons button[onclick*="recommendations.html"] {
+  display: none !important;
+}
+
+/* Company password management panel */
+.company-manager-panel { max-width:1200px; margin:18px auto; padding:20px; background:#fff; border:1px solid #dbe4e0; border-radius:14px; box-shadow:0 3px 12px rgba(0,0,0,.04); }
+.company-manager-panel[hidden] { display:none !important; }
+.company-manager-header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:18px; }
+.company-manager-header h2 { font-size:22px; margin-bottom:6px; }
+.company-manager-header p,.company-manager-note { color:#667085; font-size:13px; }
+.company-manager-status { padding:12px 14px; margin-bottom:16px; background:#f0f7f4; border-radius:8px; color:#235747; }
+.company-manager-status.error { background:#fff1f0; color:#b42318; }
+.company-manager-form { max-width:620px; display:grid; gap:9px; }
+.company-manager-form label { font-weight:700; margin-top:6px; }
+.company-manager-form select,.company-manager-form input { width:100%; min-height:48px; border:1px solid #d0d5dd; border-radius:8px; padding:10px 12px; font:inherit; background:#fff; }
+.company-manager-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+.company-manager-actions button { min-height:46px; }
+.company-manager-note { line-height:1.6; margin-top:4px; }
+@media(max-width:768px) { .company-manager-panel { margin:12px; padding:14px; } .company-manager-header h2 { font-size:19px; } .company-manager-actions button { flex:1; } }
+
+
+/* Company registration form: desktop grid with thumb-friendly mobile controls */
+.company-registration { margin:20px 0 24px; padding:18px; border:1px solid #e3e9e6; border-radius:12px; background:#f9fbfa; }
+.company-registration-heading { margin-bottom:14px; }
+.company-registration-heading h3,.company-subsection-heading h3 { font-size:18px; margin-bottom:5px; }
+.company-registration-heading p,.company-subsection-heading p { color:#667085; font-size:13px; line-height:1.5; }
+.company-registration-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.company-field { min-width:0; display:flex; flex-direction:column; gap:6px; }
+.company-field label { font-weight:700; font-size:14px; }
+.company-field input:not([type="checkbox"]),.company-field select,.company-field textarea { width:100%; min-height:46px; border:1px solid #d0d5dd; border-radius:8px; padding:10px 12px; font:inherit; background:#fff; color:#222; }
+.company-field textarea { resize:vertical; min-height:80px; }
+.company-field small { color:#667085; font-size:12px; line-height:1.45; }
+.company-field-wide { grid-column:1 / -1; }
+.required-mark { display:inline-block; margin-left:4px; color:#b42318; font-size:11px; }
+.company-registration-options { display:flex; flex-wrap:wrap; gap:16px; }
+.company-check { display:inline-flex; align-items:center; gap:8px; font-weight:500 !important; }
+.company-check input { width:18px; height:18px; accent-color:#1976d2; }
+.company-registration-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.company-registration-actions button { min-height:46px; }
+.company-subsection-heading { margin:8px 0 14px; padding-top:18px; border-top:1px solid #e5e7eb; }
+@media(max-width:768px) {
+  .company-registration { padding:14px; margin:14px 0 20px; }
+  .company-registration-form { grid-template-columns:1fr; gap:12px; }
+  .company-field-wide { grid-column:auto; }
+  .company-registration-actions { flex-direction:column; }
+  .company-registration-actions button { width:100%; min-height:48px; }
+  .company-registration-options { flex-direction:column; gap:10px; }
+}
+
+
+/* Company roster manager */
+.roster-manager-list { display: grid; gap: 6px; margin-top: 12px; max-height: 320px; overflow-y: auto; }
+.roster-manager-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #e0e7e2; border-radius: 10px; background: #fff; }
+.roster-manager-row span:last-child { color: #687670; font-size: 12px; white-space: nowrap; }
+#rosterNamesInput { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #cbd6ce; border-radius: 10px; font: inherit; }

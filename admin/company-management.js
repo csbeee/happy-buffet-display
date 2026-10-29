@@ -118,8 +118,11 @@ clearButton?.addEventListener("click", async () => {
   clearButton.disabled = true;
   try {
     await updateDoc(doc(db, "companies", company.id), {
+      ledgerNumber: deleteField(), ledgerNumberUpdatedAt: deleteField(),
       accessCodeSalt: deleteField(), accessCodeHash: deleteField(), accessCodeUpdatedAt: deleteField()
     });
+    delete company.ledgerNumber;
+    delete company.ledgerNumberUpdatedAt;
     delete company.accessCodeSalt;
     delete company.accessCodeHash;
     delete company.accessCodeUpdatedAt;

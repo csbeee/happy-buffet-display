@@ -157,6 +157,8 @@ function renderCompanies() {
 }
 
 function chooseCompany(company) {
+  // 거래처를 바꾸면 이전 거래처에서 확인한 상태를 재사용하지 않습니다.
+  verifiedTicket = null;
   selectedCompany = company;
   selectedCompanyName.textContent = company.name;
   codeInput.value = "";
@@ -169,6 +171,7 @@ function chooseCompany(company) {
 }
 
 function resetCompanySelection() {
+  verifiedTicket = null;
   selectedCompany = null;
   codeInput.value = "";
   codePanel.hidden = true;
@@ -471,9 +474,7 @@ reviewEntryButton.addEventListener("click", () => {
   const mode = entryMode.options[entryMode.selectedIndex].text;
   const groupNo = Number(groupNumberInput.value) || 1;
   const countText = String(count) + "명";
-  entryMessage.textContent = "입력 확인 완료(미저장): " + selectedCompany.name + " / 방문 그룹 " + groupNo + " / " + mode + " / " + countText + " (명단 " + getRosterCount() + "명, 추가 " + getAdditionalCount() + "명) / 대표자 " + rep + ". 실제 저장 전 확인 화면입니다.";
-  sessionGroupNumbers.set(selectedCompany.id, groupNo + 1);
-  groupNumberInput.value = String(groupNo + 1);
+  entryMessage.textContent = "입력 검증 완료(아직 미저장): " + selectedCompany.name + " / 방문 그룹 " + groupNo + " / " + mode + " / " + countText + " (명단 " + getRosterCount() + "명, 추가 " + getAdditionalCount() + "명) / 대표자 " + rep + ". 현재는 화면 검증 단계이며 식수 기록이나 서명은 저장되지 않았습니다. 저장 기능 연결 후에만 다음 그룹 번호로 넘어갑니다.";
 });
 window.addEventListener("resize", () => { if (!entryPanel.hidden) resizeSignatureCanvas(); });
 

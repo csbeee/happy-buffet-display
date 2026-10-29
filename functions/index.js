@@ -197,6 +197,8 @@ exports.submitMealEntry = onCall(
     const mealPeriod = koreaHour >= 16 ? "dinner" : "lunch";
     const counterRef = db.collection("mealEntryCounters").doc(`${companyId}_${serviceDate}_${mealPeriod}`);
     let savedGroupNumber = 0;
+    let savedMealPrice = 0;
+    let savedTotalAmount = 0;
 
     await db.runTransaction(async (tx) => {
       const [ticketSnap, companySnap, existingEntry, counterSnap] = await Promise.all([
@@ -217,6 +219,12 @@ exports.submitMealEntry = onCall(
         throw new HttpsError("not-found", "거래처를 찾을 수 없거나 비활성 상태입니다.");
       }
 
+      const configuredMealPrice = Number(companySnap.data().mealPrice ?? 7000);
+      if (!Number.isInteger(configuredMealPrice) || configuredMealPrice < 0 || configuredMealPrice > 1000000) {
+        throw new HttpsError("failed-precondition", "거래처 식대 설정을 확인해 주세요.");
+      }
+      savedMealPrice = configuredMealPrice;
+      savedTotalAmount = configuredMealPrice * headcount;
       savedGroupNumber = Math.max(0, Number(counterSnap.exists ? counterSnap.data().lastGroupNumber : 0) || 0) + 1;
       tx.update(ticketRef, { usedAt: FieldValue.serverTimestamp() });
       tx.set(counterRef, {
@@ -238,13 +246,24 @@ exports.submitMealEntry = onCall(
         representativeName,
         signatureDataUrl,
         submissionId,
-        status: "pending",
+        mealPrice: savedMealPrice,
+        totalAmount: savedTotalAmount,
+        status: "confirmed",
         createdAt: FieldValue.serverTimestamp(),
         source: "meal-management-tablet",
         appId: cleanString(request.app?.appId, 200) || null
       });
     });
 
-    return { ok: true, entryId: submissionId, serviceDate, mealPeriod, groupNumber: savedGroupNumber, status: "pending" };
+    return {
+      ok: true,
+      entryId: submissionId,
+      serviceDate,
+      mealPeriod,
+      groupNumber: savedGroupNumber,
+      mealPrice: savedMealPrice,
+      totalAmount: savedTotalAmount,
+      status: "confirmed"
+    };
   }
 );

@@ -503,7 +503,9 @@ reviewEntryButton.addEventListener("click", async () => {
     });
     const saved = response.data || {};
     const savedGroupNo = Number(saved.groupNumber) || groupNo;
-    entryMessage.textContent = `저장 완료: ${selectedCompany.name} / ${saved.serviceDate || "날짜 확인 필요"} / 방문 그룹 ${savedGroupNo} / ${saved.mealPeriod === "dinner" ? "저녁" : "점심"} / ${count}명. 상태: 관리자 확인 대기.`;
+    const savedMealPrice = Number(saved.mealPrice);
+    const savedTotalAmount = Number(saved.totalAmount);
+    entryMessage.textContent = `접수 및 매출 반영 완료: ${selectedCompany.name} / ${saved.serviceDate || "날짜 확인 필요"} / 방문 그룹 ${savedGroupNo} / ${saved.mealPeriod === "dinner" ? "저녁" : "점심"} / ${count}명 / 1인 ${savedMealPrice.toLocaleString("ko-KR")}원 / 합계 ${savedTotalAmount.toLocaleString("ko-KR")}원.`;
     sessionGroupNumbers.set(selectedCompany.id, savedGroupNo + 1);
     verifiedTicket = null;
     entryPanel.hidden = true;

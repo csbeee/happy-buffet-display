@@ -84,10 +84,11 @@ exports.verifyCompanyCode = onCall(
       }
 
       const company = companySnap.exists ? companySnap.data() : null;
+      const ledgerNumber = String(company?.ledgerNumber ?? "");
       const ledgerCodeMatches = Boolean(
         company &&
-        /^\d{3}$/.test(String(company.ledgerNumber ?? "")) &&
-        /^\d{3}$/.test(String(company.ledgerNumber ?? "")) &&
+        /^\d{3}$/.test(ledgerNumber) &&
+        ledgerNumber === code
       );
       const legacyCodeMatches = Boolean(
         company &&

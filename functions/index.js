@@ -21,7 +21,7 @@ function hashKey(value) {
 }
 
 async function verifyScryptCode(code, salt, expectedHash) {
-  if (typeof code !== "string" || !/^\d{4,8}$/.test(code)) return false;
+  if (typeof code !== "string" || !/^(?:\d{3}|\d{4,8})$/.test(code)) return false;
   if (typeof salt !== "string" || salt.length < 16) return false;
   if (typeof expectedHash !== "string" || !/^[a-f0-9]{128}$/i.test(expectedHash)) return false;
 

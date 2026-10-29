@@ -84,11 +84,16 @@ exports.verifyCompanyCode = onCall(
       }
 
       const company = companySnap.exists ? companySnap.data() : null;
-      const codeMatches = Boolean(
+      const ledgerCodeMatches = Boolean(
         company &&
-        company.active !== false &&
+        /^\\d{3}$/.test(String(company.ledgerNumber ?? "")) &&
+        code === String(company.ledgerNumber)
+      );
+      const legacyCodeMatches = Boolean(
+        company &&
         await verifyScryptCode(code, company.accessCodeSalt, company.accessCodeHash)
       );
+      const codeMatches = Boolean(company && company.active !== false && (ledgerCodeMatches || legacyCodeMatches));
 
       if (!codeMatches) {
         const nextFailedAttempts = failedAttempts + 1;
@@ -129,5 +134,106 @@ exports.verifyCompanyCode = onCall(
       companyId,
       expiresInSeconds: Math.floor(TICKET_TTL_MS / 1000)
     };
+  }
+);
+
+/**
+ * Persist one verified visit group. Tickets are short-lived and consumed once.
+ * The Admin SDK bypasses Firestore client rules; all input validation is therefore
+ * performed here before a billable meal entry is written.
+ */
+exports.submitMealEntry = onCall(
+  { enforceAppCheck: true, maxInstances: 10, timeoutSeconds: 20 },
+  async (request) => {
+    const data = request.data || {};
+    const companyId = cleanString(data.companyId, 128);
+    const ticket = cleanString(data.ticket, 256);
+    const submissionId = cleanString(data.submissionId, 80);
+    const representativeName = cleanString(data.representativeName, 40);
+    const entryMode = cleanString(data.entryMode, 20);
+    const groupNumber = Number(data.groupNumber);
+    const headcount = Number(data.headcount);
+    const rosterIds = Array.isArray(data.rosterIds)
+      ? [...new Set(data.rosterIds.filter((id) => typeof id === "string").map((id) => id.slice(0, 160)))].slice(0, 500)
+      : [];
+    const signatureDataUrl = typeof data.signatureDataUrl === "string" ? data.signatureDataUrl : "";
+
+    if (!companyId || !/^[A-Za-z0-9_-]{1,128}$/.test(companyId)) {
+      throw new HttpsError("invalid-argument", "거래처를 다시 선택해 주세요.");
+    }
+    if (!ticket || ticket.length < 32 || ticket.length > 256) {
+      throw new HttpsError("permission-denied", "거래처 확인을 다시 진행해 주세요.");
+    }
+    if (!/^[A-Za-z0-9_-]{16,80}$/.test(submissionId)) {
+      throw new HttpsError("invalid-argument", "접수 식별값이 올바르지 않습니다. 다시 시도해 주세요.");
+    }
+    if (!representativeName || !["total", "roster", "mixed"].includes(entryMode)) {
+      throw new HttpsError("invalid-argument", "대표자 이름 또는 입력 방식을 확인해 주세요.");
+    }
+    if (!Number.isInteger(groupNumber) || groupNumber < 1 || groupNumber > 100000) {
+      throw new HttpsError("invalid-argument", "방문 그룹 번호가 올바르지 않습니다.");
+    }
+    if (!Number.isInteger(headcount) || headcount < 1 || headcount > 500) {
+      throw new HttpsError("invalid-argument", "식수 인원은 1~500명이어야 합니다.");
+    }
+    if (entryMode === "roster" && rosterIds.length !== headcount) {
+      throw new HttpsError("invalid-argument", "명단 선택 인원과 식수 인원이 일치하지 않습니다.");
+    }
+    if (entryMode === "mixed" && rosterIds.length > headcount) {
+      throw new HttpsError("invalid-argument", "명단 인원이 총 식수보다 많습니다.");
+    }
+    if (!signatureDataUrl.startsWith("data:image/png;base64,") || signatureDataUrl.length > 200000) {
+      throw new HttpsError("invalid-argument", "대표자 서명을 확인해 주세요.");
+    }
+
+    const ticketRef = db.collection("companyAccessTickets").doc(hashKey(ticket));
+    const companyRef = db.collection("companies").doc(companyId);
+    const entryRef = db.collection("mealEntries").doc(submissionId);
+    const now = Date.now();
+    const nowKorea = new Date(now + 9 * 60 * 60 * 1000);
+    const serviceDate = nowKorea.toISOString().slice(0, 10);
+    const koreaHour = nowKorea.getUTCHours();
+    const mealPeriod = koreaHour >= 16 ? "dinner" : "lunch";
+
+    await db.runTransaction(async (tx) => {
+      const [ticketSnap, companySnap, existingEntry] = await Promise.all([
+        tx.get(ticketRef), tx.get(companyRef), tx.get(entryRef)
+      ]);
+      if (existingEntry.exists) {
+        throw new HttpsError("already-exists", "이미 접수된 기록입니다. 중복 접수하지 않았습니다.");
+      }
+      if (!ticketSnap.exists) {
+        throw new HttpsError("permission-denied", "확인 정보가 만료되었습니다. 거래처 확인을 다시 해 주세요.");
+      }
+      const ticketData = ticketSnap.data();
+      const expiresAt = ticketData.expiresAt?.toMillis?.() ?? 0;
+      if (ticketData.companyId !== companyId || ticketData.usedAt || expiresAt <= now) {
+        throw new HttpsError("permission-denied", "확인 정보가 만료되었거나 이미 사용되었습니다. 다시 확인해 주세요.");
+      }
+      if (!companySnap.exists || companySnap.data().active === false) {
+        throw new HttpsError("not-found", "거래처를 찾을 수 없거나 비활성 상태입니다.");
+      }
+
+      tx.update(ticketRef, { usedAt: FieldValue.serverTimestamp() });
+      tx.create(entryRef, {
+        companyId,
+        companyName: cleanString(companySnap.data().name, 120),
+        serviceDate,
+        mealPeriod,
+        groupNumber,
+        entryMode,
+        headcount,
+        rosterIds,
+        representativeName,
+        signatureDataUrl,
+        submissionId,
+        status: "pending",
+        createdAt: FieldValue.serverTimestamp(),
+        source: "meal-management-tablet",
+        appId: cleanString(request.app?.appId, 200) || null
+      });
+    });
+
+    return { ok: true, entryId: submissionId, serviceDate, mealPeriod, status: "pending" };
   }
 );

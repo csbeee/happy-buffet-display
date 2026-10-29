@@ -43,7 +43,7 @@ async function loadCompanyRecords() {
         .forEach((company) => rosterCompanySelect.append(new Option(company.name, company.id)));
       if (selectedRosterCompany) rosterCompanySelect.value = selectedRosterCompany;
     }
-    setStatus(`거래처 ${companyRecords.length}개를 불러왔습니다. 비밀번호는 등록 여부만 확인할 수 있습니다.`);
+    setStatus(`거래처 ${companyRecords.length}개를 불러왔습니다. 장부 확인번호는 등록 여부만 확인할 수 있습니다.`);
   } catch (error) {
     console.error("거래처 관리 목록 로드 실패:", error);
     setStatus("거래처 목록을 불러오지 못했습니다. Firestore 읽기 권한을 확인해 주세요.", true);
@@ -61,19 +61,10 @@ function updateSelectionStatus() {
     clearButton.disabled = true;
     return;
   }
-  const configured = Boolean(company.accessCodeHash && company.accessCodeSalt);
-  setStatus(`${company.name}: 비밀번호 ${configured ? "등록됨" : "미등록"}`);
+  const configured = /^\\d{3}$/.test(String(company.ledgerNumber ?? "")) || Boolean(company.accessCodeHash && company.accessCodeSalt);
+  setStatus(`${company.name}: 장부 확인번호 ${configured ? "등록됨" : "미등록"}`);
   saveButton.disabled = false;
   clearButton.disabled = !configured;
-}
-function bytesToHex(bytes) {
-  return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-async function makeCodeHash(code) {
-  const salt = bytesToHex(crypto.getRandomValues(new Uint8Array(16)));
-  const data = new TextEncoder().encode(salt + ":" + code);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return { salt, hash: bytesToHex(new Uint8Array(digest)) };
 }
 toggle?.addEventListener("click", async () => {
   panel.hidden = !panel.hidden;
@@ -98,19 +89,24 @@ saveButton?.addEventListener("click", async () => {
   if (!company) { setStatus("먼저 거래처를 선택해 주세요.", true); return; }
   if (!/^\d{4}$/.test(code)) { setStatus("비밀번호는 숫자 4자리로 입력해 주세요.", true); codeInput.focus(); return; }
   saveButton.disabled = true;
-  setStatus(`${company.name} 비밀번호를 저장하고 있습니다.`);
+  setStatus(`${company.name} 장부 확인번호를 저장하고 있습니다.`);
   try {
-    const { salt, hash } = await makeCodeHash(code);
     const updatedAt = new Date().toISOString();
     await updateDoc(doc(db, "companies", company.id), {
-      accessCodeSalt: salt, accessCodeHash: hash, accessCodeUpdatedAt: updatedAt
+      ledgerNumber: code, ledgerNumberUpdatedAt: updatedAt,
+      ledgerNumber: deleteField(), ledgerNumberUpdatedAt: deleteField(),
+      accessCodeSalt: deleteField(), accessCodeHash: deleteField(), accessCodeUpdatedAt: deleteField()
     });
-    company.accessCodeSalt = salt;
-    company.accessCodeHash = hash;
-    company.accessCodeUpdatedAt = updatedAt;
+    company.ledgerNumber = code;
+    company.ledgerNumberUpdatedAt = updatedAt;
+    delete company.ledgerNumber;
+    delete company.ledgerNumberUpdatedAt;
+    delete company.accessCodeSalt;
+    delete company.accessCodeHash;
+    delete company.accessCodeUpdatedAt;
     codeInput.value = "";
     updateSelectionStatus();
-    setStatus(`${company.name} 비밀번호를 저장했습니다. 실제 비밀번호는 다시 표시되지 않습니다.`);
+    setStatus(`${company.name} 장부 확인번호 ${code}를 저장했습니다.`);
   } catch (error) {
     console.error("거래처 비밀번호 저장 실패:", error);
     setStatus("저장하지 못했습니다. Firestore 쓰기 권한과 연결 상태를 확인해 주세요.", true);
@@ -120,8 +116,8 @@ saveButton?.addEventListener("click", async () => {
 });
 clearButton?.addEventListener("click", async () => {
   const company = selectedCompany();
-  if (!company || !company.accessCodeHash) return;
-  if (!window.confirm(`${company.name}의 비밀번호를 해제할까요? 해제하면 접수 화면에서 비밀번호로 진입할 수 없습니다.`)) return;
+  if (!company || (!company.ledgerNumber && !company.accessCodeHash)) return;
+  if (!window.confirm(`${company.name}의 장부 확인번호를 해제할까요? 해제하면 접수 화면에서 확인번호로 진입할 수 없습니다.`)) return;
   clearButton.disabled = true;
   try {
     await updateDoc(doc(db, "companies", company.id), {
@@ -131,7 +127,7 @@ clearButton?.addEventListener("click", async () => {
     delete company.accessCodeHash;
     delete company.accessCodeUpdatedAt;
     updateSelectionStatus();
-    setStatus(`${company.name} 비밀번호를 해제했습니다.`);
+    setStatus(`${company.name} 장부 확인번호를 해제했습니다.`);
   } catch (error) {
     console.error("비밀번호 해제 실패:", error);
     setStatus("비밀번호를 해제하지 못했습니다. Firestore 쓰기 권한을 확인해 주세요.", true);
@@ -216,7 +212,7 @@ registrationForm?.addEventListener("submit", async (event) => {
     $("newCompanyFavorite").checked = false;
     select.value = created.id;
     updateSelectionStatus();
-    setStatus(`'${name}' 거래처 등록이 완료되었습니다. 비밀번호는 아래 거래처 비밀번호 관리에서 별도로 설정해 주세요.`);
+    setStatus(`'${name}' 거래처 등록이 완료되었습니다. 장부 확인번호는 아래 거래처 확인번호 관리에서 별도로 설정해 주세요.`);
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     console.error("거래처 등록 실패:", error);

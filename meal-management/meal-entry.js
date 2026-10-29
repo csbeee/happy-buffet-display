@@ -231,12 +231,6 @@ clearSearchButton.addEventListener("click", () => {
 });
 $("changeCompany").addEventListener("click", resetCompanySelection);
 
-async function hashCompanyCode(salt, code) {
-  const bytes = new TextEncoder().encode(salt + ":" + code);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
 verifyCodeButton.addEventListener("click", async () => {
   codeMessage.hidden = false;
   codeMessage.className = "inline-message";
@@ -251,11 +245,18 @@ verifyCodeButton.addEventListener("click", async () => {
   verifyCodeButton.textContent = "확인 중…";
   codeMessage.textContent = "비밀번호를 확인하고 있습니다.";
   try {
-    const actualHash = await hashCompanyCode(selectedCompany.accessCodeSalt, code);
-    verifiedTicket = actualHash === selectedCompany.accessCodeHash ? "local-ok" : null;
+    if (/^\\d{3}$/.test(ledgerNumber)) {
+      verifiedTicket = code === ledgerNumber ? "local-ok" : null;
+    } else {
+      // Legacy compatibility for existing four-digit hashed codes.
+      const bytes = new TextEncoder().encode(selectedCompany.accessCodeSalt + ":" + code);
+      const digest = await crypto.subtle.digest("SHA-256", bytes);
+      const actualHash = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+      verifiedTicket = actualHash === selectedCompany.accessCodeHash ? "local-ok" : null;
+    }
     codeInput.value = "";
     if (verifiedTicket) {
-      codeMessage.textContent = "비밀번호가 확인되었습니다. 아래는 미저장 입력 화면입니다.";
+      codeMessage.textContent = "장부 확인번호가 확인되었습니다. 아래는 미저장 입력 화면입니다.";
       entryCompanyName.textContent = selectedCompany.name;
       configureEntryMode(selectedCompany);
       await loadRosterForCompany(selectedCompany);
@@ -263,15 +264,15 @@ verifyCodeButton.addEventListener("click", async () => {
       entryPanel.scrollIntoView({ behavior: "smooth", block: "start" });
       resizeSignatureCanvas();
     } else {
-      codeMessage.textContent = "비밀번호가 올바르지 않습니다. 다시 확인해 주세요.";
+      codeMessage.textContent = "장부 확인번호가 올바르지 않습니다. 다시 확인해 주세요.";
       codeInput.focus();
     }
   } catch (error) {
     console.error("거래처 비밀번호 확인 실패:", error);
-    codeMessage.textContent = "비밀번호 확인에 실패했습니다. 브라우저 연결 상태를 확인해 주세요.";
+    codeMessage.textContent = "확인번호 확인에 실패했습니다. 브라우저 연결 상태를 확인해 주세요.";
   } finally {
     verifyCodeButton.disabled = false;
-    verifyCodeButton.textContent = "비밀번호 확인 후 계속";
+    verifyCodeButton.textContent = "확인번호 확인 후 계속";
   }
 });
 

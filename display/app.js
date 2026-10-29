@@ -390,24 +390,52 @@ function drawUpdatedTime(updatedAt) {
 
 function renderNormal(menu) {
     if (!menu) return;
+
     const dinnerMode = menu.displayMode === "dinner";
     const dinner = menu.dinner && typeof menu.dinner === "object" ? menu.dinner : {};
-    const leftovers = Array.isArray(dinner.leftovers) ? dinner.leftovers : (Array.isArray(menu.dinnerLeftovers) ? menu.dinnerLeftovers : []);
+    const leftovers = Array.isArray(dinner.leftovers)
+        ? dinner.leftovers
+        : (Array.isArray(menu.dinnerLeftovers) ? menu.dinnerLeftovers : []);
+
     const label = document.getElementById("mealLabel");
     if (label) label.textContent = dinnerMode ? "저녁 메뉴" : "점심 메뉴";
-    const keys = ["soup", "main", "side", "kimchi", "dessert"], values = {};
+
+    const keys = ["soup", "main", "side", "kimchi", "dessert"];
+    const values = {};
+
     for (const key of keys) {
-        values[key] = dinnerMode ? (Array.isArray(dinner[key]) ? dinner[key] : []) : (Array.isArray(menu[key]) ? menu[key] : []);
+        const regularItems = dinnerMode
+            ? (Array.isArray(dinner[key]) ? dinner[key] : [])
+            : (Array.isArray(menu[key]) ? menu[key] : []);
+
+        if (dinnerMode) {
+            const categoryLeftovers = leftovers
+                .filter(item => {
+                    // 이전 형식의 문자열 잔여 메뉴는 기존 데이터가 사라지지 않도록 반찬에 표시합니다.
+                    if (typeof item === "string") return key === "side";
+                    return (item?.category || "side") === key;
+                })
+                .map(item => typeof item === "string" ? item : item?.name)
+                .filter(name => typeof name === "string" && name.trim())
+                .map(name => name.replace(/^잔여\s*/, "").trim())
+                .filter(Boolean);
+
+            // 저녁 메뉴에 이미 같은 이름이 있으면 중복으로 표시하지 않습니다.
+            const existingNames = new Set(regularItems.map(item =>
+                typeof item === "string" ? item.trim() : String(item ?? "").trim()
+            ));
+            values[key] = [
+                ...regularItems,
+                ...categoryLeftovers.filter(name => !existingNames.has(name))
+            ];
+        } else {
+            values[key] = regularItems;
+        }
+
         draw(key, values[key]);
+        toggleCard("card-" + key, values[key]);
     }
-    toggleCard("card-soup", values.soup);
-    toggleCard("card-main", values.main);
-    toggleCard("card-side", values.side);
-    toggleCard("card-kimchi", values.kimchi);
-    toggleCard("card-dessert", values.dessert);
-    const leftoverNames = dinnerMode ? leftovers.map(item => typeof item === "string" ? item : item?.name).filter(name => typeof name === "string" && name.trim()).map(name => name.replace(/^잔여\s*/, "").trim()).filter(Boolean) : [];
-    draw("dinnerLeftovers", leftoverNames);
-    toggleCard("card-dinner-leftovers", leftoverNames);
+
     drawNotice(dinnerMode ? (dinner.notice || menu.notice) : menu.notice);
     drawUpdatedTime(menu.updatedAt);
 }

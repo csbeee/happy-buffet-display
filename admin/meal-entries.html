@@ -66,7 +66,15 @@
       <label>식사 날짜<input id="editDate" type="date" required></label>
       <label>식사 구분<select id="editPeriod" required><option value="lunch">점심</option><option value="dinner">저녁</option></select></label>
       <label>대표자 이름<input id="editRepresentative" type="text" maxlength="40" required></label>
-      <label>식수 인원<input id="editHeadcount" type="number" min="1" max="500" step="1" required></label>
+      <label>입력 방식<select id="editEntryMode"><option value="total">총 인원 입력</option><option value="roster">명단 확인</option><option value="mixed">명단 확인 + 추가 인원</option></select></label>
+      <section id="editRosterSection" class="edit-roster-section">
+        <div class="edit-roster-heading"><strong>사전 등록 명단</strong><span id="editRosterCount">0명 선택</span></div>
+        <input id="editRosterSearch" type="search" placeholder="이름 검색" aria-label="명단 이름 검색">
+        <div id="editRosterList" class="edit-roster-list"></div>
+        <p id="editRosterNote" class="hint">기존 접수에서 확인한 명단은 체크된 상태로 표시됩니다.</p>
+      </section>
+      <label id="editAdditionalWrap">추가 인원<input id="editAdditionalCount" type="number" min="0" max="500" step="1" value="0"></label>
+      <label>식수 인원<input id="editHeadcount" type="number" min="1" max="500" step="1" required readonly></label>
       <label>1인 식대 (원)<input id="editMealPrice" type="number" min="0" max="1000000" step="1" required></label>
       <div class="amount-preview">수정 후 합계 <strong id="editTotalAmount">0원</strong></div>
       <p class="hint">저장하면 변경 전·후 값, 수정자, 수정 시간이 별도 이력으로 남습니다. 원본 접수 정보와 서명은 보존됩니다.</p>

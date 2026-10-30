@@ -17,8 +17,12 @@ style.textContent = `
   .hb-auth-card h1{margin:0 0 8px;font-size:24px}.hb-auth-card p{line-height:1.6;color:#52645b}
   .hb-auth-button{width:100%;padding:14px 18px;border:0;border-radius:12px;background:#173f35;color:white;font-size:16px;font-weight:700;cursor:pointer}
   .hb-auth-message{min-height:24px;margin-top:14px;font-size:14px;color:#9b2c2c}
-  .hb-auth-user{position:fixed;z-index:10000;top:10px;right:10px;display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #d9e4dd;border-radius:12px;background:#fff;font:12px system-ui,sans-serif;color:#18352c}
-  .hb-auth-user button{border:0;border-radius:8px;padding:6px 8px;background:#e9efeb;cursor:pointer}
+  .topbar{flex-wrap:wrap}
+  .hb-auth-user{position:static;z-index:auto;display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:0 0 auto;max-width:100%;margin-left:auto;padding:7px 10px;border:1px solid #d9e4dd;border-radius:12px;background:#fff;font:12px system-ui,sans-serif;color:#18352c;box-sizing:border-box}
+  .hb-auth-user span{max-width:min(34vw,260px);overflow-wrap:anywhere}
+  .hb-auth-user button{flex:0 0 auto;border:0;border-radius:8px;padding:7px 10px;background:#e9efeb;cursor:pointer;white-space:nowrap}
+  @media(max-width:768px){.hb-auth-user{margin-left:auto}}
+  @media(max-width:420px){.hb-auth-user{align-self:flex-end;margin-left:0}}
 `;
 document.head.append(style);
 
@@ -86,5 +90,6 @@ onAuthStateChanged(auth, async (user) => {
     window.location.reload();
   });
   userBar.append(email, logoutButton);
-  document.body.append(userBar);
+  const adminHeader = document.querySelector(".topbar");
+  (adminHeader || document.body).append(userBar);
 });

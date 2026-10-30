@@ -17,7 +17,69 @@ async function load(){const a=$("startDate").value,b=$("endDate").value;if(!a||!
 function item(label,value,wide=false){const d=document.createElement("div");d.className="detail-item"+(wide?" detail-wide":"");const s=document.createElement("span"),b=document.createElement("strong");s.textContent=label;b.textContent=safe(value);d.append(s,b);return d}
 async function detail(e){selected=e;const host=$("detailContent");host.replaceChildren();[["날짜",e.serviceDate],["거래처",e.companyName],["구분",meal(e.mealPeriod)],["방문 그룹",e.groupNumber?e.groupNumber+"번":"-"],["대표자",e.representativeName],["입력 방식",e.entryMode],["인원",(Number(e.headcount)||0)+"명"],["1인 식대",won(e.mealPrice)],["합계",won(e.totalAmount)],["상태",e.status],["접수 시간",time(e.createdAt)],["접수 ID",e.id]].forEach(x=>host.append(item(x[0],x[1],x[0]==="접수 ID")));if(e.rosterIds?.length)host.append(item("명단 확인 ID",e.rosterIds.join(", "),true));if(e.signatureDataUrl){const w=document.createElement("div");w.className="detail-item detail-wide";const s=document.createElement("span"),img=document.createElement("img");s.textContent="대표자 서명";img.className="signature-image";img.alt="접수 당시 서명";img.src=e.signatureDataUrl;w.append(s,img);host.append(w)}$("auditList").textContent="수정 이력 조회 중…";$("detailDialog").showModal();try{const snap=await getDocs(query(collection(db,"mealEntryEditHistory"),where("entryId","==",e.id))),list=$("auditList");list.replaceChildren();if(snap.empty){list.textContent="아직 수정 이력이 없습니다.";return}const history=snap.docs.map(ds=>({id:ds.id,...ds.data()})).sort((a,b)=>{const ms=v=>v?.toMillis?v.toMillis():v?.toDate?v.toDate().getTime():0;return ms(b.editedAt)-ms(a.editedAt)}).slice(0,50);history.forEach(h=>{const card=document.createElement("article");card.className="audit-card";const head=document.createElement("div");head.innerHTML="<strong>"+esc(h.editorEmail||"관리자")+"</strong> · "+esc(time(h.editedAt));const ul=document.createElement("ul");(h.changedFields||[]).forEach(f=>{const li=document.createElement("li");li.textContent=f.label+": "+safe(h.before?.[f.key])+" → "+safe(h.after?.[f.key]);ul.append(li)});card.append(head,ul);list.append(card)})}catch(err){console.error(err);$("auditList").textContent="수정 이력 조회 실패 ("+(err.code||"오류")+"). Firestore 읽기 권한을 확인해 주세요."}}
 function updateTotal(){$("editTotalAmount").textContent=won((Number($("editHeadcount").value)||0)*(Number($("editMealPrice").value)||0))}
-function edit(){if(!selected)return;$("editDate").value=selected.serviceDate||kst();$("editPeriod").value=selected.mealPeriod==="dinner"?"dinner":"lunch";$("editRepresentative").value=selected.representativeName||"";$("editHeadcount").value=selected.headcount??1;$("editMealPrice").value=selected.mealPrice??7000;$("editStatus").textContent="";updateTotal();$("editDialog").showModal()}
-const fields=[["serviceDate","식사 날짜"],["mealPeriod","식사 구분"],["representativeName","대표자"],["headcount","식수 인원"],["mealPrice","1인 식대"],["totalAmount","합계 금액"]];
-async function save(ev){ev.preventDefault();if(!selected)return;const next={serviceDate:$("editDate").value,mealPeriod:$("editPeriod").value,representativeName:$("editRepresentative").value.trim(),headcount:Number($("editHeadcount").value),mealPrice:Number($("editMealPrice").value)};if(!next.serviceDate||!next.representativeName||!Number.isInteger(next.headcount)||next.headcount<1||next.headcount>500||!Number.isInteger(next.mealPrice)||next.mealPrice<0||next.mealPrice>1000000){$("editStatus").textContent="날짜, 대표자, 인원(1~500명), 식대를 확인해 주세요.";return}next.totalAmount=next.headcount*next.mealPrice;const original=selected;const changed=fields.filter(([k])=>(original[k]??null)!==(next[k]??null));if(!changed.length){$("editStatus").textContent="변경된 내용이 없습니다.";return}if(!confirm("장부를 수정하고 수정 이력을 저장할까요?"))return;const btn=$("saveEditBtn");btn.disabled=true;btn.textContent="저장 중…";try{const ref=doc(db,"mealEntries",original.id),audit=doc(collection(db,"mealEntryEditHistory")),email=auth.currentUser?.email||"관리자";await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error("원본 장부가 없어 수정할 수 없습니다.");const current=snap.data(),before={};fields.forEach(([k])=>before[k]=current[k]??null);const actual=fields.filter(([k])=>(before[k]??null)!==(next[k]??null));if(!actual.length)throw Error("다른 사용자가 먼저 수정했습니다. 다시 조회해 주세요.");tx.update(ref,{...next,updatedAt:serverTimestamp(),lastEditedAt:serverTimestamp(),lastEditedBy:email});tx.set(audit,{entryId:original.id,companyId:current.companyId||"",companyName:current.companyName||"",before,after:{...next},changedFields:actual.map(([key,label])=>({key,label})),editorEmail:email,editedAt:serverTimestamp(),source:"admin-meal-ledger"})});$("editDialog").close();$("detailDialog").close();await load();const fresh=entries.find(x=>x.id===original.id);if(fresh)await detail(fresh)}catch(e){console.error(e);$("editStatus").textContent=e.message||"수정에 실패했습니다."}finally{btn.disabled=false;btn.textContent="수정 저장"}}
-$("searchBtn").addEventListener("click",load);$("refreshBtn").addEventListener("click",load);$("todayBtn").addEventListener("click",()=>{$("startDate").value=kst();$("endDate").value=kst();load()});$("companyFilter").addEventListener("change",apply);$("periodFilter").addEventListener("change",apply);$("editEntryBtn").addEventListener("click",edit);$("editForm").addEventListener("submit",save);["editHeadcount","editMealPrice"].forEach(id=>$(id).addEventListener("input",updateTotal));document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>$(b.dataset.close).close()));defaults();load();
+let editRosterMembers=[],editRosterIds=new Set(),editRosterMissing=[];
+async function loadEditRoster(){
+  const section=$("editRosterSection"),list=$("editRosterList");
+  list.replaceChildren();$("editRosterNote").textContent="명단을 불러오는 중입니다.";
+  if(!selected?.companyId){$("editRosterNote").textContent="거래처 정보가 없어 명단을 불러올 수 없습니다.";return}
+  try{
+    const snap=await getDocs(query(collection(db,"companyRosters"),where("companyId","==",selected.companyId)));
+    editRosterMembers=snap.docs.map(d=>({id:d.id,...d.data()})).filter(m=>typeof m.name==="string"&&m.name.trim());
+    editRosterMissing=[...editRosterIds].filter(id=>!editRosterMembers.some(m=>m.id===id));
+    renderEditRoster();
+    $("editRosterNote").textContent="기존 접수에서 체크한 명단은 그대로 복원됩니다. 비활성 명단도 기존 기록 보존을 위해 표시됩니다.";
+  }catch(err){
+    console.error("수정용 사전 명단 조회 실패:",err);
+    $("editRosterNote").textContent="명단 조회 실패: "+(err.code||"오류")+" · 명단을 불러오지 못해 저장할 수 없습니다.";
+    $("editRosterList").replaceChildren();
+  }
+}
+function renderEditRoster(){
+  const host=$("editRosterList"),keyword=($("editRosterSearch").value||"").trim().toLocaleLowerCase("ko-KR");
+  host.replaceChildren();
+  const members=editRosterMembers.filter(m=>String(m.name).toLocaleLowerCase("ko-KR").includes(keyword));
+  members.forEach(m=>{
+    const label=document.createElement("label");label.className="edit-roster-item";
+    const cb=document.createElement("input");cb.type="checkbox";cb.checked=editRosterIds.has(m.id);cb.disabled=m.active===false&&!cb.checked;
+    cb.addEventListener("change",()=>{if(cb.checked)editRosterIds.add(m.id);else editRosterIds.delete(m.id);updateEditRosterCount();updateEditHeadcount()});
+    const name=document.createElement("span");name.textContent=m.name+(m.active===false?" (비활성)":"");
+    label.append(cb,name);host.append(label);
+  });
+  editRosterMissing.forEach(id=>{
+    const label=document.createElement("label");label.className="edit-roster-item";
+    const cb=document.createElement("input");cb.type="checkbox";cb.checked=true;cb.disabled=true;
+    const name=document.createElement("span");name.textContent="현재 명단에서 찾을 수 없는 기존 체크 항목 ("+id+")";
+    label.append(cb,name);host.append(label);
+  });
+  if(!members.length&&!editRosterMissing.length){const p=document.createElement("p");p.className="hint";p.textContent="등록된 명단이 없습니다.";host.append(p)}
+  updateEditRosterCount();
+}
+function updateEditRosterCount(){$("editRosterCount").textContent=editRosterIds.size+"명 선택"}
+function updateEditHeadcount(){
+  const mode=$("editEntryMode").value,additional=Number($("editAdditionalCount").value)||0;
+  const count=mode==="roster"?editRosterIds.size:mode==="mixed"?editRosterIds.size+additional:additional;
+  $("editHeadcount").value=count;updateTotal();
+}
+function updateEditMode(){
+  const mode=$("editEntryMode").value;
+  $("editRosterSection").hidden=mode==="total";
+  $("editAdditionalWrap").hidden=mode==="roster";
+  $("editAdditionalCount").readOnly=mode==="roster";
+  updateEditHeadcount();
+}
+async function edit(){
+  if(!selected)return;
+  $("editDate").value=selected.serviceDate||kst();$("editPeriod").value=selected.mealPeriod==="dinner"?"dinner":"lunch";
+  $("editRepresentative").value=selected.representativeName||"";
+  const mode=["total","roster","mixed"].includes(selected.entryMode)?selected.entryMode:"total";
+  $("editEntryMode").value=mode;
+  editRosterIds=new Set(Array.isArray(selected.rosterIds)?selected.rosterIds:[]);
+  $("editRosterSearch").value="";
+  const extra=Math.max(0,(Number(selected.headcount)||0)-editRosterIds.size);
+  $("editAdditionalCount").value=mode==="mixed"?extra:mode==="total"?(Number(selected.headcount)||1):0;
+  $("editMealPrice").value=selected.mealPrice??7000;$("editStatus").textContent="";
+  updateEditMode();await loadEditRoster();$("editDialog").showModal();
+}
+const fields=[["serviceDate","식사 날짜"],["mealPeriod","식사 구분"],["representativeName","대표자"],["entryMode","입력 방식"],["rosterIds","사전 명단"],["headcount","식수 인원"],["mealPrice","1인 식대"],["totalAmount","합계 금액"]];
+async function save(ev){ev.preventDefault();if(!selected)return;const mode=$("editEntryMode").value,extra=Number($("editAdditionalCount").value);if(!Number.isInteger(extra)||extra<0||extra>500){$("editStatus").textContent="추가 인원은 0~500명 사이의 정수로 입력해 주세요.";return}const rosterIds=mode==="total"?(Array.isArray(selected.rosterIds)?selected.rosterIds:[]):[...editRosterIds];const count=mode==="roster"?rosterIds.length:mode==="mixed"?rosterIds.length+extra:extra;const next={serviceDate:$("editDate").value,mealPeriod:$("editPeriod").value,representativeName:$("editRepresentative").value.trim(),entryMode:mode,rosterIds,headcount:count,mealPrice:Number($("editMealPrice").value)};if(!next.serviceDate||!next.representativeName||!Number.isInteger(next.headcount)||next.headcount<1||next.headcount>500||!Number.isInteger(next.mealPrice)||next.mealPrice<0||next.mealPrice>1000000){$("editStatus").textContent="날짜, 대표자, 인원(1~500명), 식대를 확인해 주세요.";return}next.totalAmount=next.headcount*next.mealPrice;const original=selected;const changed=fields.filter(([k])=>k==="rosterIds"?(JSON.stringify([...(original[k]||[])].sort())!==JSON.stringify([...(next[k]||[])].sort())):(original[k]??null)!==(next[k]??null));if(!changed.length){$("editStatus").textContent="변경된 내용이 없습니다.";return}if(!confirm("장부를 수정하고 수정 이력을 저장할까요?"))return;const btn=$("saveEditBtn");btn.disabled=true;btn.textContent="저장 중…";try{const ref=doc(db,"mealEntries",original.id),audit=doc(collection(db,"mealEntryEditHistory")),email=auth.currentUser?.email||"관리자";await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error("원본 장부가 없어 수정할 수 없습니다.");const current=snap.data(),before={};fields.forEach(([k])=>before[k]=current[k]??(k==="rosterIds"?[]:null));const actual=fields.filter(([k])=>k==="rosterIds"?(JSON.stringify([...(current[k]||[])].sort())!==JSON.stringify([...(next[k]||[])].sort())):(before[k]??null)!==(next[k]??null));if(!actual.length)throw Error("다른 사용자가 먼저 수정했습니다. 다시 조회해 주세요.");tx.update(ref,{...next,updatedAt:serverTimestamp(),lastEditedAt:serverTimestamp(),lastEditedBy:email});tx.set(audit,{entryId:original.id,companyId:current.companyId||"",companyName:current.companyName||"",before,after:{...next},changedFields:actual.map(([key,label])=>({key,label})),editorEmail:email,editedAt:serverTimestamp(),source:"admin-meal-ledger"})});$("editDialog").close();$("detailDialog").close();await load();const fresh=entries.find(x=>x.id===original.id);if(fresh)await detail(fresh)}catch(e){console.error(e);$("editStatus").textContent=e.message||"수정에 실패했습니다."}finally{btn.disabled=false;btn.textContent="수정 저장"}}
+$("searchBtn").addEventListener("click",load);$("refreshBtn").addEventListener("click",load);$("todayBtn").addEventListener("click",()=>{$("startDate").value=kst();$("endDate").value=kst();load()});$("companyFilter").addEventListener("change",apply);$("periodFilter").addEventListener("change",apply);$("editEntryBtn").addEventListener("click",edit);$("editForm").addEventListener("submit",save);["editMealPrice"].forEach(id=>$(id).addEventListener("input",updateTotal));$("editEntryMode").addEventListener("change",updateEditMode);$("editAdditionalCount").addEventListener("input",updateEditHeadcount);$("editRosterSearch").addEventListener("input",renderEditRoster);document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>$(b.dataset.close).close()));defaults();load();

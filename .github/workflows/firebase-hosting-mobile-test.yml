@@ -1,13 +1,21 @@
 name: Firebase Hosting Mobile Test
 
 # Deploy only to the isolated Firebase Hosting preview channel from the dedicated test branch.
-# Production project ID is explicitly rejected below. This workflow never deploys Functions or Firestore rules.
+# This workflow never deploys Functions or Firestore rules.
 # Required repository secrets: FIREBASE_TEST_PROJECT_ID=happybuffet-test and FIREBASE_TEST_TOKEN.
+
 on:
   push:
     branches:
       - test/meal-management-ci-validation
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-test-hosting-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy_preview:
@@ -17,17 +25,24 @@ jobs:
       - name: Checkout test branch
         uses: actions/checkout@v4
 
-      - name: Validate test-only secrets
+      - name: Validate test-only target and trigger branch
         env:
           TEST_PROJECT_ID: ${{ secrets.FIREBASE_TEST_PROJECT_ID }}
           TEST_TOKEN: ${{ secrets.FIREBASE_TEST_TOKEN }}
+          DEPLOY_REF: ${{ github.ref }}
+        shell: bash
         run: |
-          if [ -z "$TEST_PROJECT_ID" ] || [ -z "$TEST_TOKEN" ]; then
-            echo "Missing FIREBASE_TEST_PROJECT_ID or FIREBASE_TEST_TOKEN. No deployment performed."
+          set -euo pipefail
+          if [[ "$DEPLOY_REF" != "refs/heads/test/meal-management-ci-validation" ]]; then
+            echo "Refusing deployment from non-test branch: $DEPLOY_REF"
             exit 1
           fi
-          if [ "$TEST_PROJECT_ID" = "todaymenu-30fe7" ]; then
-            echo "Refusing to deploy preview to the production Firebase project."
+          if [[ "$TEST_PROJECT_ID" != "happybuffet-test" ]]; then
+            echo "Refusing deployment: FIREBASE_TEST_PROJECT_ID must be exactly happybuffet-test."
+            exit 1
+          fi
+          if [[ -z "$TEST_TOKEN" ]]; then
+            echo "Missing FIREBASE_TEST_TOKEN. No deployment performed."
             exit 1
           fi
 

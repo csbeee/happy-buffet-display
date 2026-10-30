@@ -1,18 +1,16 @@
-import { app, db } from "../firebase/firebase-config.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-functions.js";
+import { db } from "../firebase/firebase-config.js";
 import {
-  addDoc,
   collection,
+  doc,
   getDocs,
   query,
+  runTransaction,
+  serverTimestamp,
   where
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const $ = (id) => document.getElementById(id);
 
-const functions = getFunctions(app);
-const verifyCompanyCodeCall = httpsCallable(functions, "verifyCompanyCode");
-const submitMealEntryCall = httpsCallable(functions, "submitMealEntry");
 
 const searchInput = $("companySearch");
 const companyGrid = $("companyGrid");
@@ -254,9 +252,10 @@ verifyCodeButton.addEventListener("click", async () => {
   verifyCodeButton.textContent = "확인 중…";
   codeMessage.textContent = "비밀번호를 확인하고 있습니다.";
   try {
-    const result = await verifyCompanyCodeCall({ companyId: selectedCompany.id, code });
-    verifiedTicket = result.data?.ok && typeof result.data.ticket === "string"
-      ? result.data.ticket
+    // 매장 태블릿의 현장 확인용 3자리 번호 비교입니다.
+    // 회사 문서와 번호가 브라우저에 전달되는 간편 잠금 방식이며 서버 인증은 아닙니다.
+    verifiedTicket = String(selectedCompany.ledgerNumber ?? "") === code
+      ? `local:${selectedCompany.id}:${Date.now()}`
       : null;
     codeInput.value = "";
     if (verifiedTicket) {
@@ -272,10 +271,8 @@ verifyCodeButton.addEventListener("click", async () => {
       codeInput.focus();
     }
   } catch (error) {
-    console.error("서버 거래처 확인 실패:", error);
-    codeMessage.textContent = error?.code === "functions/failed-precondition"
-      ? "보안 확인 설정이 필요합니다. 관리자에게 알려 주세요."
-      : error?.message || "확인번호 확인에 실패했습니다. 연결 상태를 확인해 주세요.";
+    console.error("거래처 확인 처리 실패:", error);
+    codeMessage.textContent = error?.message || "확인번호 확인에 실패했습니다. 연결 상태를 확인해 주세요.";
   } finally {
     verifyCodeButton.disabled = false;
     verifyCodeButton.textContent = "확인번호 확인 후 계속";
@@ -466,7 +463,7 @@ reviewEntryButton.addEventListener("click", async () => {
   entryMessage.hidden = false;
   const rep = representativeNameInput.value.trim();
   const count = getCalculatedCount();
-  if (!verifiedTicket || verifiedTicket === "local-ok") { entryMessage.textContent = "서버 확인이 만료되었습니다. 거래처 확인을 다시 진행해 주세요."; return; }
+  if (!verifiedTicket) { entryMessage.textContent = "서버 확인이 만료되었습니다. 거래처 확인을 다시 진행해 주세요."; return; }
   if (!rep) { entryMessage.textContent = "그룹 대표자 이름을 입력해 주세요."; representativeNameInput.focus(); return; }
   if (rosterLoadFailed && entryMode.value !== "total") { entryMessage.textContent = "명단을 불러오지 못했습니다. 명단 확인 방식으로 접수할 수 없습니다."; return; }
   if (entryMode.value === "roster" && getRosterCount() < 1) { entryMessage.textContent = "방문한 명단을 한 명 이상 체크해 주세요."; return; }
@@ -490,22 +487,49 @@ reviewEntryButton.addEventListener("click", async () => {
   reviewEntryButton.disabled = true;
   reviewEntryButton.textContent = "저장 중…";
   try {
-    const response = await submitMealEntryCall({
-      companyId: selectedCompany.id,
-      ticket: verifiedTicket,
-      submissionId: crypto.randomUUID(),
-      groupNumber: groupNo,
-      entryMode: mode,
-      headcount: count,
-      rosterIds: [...checkedRosterIds],
-      representativeName: rep,
-      signatureDataUrl
+    const now = new Date();
+    const koreaNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const serviceDate = koreaNow.toISOString().slice(0, 10);
+    const mealPeriod = koreaNow.getUTCHours() >= 7 && koreaNow.getUTCHours() < 16 ? "lunch" : "dinner";
+    const submissionId = crypto.randomUUID();
+    const entryRef = doc(collection(db, "mealEntries"));
+    const counterRef = doc(db, "mealEntryCounters", `${selectedCompany.id}_${serviceDate}_${mealPeriod}`);
+    const savedMealPrice = Number(selectedCompany.mealPrice ?? 7000);
+    if (!Number.isInteger(savedMealPrice) || savedMealPrice < 0 || savedMealPrice > 1000000) {
+      throw new Error("거래처의 1인 식대 설정을 확인해 주세요.");
+    }
+    const savedTotalAmount = savedMealPrice * count;
+    const savedGroupNo = await runTransaction(db, async (transaction) => {
+      const counterSnap = await transaction.get(counterRef);
+      const nextGroup = (Number(counterSnap.exists() ? counterSnap.data().lastGroupNumber : 0) || 0) + 1;
+      transaction.set(counterRef, {
+        companyId: selectedCompany.id,
+        serviceDate,
+        mealPeriod,
+        lastGroupNumber: nextGroup,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      transaction.set(entryRef, {
+        companyId: selectedCompany.id,
+        companyName: selectedCompany.name,
+        serviceDate,
+        mealPeriod,
+        groupNumber: nextGroup,
+        entryMode: mode,
+        headcount: count,
+        rosterIds: [...checkedRosterIds],
+        representativeName: rep,
+        signatureDataUrl,
+        submissionId,
+        mealPrice: savedMealPrice,
+        totalAmount: savedTotalAmount,
+        status: "confirmed",
+        createdAt: serverTimestamp(),
+        source: "meal-management-tablet"
+      });
+      return nextGroup;
     });
-    const saved = response.data || {};
-    const savedGroupNo = Number(saved.groupNumber) || groupNo;
-    const savedMealPrice = Number(saved.mealPrice);
-    const savedTotalAmount = Number(saved.totalAmount);
-    entryMessage.textContent = `접수 및 매출 반영 완료: ${selectedCompany.name} / ${saved.serviceDate || "날짜 확인 필요"} / 방문 그룹 ${savedGroupNo} / ${saved.mealPeriod === "dinner" ? "저녁" : "점심"} / ${count}명 / 1인 ${savedMealPrice.toLocaleString("ko-KR")}원 / 합계 ${savedTotalAmount.toLocaleString("ko-KR")}원.`;
+    entryMessage.textContent = `접수 및 매출 반영 완료: ${selectedCompany.name} / ${serviceDate} / 방문 그룹 ${savedGroupNo} / ${mealPeriod === "dinner" ? "저녁" : "점심"} / ${count}명 / 1인 ${savedMealPrice.toLocaleString("ko-KR")}원 / 합계 ${savedTotalAmount.toLocaleString("ko-KR")}원.`;
     sessionGroupNumbers.set(selectedCompany.id, savedGroupNo + 1);
     verifiedTicket = null;
     entryPanel.hidden = true;

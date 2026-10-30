@@ -47,3 +47,14 @@ test('meal entry and admin JavaScript parse successfully', () => {
     assert.equal(result.status, 0, file + ': ' + result.stderr);
   }
 });
+
+test('admin meal ledger page supports filters, totals, details and edits with audit history', () => {
+  const html = read('admin/meal-entries.html');
+  const source = read('admin/meal-entries.js');
+  assert.ok(read('admin/index.html').includes('./meal-entries.html'));
+  assert.ok(html.includes('startDate') && html.includes('companyFilter') && html.includes('periodFilter'));
+  assert.ok(source.includes('mealEntryEditHistory'));
+  assert.ok(source.includes('runTransaction(db'));
+  assert.ok(source.includes('signatureDataUrl'));
+  assert.ok(source.includes('before,after:{...next}'));
+});

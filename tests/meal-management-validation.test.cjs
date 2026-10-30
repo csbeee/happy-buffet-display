@@ -37,6 +37,7 @@ test('meal entry and admin JavaScript parse successfully', () => {
     'meal-management/meal-entry.js',
     'admin/auth.js',
     'admin/company-management.js',
+    'admin/meal-entries.js',
     'firebase/firebase-config.js'
   ];
   for (const file of moduleFiles) {
@@ -57,4 +58,14 @@ test('admin meal ledger page supports filters, totals, details and edits with au
   assert.ok(source.includes('runTransaction(db'));
   assert.ok(source.includes('signatureDataUrl'));
   assert.ok(source.includes('before,after:{...next}'));
+});
+
+
+test('meal ledger renders daily, company and monthly sales reports', () => {
+  const html = read('admin/meal-entries.html');
+  const source = read('admin/meal-entries.js');
+  for (const id of ['dailyReportRows', 'companyReportRows', 'monthlyReportRows']) assert.ok(html.includes(id));
+  assert.ok(source.includes('function renderReports'));
+  assert.ok(source.includes('function aggregate'));
+  assert.ok(source.includes('totalAmount'));
 });

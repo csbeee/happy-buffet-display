@@ -38,6 +38,7 @@ test('meal entry and admin JavaScript parse successfully', () => {
     'admin/auth.js',
     'admin/company-management.js',
     'admin/meal-entries.js',
+    'admin/reports.js',
     'firebase/firebase-config.js'
   ];
   for (const file of moduleFiles) {
@@ -61,11 +62,15 @@ test('admin meal ledger page supports filters, totals, details and edits with au
 });
 
 
-test('meal ledger renders daily, company and monthly sales reports', () => {
-  const html = read('admin/meal-entries.html');
-  const source = read('admin/meal-entries.js');
-  for (const id of ['dailyReportRows', 'companyReportRows', 'monthlyReportRows']) assert.ok(html.includes(id));
-  assert.ok(source.includes('function renderReports'));
-  assert.ok(source.includes('function aggregate'));
-  assert.ok(source.includes('totalAmount'));
+test('sales reports are separated from the meal ledger page', () => {
+  const ledgerHtml = read('admin/meal-entries.html');
+  const reportHtml = read('admin/reports.html');
+  const reportSource = read('admin/reports.js');
+  assert.ok(read('admin/index.html').includes('./reports.html'));
+  assert.ok(ledgerHtml.includes('./reports.html'));
+  assert.equal(ledgerHtml.includes('dailyReportRows'), false);
+  for (const id of ['dailyReportRows', 'companyReportRows', 'monthlyReportRows']) assert.ok(reportHtml.includes(id));
+  assert.ok(reportSource.includes('function renderReports'));
+  assert.ok(reportSource.includes('function aggregate'));
+  assert.ok(reportSource.includes('totalAmount'));
 });

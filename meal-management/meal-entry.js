@@ -490,7 +490,7 @@ reviewEntryButton.addEventListener("click", async () => {
     const now = new Date();
     const koreaNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
     const serviceDate = koreaNow.toISOString().slice(0, 10);
-    const mealPeriod = koreaNow.getUTCHours() >= 7 && koreaNow.getUTCHours() < 16 ? "lunch" : "dinner";
+    const mealPeriod = koreaNow.getUTCHours() >= 16 ? "dinner" : "lunch";
     const submissionId = crypto.randomUUID();
     const entryRef = doc(collection(db, "mealEntries"));
     const counterRef = doc(db, "mealEntryCounters", `${selectedCompany.id}_${serviceDate}_${mealPeriod}`);

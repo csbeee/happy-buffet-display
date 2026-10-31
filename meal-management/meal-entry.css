@@ -305,3 +305,5 @@ button:focus-visible, input:focus-visible {
 .company-card .company-number { flex: 0 0 auto; color: var(--green-800); font-size: 12px; font-weight: 850; white-space: nowrap; }
 .entry-company-banner { padding: 22px 20px; margin-bottom: 24px; border: 2px solid #b6d2c2; }
 .entry-company-banner strong { font-size: clamp(30px, 5vw, 42px); line-height: 1.2; color: var(--green-950); }
+
+.entry-grid-single { grid-template-columns: 1fr; }

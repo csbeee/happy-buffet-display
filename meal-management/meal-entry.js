@@ -233,7 +233,6 @@ clearSearchButton.addEventListener("click", () => {
   renderCompanies();
   searchInput.focus();
 });
-$("changeCompany").addEventListener("click", resetCompanySelection);
 
 const rosterNotice = $("rosterNotice");
 

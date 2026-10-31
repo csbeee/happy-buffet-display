@@ -16,11 +16,13 @@ test('tablet meal entry does not depend on Firebase Functions', () => {
   assert.ok(source.includes('mealEntries'));
 });
 
-test('tablet meal entry preserves three-digit on-site ledger code validation', () => {
+test('tablet meal entry searches by company name, aliases and ledger number without a second code step', () => {
   const source = read('meal-management/meal-entry.js');
-  assert.ok(source.includes('/^\\d{3}$/'));
-  assert.ok(source.includes('selectedCompany.ledgerNumber'));
-  assert.ok(source.includes('현장 확인용 3자리 번호'));
+  const html = read('meal-management/index.html');
+  assert.ok(source.includes('company.ledgerNumber'));
+  assert.ok(source.includes('companySearchText'));
+  assert.equal(html.includes('codePanel'), false);
+  assert.equal(html.includes('companyCode'), false);
 });
 
 test('meal entry writes visit counter and entry atomically', () => {
@@ -29,6 +31,7 @@ test('meal entry writes visit counter and entry atomically', () => {
   assert.ok(source.includes('transaction.set(counterRef'));
   assert.ok(source.includes('transaction.set(entryRef'));
   assert.ok(source.includes('signatureDataUrl'));
+  assert.ok(source.includes('representativeName: ""'));
   assert.ok(source.includes('rosterIds'));
 });
 

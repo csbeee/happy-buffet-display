@@ -33,6 +33,15 @@ function renderCompanyOptions() {
     .forEach((company) => select.append(new Option(company.active === false ? company.name + " (미사용)" : company.name, company.id)));
   if (selectedId && [...select.options].some((option) => option.value === selectedId)) select.value = selectedId;
 }
+function renderRosterCompanyOptions() {
+  if (!rosterCompanySelect) return;
+  const previous = rosterCompanySelect.value;
+  rosterCompanySelect.replaceChildren(new Option("거래처 선택", ""));
+  [...companyRecords].filter((company) => typeof company.name === "string" && company.name.trim())
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"))
+    .forEach((company) => rosterCompanySelect.append(new Option(company.name, company.id)));
+  if (companyRecords.some((company) => company.id === previous)) rosterCompanySelect.value = previous;
+}
 function renderEditCompanyOptions() {
   if (!editSelect) return;
   const previous = editSelect.value;
@@ -48,14 +57,7 @@ async function loadCompanyRecords() {
     companyRecords = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
     renderCompanyOptions();
     renderEditCompanyOptions();
-    if (rosterCompanySelect) {
-      const selectedRosterCompany = rosterCompanySelect.value;
-      rosterCompanySelect.replaceChildren(new Option("거래처 선택", ""));
-      companyRecords.filter((company) => typeof company.name === "string" && company.name.trim())
-        .sort((a, b) => a.name.localeCompare(b.name, "ko"))
-        .forEach((company) => rosterCompanySelect.append(new Option(company.name, company.id)));
-      if (selectedRosterCompany) rosterCompanySelect.value = selectedRosterCompany;
-    }
+    renderRosterCompanyOptions();
     setStatus(`거래처 ${companyRecords.length}개를 불러왔습니다. 장부 확인번호는 등록 여부만 확인할 수 있습니다.`);
   } catch (error) {
     console.error("거래처 관리 목록 로드 실패:", error);
@@ -255,6 +257,7 @@ registrationForm?.addEventListener("submit", async (event) => {
     }
     renderCompanyOptions();
     renderEditCompanyOptions();
+    renderRosterCompanyOptions();
     const wasEditing = Boolean(editingCompanyId);
     editingCompanyId = null;
     registrationForm.reset();

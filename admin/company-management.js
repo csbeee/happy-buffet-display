@@ -17,6 +17,8 @@ const registrationSubmit = $("companyRegistrationSubmit");
 const editSelect = $("companyEditSelect");
 const editLoadButton = $("companyEditLoad");
 const editCancelButton = $("companyEditCancel");
+const deactivateButton = $("companyDeactivate");
+const activateButton = $("companyActivate");
 let editingCompanyId = null;
 let companyRecords = [];
 
@@ -171,10 +173,28 @@ function resetCompanyEditor() {
   registrationSubmit.textContent = "거래처 등록";
   editCancelButton.hidden = true;
 }
+function updateCompanyStateButtons(company) {
+  if (deactivateButton) deactivateButton.disabled = !company || company.active === false;
+  if (activateButton) { activateButton.hidden = !company || company.active !== false; activateButton.disabled = !company || company.active !== false; }
+}
+editSelect?.addEventListener("change", () => { const c = companyRecords.find((x) => x.id === editSelect.value) || null; select.value = c?.id || ""; updateSelectionStatus(); updateCompanyStateButtons(c); });
+async function setCompanyActive(active) {
+  const company = companyRecords.find((x) => x.id === editSelect.value); if (!company) return;
+  const action = active ? "다시 사용" : "사용 중지";
+  if (!window.confirm(company.name + " 거래처를 " + action + " 처리할까요? 과거 장부와 거래처 정보는 삭제되지 않습니다.")) return;
+  if (deactivateButton) deactivateButton.disabled = true; if (activateButton) activateButton.disabled = true;
+  try { await updateDoc(doc(db, "companies", company.id), { active, updatedAt: new Date().toISOString() }); company.active = active;
+    $("newCompanyActive").checked = active; renderCompanyOptions(); renderEditCompanyOptions(); editSelect.value = company.id; select.value = company.id;
+    updateSelectionStatus(); updateCompanyStateButtons(company); setStatus(company.name + " 거래처를 " + (active ? "다시 사용" : "사용 중지") + " 처리했습니다.");
+  } catch (error) { console.error("거래처 상태 변경 실패:", error); setStatus("거래처 상태 변경에 실패했습니다. Firestore 권한을 확인해 주세요.", true); updateCompanyStateButtons(company); }
+}
+deactivateButton?.addEventListener("click", () => setCompanyActive(false));
+activateButton?.addEventListener("click", () => setCompanyActive(true));
 editLoadButton?.addEventListener("click", () => {
   const company = companyRecords.find((item) => item.id === editSelect.value);
   if (!company) { setStatus("수정할 거래처를 선택해 주세요.", true); return; }
   editingCompanyId = company.id;
+  select.value = company.id; updateSelectionStatus(); updateCompanyStateButtons(company);
   $("newCompanyName").value = company.name || "";
   $("newCompanyAliases").value = Array.isArray(company.aliases) ? company.aliases.join(", ") : "";
   $("newCompanyContactName").value = company.contactName || "";
@@ -268,7 +288,7 @@ registrationForm?.addEventListener("submit", async (event) => {
     $("companyRegistrationHeading").textContent = "새 거래처 등록";
     editCancelButton.hidden = true;
     renderEditCompanyOptions();
-    select.value = savedId;
+    select.value = savedId; editSelect.value = savedId; updateCompanyStateButtons(companyRecords.find((x) => x.id === savedId));
     updateSelectionStatus();
     setStatus(wasEditing ? "거래처 정보를 수정했습니다." : `'${name}' 거래처 등록이 완료되었습니다. 장부 확인번호는 아래에서 별도로 설정해 주세요.`);
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -291,6 +311,11 @@ const rosterSaveButton = $("rosterSaveButton");
 const rosterReloadButton = $("rosterReloadButton");
 const rosterManagerStatus = $("rosterManagerStatus");
 const rosterManagerList = $("rosterManagerList");
+const rosterModal = $("rosterManagerModal");
+$("openRosterManager")?.addEventListener("click", () => { rosterModal.hidden = false; renderRosterCompanyOptions(); rosterCompanySelect.focus(); });
+$("closeRosterManager")?.addEventListener("click", () => { rosterModal.hidden = true; });
+rosterModal?.addEventListener("click", (event) => { if (event.target === rosterModal) rosterModal.hidden = true; });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape" && rosterModal && !rosterModal.hidden) rosterModal.hidden = true; });
 
 function setRosterStatus(message, isError = false) {
   rosterManagerStatus.textContent = message;

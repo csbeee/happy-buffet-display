@@ -25,7 +25,6 @@ const connectionState = $("connectionState");
 const clearSearchButton = $("clearSearch");
 const entryPanel = $("entryPanel");
 const entryCompanyName = $("entryCompanyName");
-const entryMode = $("entryMode");
 const groupNumberInput = $("groupNumber");
 const totalCountWrap = $("totalCountWrap");
 const totalCountInput = $("totalCount");
@@ -237,44 +236,19 @@ clearSearchButton.addEventListener("click", () => {
 const rosterNotice = $("rosterNotice");
 
 function configureEntryMode(company) {
-  const validModes = ["mixed", "count", "roster"];
-  const configuredMode = validModes.includes(company.mealEntryMode) ? company.mealEntryMode : "mixed";
   groupNumberInput.value = String(sessionGroupNumbers.get(company.id) || 1);
   countInput.value = "0";
-  const rosterMode = ["optional", "required", "none"].includes(company.rosterMode) ? company.rosterMode : "optional";
-  const allowOverride = company.allowDailyModeOverride !== false;
-  const allowedModes = rosterMode === "none"
-    ? ["count"]
-    : ["count", "roster", "mixed"];
-
-  const labels = {
-    count: "총 인원 입력",
-    roster: "명단 확인",
-    mixed: "명단 확인 + 추가 인원"
-  };
-  entryMode.replaceChildren(...allowedModes.map((mode) => new Option(labels[mode], mode === "count" ? "total" : mode)));
-  const preferred = rosterMode === "none"
-    ? "total"
-    : rosterMode === "required" && configuredMode === "count"
-      ? "mixed"
-      : configuredMode === "count" ? "total" : configuredMode;
-  entryMode.value = [...entryMode.options].some((option) => option.value === preferred)
-    ? preferred
-    : entryMode.options[0]?.value || "total";
-  entryMode.disabled = !allowOverride;
-  entryMode.title = allowOverride ? "" : "관리자가 설정한 기본 입력 방식으로 고정되어 있습니다.";
   updateEntryModeVisibility();
 }
 
 function updateEntryModeVisibility() {
-  const usesRoster = rosterMembers.length > 0 && (entryMode.value === "roster" || entryMode.value === "mixed");
-  const countIsAdditional = entryMode.value === "mixed";
+  const usesRoster = rosterMembers.length > 0;
   totalCountWrap.hidden = false;
   rosterSection.hidden = !usesRoster;
   rosterNotice.hidden = true;
-  countHelp.textContent = countIsAdditional
+  countHelp.textContent = usesRoster
     ? "명단 체크 인원에 더할 추가 인원을 입력하세요."
-    : "총 인원을 입력하세요. + / − 버튼으로도 조절할 수 있습니다.";
+    : "총 식수 인원을 입력하세요. + / − 버튼으로도 조절할 수 있습니다.";
   updateCalculatedCount();
 }
 
@@ -292,14 +266,12 @@ async function loadRosterForCompany(company) {
       .filter((member) => member.active !== false && typeof member.name === "string" && member.name.trim())
       .sort((a, b) => String(a.name).localeCompare(String(b.name), "ko"));
     rosterSection.hidden = rosterMembers.length === 0;
-    if (rosterMembers.length === 0) entryMode.value = "total";
     updateEntryModeVisibility();
     renderRoster();
   } catch (error) {
     console.error("사전 등록 명단을 불러오지 못했습니다.", error);
     rosterLoadFailed = true;
     rosterSection.hidden = true;
-    entryMode.value = "total";
     updateEntryModeVisibility();
     rosterEmpty.hidden = false;
     rosterEmpty.querySelector("strong").textContent = "명단을 불러오지 못했습니다.";
@@ -345,9 +317,7 @@ function getAdditionalCount() {
   return Number.isInteger(value) && value >= 0 ? Math.min(value, 500) : 0;
 }
 function getCalculatedCount() {
-  if (entryMode.value === "roster") return getRosterCount() || getAdditionalCount();
-  if (entryMode.value === "mixed") return getRosterCount() + getAdditionalCount();
-  return getAdditionalCount();
+  return getRosterCount() + getAdditionalCount();
 }
 function updateCalculatedCount() {
   calculatedCountLabel.textContent = `${getCalculatedCount()}명`;
@@ -368,7 +338,6 @@ countInput.addEventListener("input", () => {
   updateCalculatedCount();
 });
 rosterSearch.addEventListener("input", renderRoster);
-entryMode.addEventListener("change", updateEntryModeVisibility);
 $("backToCompanyButton").addEventListener("click", () => {
   entryPanel.hidden = true;
   searchInput.focus();
@@ -417,14 +386,13 @@ reviewEntryButton.addEventListener("click", async () => {
   const count = getCalculatedCount();
   if (rosterLoadFailed && checkedRosterIds.size > 0) { entryMessage.textContent = "명단을 불러오지 못했습니다. 인원수로 접수해 주세요."; return; }
 
-  if (entryMode.value === "mixed" && count < 1) { entryMessage.textContent = "명단 체크 또는 추가 인원을 1명 이상 입력해 주세요."; return; }
   if (getRosterCount() === 0 && (!Number.isInteger(Number(countInput.value)) || Number(countInput.value) < 1 || Number(countInput.value) > 500)) {
     entryMessage.textContent = "식수 인원은 1~500명 사이의 정수로 입력해 주세요."; countInput.focus(); return;
   }
   if (count < 1 || count > 500) { entryMessage.textContent = "계산된 식수는 1~500명이어야 합니다."; return; }
   if (!signatureHasInk) { entryMessage.textContent = "그룹 대표자 서명을 입력해 주세요."; return; }
 
-  const mode = entryMode.value;
+  const mode = rosterMembers.length > 0 ? "mixed" : "total";
   const groupNo = Number(groupNumberInput.value) || 1;
   const signatureDataUrl = signatureCanvas.toDataURL("image/png");
   if (!signatureDataUrl.startsWith("data:image/png;base64,") || signatureDataUrl.length > 200000) {
@@ -482,6 +450,7 @@ reviewEntryButton.addEventListener("click", async () => {
     entryPanel.hidden = true;
     searchInput.value = "";
     renderCompanies();
+    $("companyHeading").scrollIntoView({ behavior: "smooth", block: "start" });
     searchInput.focus();
     countInput.value = "0";
     checkedRosterIds = new Set();

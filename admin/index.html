@@ -9,19 +9,34 @@
 <body>
 
 <header class="topbar">
-    <div>
+    <div class="admin-brand">
         <h1>행복을 담은 한식뷔페</h1>
         <span>관리자 v4.5.1 Stable</span>
     </div>
-    <div class="topButtons">
-        <button id="resetBtn">초기화</button>
-        <button id="libraryBtn">메뉴 라이브러리</button>
-        <button id="companyManagerToggle" type="button">거래처 등록·확인번호 관리</button>
-        <a class="nav-button" href="./history.html">메뉴 이력</a>
-        <a class="nav-button" href="./meal-entries.html">식수 장부 조회</a>
-        <a class="nav-button" href="./reports.html">매출 집계</a>
-        <a class="nav-button" href="./recommendations.html">추천 메뉴·통계</a>
-    </div>
+    <nav class="topButtons" aria-label="관리자 메뉴">
+        <div class="top-action-group">
+            <span class="top-action-label">메뉴 관리</span>
+            <div class="top-action-items">
+                <button id="libraryBtn" type="button">메뉴 라이브러리</button>
+                <a class="nav-button" href="./history.html">메뉴 이력</a>
+                <a class="nav-button" href="./recommendations.html">추천 메뉴·통계</a>
+            </div>
+        </div>
+        <div class="top-action-group">
+            <span class="top-action-label">거래처 · 식수 · 매출</span>
+            <div class="top-action-items">
+                <button id="companyManagerToggle" type="button">거래처 관리</button>
+                <a class="nav-button" href="./meal-entries.html">식수 장부 조회</a>
+                <a class="nav-button" href="./reports.html">매출 집계</a>
+            </div>
+        </div>
+        <div class="top-action-group top-action-group-utility">
+            <span class="top-action-label">기타</span>
+            <div class="top-action-items">
+                <button id="resetBtn" type="button">초기화</button>
+            </div>
+        </div>
+    </nav>
 </header>
 
 <section class="saveArea">

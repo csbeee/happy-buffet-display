@@ -1,6 +1,6 @@
-name: Firebase Hosting Mobile Test
+name: Firebase Hosting Test Site
 
-# Deploy only to the isolated Firebase Hosting preview channel from the dedicated test branch.
+# Deploy the dedicated test branch to the isolated happybuffet-test Hosting site.
 # This workflow never deploys Functions or Firestore rules.
 # Required repository secrets: FIREBASE_TEST_PROJECT_ID=happybuffet-test and FIREBASE_TEST_TOKEN.
 
@@ -18,8 +18,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy_preview:
-    name: Deploy isolated mobile test preview
+  deploy_test_site:
+    name: Deploy isolated Firebase test site
     runs-on: ubuntu-latest
     steps:
       - name: Checkout test branch
@@ -54,8 +54,8 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Deploy to isolated preview channel
+      - name: Deploy to dedicated test Hosting site
         env:
           TEST_PROJECT_ID: ${{ secrets.FIREBASE_TEST_PROJECT_ID }}
           TEST_TOKEN: ${{ secrets.FIREBASE_TEST_TOKEN }}
-        run: firebase hosting:channel:deploy mobile-test --project "$TEST_PROJECT_ID" --token "$TEST_TOKEN" --expires 30d
+        run: firebase deploy --only hosting --project "$TEST_PROJECT_ID" --token "$TEST_TOKEN"

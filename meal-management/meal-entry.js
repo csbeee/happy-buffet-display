@@ -2,6 +2,7 @@ import { db } from "../firebase/firebase-config.js";
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   runTransaction,
@@ -165,11 +166,53 @@ async function chooseCompany(company) {
   entryMessage.hidden = true;
   entryCompanyName.textContent = company.name;
   configureEntryMode(company);
+  clearSignatureForNewEntry();
+  await loadNextGroupNumber(company);
   entryPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   try {
     await loadRosterForCompany(company);
   } finally {
     resizeSignatureCanvas();
+  }
+}
+
+function clearSignatureForNewEntry() {
+  const ctx = signatureCanvas.getContext("2d");
+  ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+  signatureHasInk = false;
+  signatureMessage.textContent = "위 영역에 서명해 주세요.";
+}
+
+function getServicePeriod() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const part = (type) => parts.find((item) => item.type === type)?.value;
+  const serviceDate = `${part("year")}-${part("month")}-${part("day")}`;
+  const hour = Number(new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    hour: "2-digit",
+    hourCycle: "h23"
+  }).format(new Date()));
+  return { serviceDate, mealPeriod: hour >= 16 ? "dinner" : "lunch" };
+}
+
+async function loadNextGroupNumber(company) {
+  const { serviceDate, mealPeriod } = getServicePeriod();
+  const counterRef = doc(db, "mealEntryCounters", `${company.id}_${serviceDate}_${mealPeriod}`);
+  try {
+    const counterSnap = await getDoc(counterRef);
+    const nextGroup = (Number(counterSnap.exists() ? counterSnap.data().lastGroupNumber : 0) || 0) + 1;
+    groupNumberInput.value = String(nextGroup);
+    sessionGroupNumbers.set(company.id, nextGroup);
+  } catch (error) {
+    console.error("오늘 방문 순서를 확인하지 못했습니다.", error);
+    groupNumberInput.value = "확인 불가";
+    entryMessage.hidden = false;
+    entryMessage.textContent = "오늘 방문 순서를 불러오지 못했습니다. 저장 권한과 연결 상태를 확인해 주세요.";
   }
 }
 
@@ -390,7 +433,7 @@ reviewEntryButton.addEventListener("click", async () => {
     entryMessage.textContent = "식수 인원은 1~500명 사이의 정수로 입력해 주세요."; countInput.focus(); return;
   }
   if (count < 1 || count > 500) { entryMessage.textContent = "계산된 식수는 1~500명이어야 합니다."; return; }
-  if (!signatureHasInk) { entryMessage.textContent = "그룹 대표자 서명을 입력해 주세요."; return; }
+  if (!signatureHasInk) { entryMessage.textContent = "서명을 입력해 주세요."; return; }
 
   const mode = rosterMembers.length > 0 ? "mixed" : "total";
   const groupNo = Number(groupNumberInput.value) || 1;
@@ -403,10 +446,7 @@ reviewEntryButton.addEventListener("click", async () => {
   reviewEntryButton.disabled = true;
   reviewEntryButton.textContent = "저장 중…";
   try {
-    const now = new Date();
-    const koreaNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-    const serviceDate = koreaNow.toISOString().slice(0, 10);
-    const mealPeriod = koreaNow.getUTCHours() >= 16 ? "dinner" : "lunch";
+    const { serviceDate, mealPeriod } = getServicePeriod();
     const submissionId = crypto.randomUUID();
     const entryRef = doc(collection(db, "mealEntries"));
     const counterRef = doc(db, "mealEntryCounters", `${selectedCompany.id}_${serviceDate}_${mealPeriod}`);

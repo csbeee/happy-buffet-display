@@ -14,6 +14,10 @@ const clearButton = $("companyManagerClear");
 const status = $("companyManagerStatus");
 const registrationForm = $("companyRegistrationForm");
 const registrationSubmit = $("companyRegistrationSubmit");
+const editSelect = $("companyEditSelect");
+const editLoadButton = $("companyEditLoad");
+const editCancelButton = $("companyEditCancel");
+let editingCompanyId = null;
 let companyRecords = [];
 
 function setStatus(message, isError = false) {
@@ -29,12 +33,21 @@ function renderCompanyOptions() {
     .forEach((company) => select.append(new Option(company.active === false ? company.name + " (미사용)" : company.name, company.id)));
   if (selectedId && [...select.options].some((option) => option.value === selectedId)) select.value = selectedId;
 }
+function renderEditCompanyOptions() {
+  if (!editSelect) return;
+  const previous = editSelect.value;
+  editSelect.replaceChildren(new Option("거래처 선택", ""));
+  [...companyRecords].sort((a, b) => a.name.localeCompare(b.name, "ko"))
+    .forEach((company) => editSelect.append(new Option(company.active === false ? company.name + " (미사용)" : company.name, company.id)));
+  if (companyRecords.some((company) => company.id === previous)) editSelect.value = previous;
+}
 async function loadCompanyRecords() {
   setStatus("거래처 목록을 불러오는 중입니다.");
   try {
     const snapshot = await getDocs(collection(db, "companies"));
     companyRecords = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
     renderCompanyOptions();
+    renderEditCompanyOptions();
     if (rosterCompanySelect) {
       const selectedRosterCompany = rosterCompanySelect.value;
       rosterCompanySelect.replaceChildren(new Option("거래처 선택", ""));
@@ -146,6 +159,39 @@ function normalizeCompanyName(value) {
 function splitAliases(value) {
   return [...new Set(String(value ?? "").split(",").map((item) => item.trim()).filter(Boolean))];
 }
+function resetCompanyEditor() {
+  editingCompanyId = null;
+  registrationForm.reset();
+  $("newCompanyMealPrice").value = "7000";
+  $("newCompanyActive").checked = true;
+  $("newCompanyFavorite").checked = false;
+  $("companyRegistrationHeading").textContent = "새 거래처 등록";
+  registrationSubmit.textContent = "거래처 등록";
+  editCancelButton.hidden = true;
+}
+editLoadButton?.addEventListener("click", () => {
+  const company = companyRecords.find((item) => item.id === editSelect.value);
+  if (!company) { setStatus("수정할 거래처를 선택해 주세요.", true); return; }
+  editingCompanyId = company.id;
+  $("newCompanyName").value = company.name || "";
+  $("newCompanyAliases").value = Array.isArray(company.aliases) ? company.aliases.join(", ") : "";
+  $("newCompanyContactName").value = company.contactName || "";
+  $("newCompanyContactPhone").value = company.contactPhone || "";
+  $("newCompanyMealPrice").value = company.mealPrice ?? 7000;
+  $("newCompanyBillingType").value = company.billingType || "monthly";
+  $("newCompanyNote").value = company.note || "";
+  $("newCompanyActive").checked = company.active !== false;
+  $("newCompanyFavorite").checked = company.favorite === true;
+  $("companyRegistrationHeading").textContent = `거래처 정보 수정 · ${company.name}`;
+  registrationSubmit.textContent = "변경사항 저장";
+  editCancelButton.hidden = false;
+  $("newCompanyName").focus();
+  registrationForm.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+editCancelButton?.addEventListener("click", resetCompanyEditor);
+registrationForm?.addEventListener("reset", () => {
+  if (editingCompanyId) setTimeout(resetCompanyEditor, 0);
+});
 registrationForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const name = $("newCompanyName").value.trim().replace(/\s+/g, " ");
@@ -168,7 +214,7 @@ registrationForm?.addEventListener("submit", async (event) => {
     $("newCompanyMealPrice").focus();
     return;
   }
-  const duplicate = companyRecords.find((company) => normalizeCompanyName(company.name) === normalizeCompanyName(name));
+  const duplicate = companyRecords.find((company) => company.id !== editingCompanyId && normalizeCompanyName(company.name) === normalizeCompanyName(name));
   if (duplicate) {
     setStatus(`'${name}' 거래처가 이미 등록되어 있습니다. 기존 거래처를 확인해 주세요.`, true);
     return;
@@ -190,9 +236,6 @@ registrationForm?.addEventListener("submit", async (event) => {
       contactPhone,
       mealPrice,
       billingType,
-      mealEntryMode: $("newCompanyMealEntryMode").value || "mixed",
-      rosterMode: $("newCompanyRosterMode").value || "optional",
-      allowDailyModeOverride: $("newCompanyAllowDailyModeOverride").checked,
       note,
       active,
       favorite,
@@ -200,19 +243,35 @@ registrationForm?.addEventListener("submit", async (event) => {
       createdAt: now,
       updatedAt: now
     };
-    const created = await addDoc(collection(db, "companies"), payload);
-    companyRecords.push({ id: created.id, ...payload });
+    let savedId = editingCompanyId;
+    if (editingCompanyId) {
+      await updateDoc(doc(db, "companies", editingCompanyId), { ...payload, updatedAt: now });
+      const index = companyRecords.findIndex((company) => company.id === editingCompanyId);
+      if (index >= 0) companyRecords[index] = { ...companyRecords[index], ...payload, updatedAt: now };
+    } else {
+      const created = await addDoc(collection(db, "companies"), payload);
+      savedId = created.id;
+      companyRecords.push({ id: created.id, ...payload });
+    }
     renderCompanyOptions();
+    renderEditCompanyOptions();
     registrationForm.reset();
     $("newCompanyMealPrice").value = "7000";
-    $("newCompanyMealEntryMode").value = "mixed";
-    $("newCompanyRosterMode").value = "optional";
-    $("newCompanyAllowDailyModeOverride").checked = true;
     $("newCompanyActive").checked = true;
     $("newCompanyFavorite").checked = false;
-    select.value = created.id;
+    const wasEditing = Boolean(editingCompanyId);
+    editingCompanyId = null;
+    registrationForm.reset();
+    $("newCompanyMealPrice").value = "7000";
+    $("newCompanyActive").checked = true;
+    $("newCompanyFavorite").checked = false;
+    registrationSubmit.textContent = "거래처 등록";
+    $("companyRegistrationHeading").textContent = "새 거래처 등록";
+    editCancelButton.hidden = true;
+    renderEditCompanyOptions();
+    select.value = savedId;
     updateSelectionStatus();
-    setStatus(`'${name}' 거래처 등록이 완료되었습니다. 장부 확인번호는 아래 거래처 확인번호 관리에서 별도로 설정해 주세요.`);
+    setStatus(wasEditing ? "거래처 정보를 수정했습니다." : `'${name}' 거래처 등록이 완료되었습니다. 장부 확인번호는 아래에서 별도로 설정해 주세요.`);
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     console.error("거래처 등록 실패:", error);

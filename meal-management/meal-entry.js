@@ -159,6 +159,9 @@ function renderCompanies() {
 
 async function chooseCompany(company) {
   selectedCompany = company;
+  rosterMembers = [];
+  checkedRosterIds = new Set();
+  rosterSection.hidden = true;
   entryPanel.hidden = false;
   entryMessage.hidden = true;
   entryCompanyName.textContent = company.name;
@@ -243,9 +246,7 @@ function configureEntryMode(company) {
   const allowOverride = company.allowDailyModeOverride !== false;
   const allowedModes = rosterMode === "none"
     ? ["count"]
-    : rosterMode === "required"
-      ? ["roster", "mixed"]
-      : ["count", "roster", "mixed"];
+    : ["count", "roster", "mixed"];
 
   const labels = {
     count: "총 인원 입력",

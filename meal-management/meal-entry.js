@@ -432,8 +432,6 @@ reviewEntryButton.addEventListener("click", async () => {
     entryMessage.textContent = "서명 이미지가 너무 큽니다. 서명을 지우고 간단하게 다시 입력해 주세요.";
     return;
   }
-  if (!window.confirm(`거래처: ${selectedCompany.name}\n방문 그룹: ${groupNo}\n식수 인원: ${count}명\n\n이 내용을 실제 식수 기록으로 저장할까요?`)) return;
-
   savingEntry = true;
   reviewEntryButton.disabled = true;
   reviewEntryButton.textContent = "저장 중…";
@@ -480,7 +478,7 @@ reviewEntryButton.addEventListener("click", async () => {
       });
       return nextGroup;
     });
-    entryMessage.textContent = `접수 및 매출 반영 완료: ${selectedCompany.name} / ${serviceDate} / 방문 그룹 ${savedGroupNo} / ${mealPeriod === "dinner" ? "저녁" : "점심"} / ${count}명 / 1인 ${savedMealPrice.toLocaleString("ko-KR")}원 / 합계 ${savedTotalAmount.toLocaleString("ko-KR")}원.`;
+    window.alert(`식수 접수가 저장되었습니다.\n${selectedCompany.name} / 방문 그룹 ${savedGroupNo}\n${count}명 · 합계 ${savedTotalAmount.toLocaleString("ko-KR")}원`);
     sessionGroupNumbers.set(selectedCompany.id, savedGroupNo + 1);
     entryPanel.hidden = true;
     searchInput.value = "";

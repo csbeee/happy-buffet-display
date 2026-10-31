@@ -239,8 +239,7 @@ registrationForm?.addEventListener("submit", async (event) => {
       note,
       active,
       favorite,
-      sortOrder: nextSortOrder,
-      createdAt: now,
+      sortOrder: editingCompanyId ? (companyRecords.find((company) => company.id === editingCompanyId)?.sortOrder ?? nextSortOrder) : nextSortOrder,
       updatedAt: now
     };
     let savedId = editingCompanyId;
@@ -249,16 +248,13 @@ registrationForm?.addEventListener("submit", async (event) => {
       const index = companyRecords.findIndex((company) => company.id === editingCompanyId);
       if (index >= 0) companyRecords[index] = { ...companyRecords[index], ...payload, updatedAt: now };
     } else {
+      payload.createdAt = now;
       const created = await addDoc(collection(db, "companies"), payload);
       savedId = created.id;
       companyRecords.push({ id: created.id, ...payload });
     }
     renderCompanyOptions();
     renderEditCompanyOptions();
-    registrationForm.reset();
-    $("newCompanyMealPrice").value = "7000";
-    $("newCompanyActive").checked = true;
-    $("newCompanyFavorite").checked = false;
     const wasEditing = Boolean(editingCompanyId);
     editingCompanyId = null;
     registrationForm.reset();
@@ -281,7 +277,7 @@ registrationForm?.addEventListener("submit", async (event) => {
     setStatus(message, true);
   } finally {
     registrationSubmit.disabled = false;
-    registrationSubmit.textContent = "거래처 등록";
+    registrationSubmit.textContent = editingCompanyId ? "변경사항 저장" : "거래처 등록";
   }
 });
 

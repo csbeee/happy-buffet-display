@@ -691,3 +691,20 @@ body.company-management-open .topButtons button[onclick*="recommendations.html"]
 .roster-manager-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #e0e7e2; border-radius: 10px; background: #fff; }
 .roster-manager-row span:last-child { color: #687670; font-size: 12px; white-space: nowrap; }
 #rosterNamesInput { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #cbd6ce; border-radius: 10px; font: inherit; }
+
+/* Admin navigation and company management refresh */
+.topbar { flex-wrap:wrap; gap:14px; padding:14px 22px; }
+.topButtons { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.topButtons button,.topButtons .nav-button { min-height:40px; padding:9px 14px; border:1px solid #d8dfe8; border-radius:8px; background:#fff; color:#344054; font:500 13px/1.2 "Noto Sans KR",sans-serif; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; }
+.topButtons button:hover,.topButtons .nav-button:hover { background:#f1f5f9; border-color:#b8c4d3; }
+.topButtons #companyManagerToggle { background:#eaf2ff; border-color:#b9d0f5; color:#174a7e; font-weight:700; }
+.topButtons #resetBtn { color:#b42318; }
+.company-edit-actions { display:flex; flex-wrap:wrap; gap:8px; } .company-edit-actions button { min-height:44px; }
+.company-inline-code { display:flex; flex-wrap:wrap; gap:8px; align-items:center; } .company-inline-code input { flex:1; min-width:130px; }
+.company-roster-launch { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px; margin:18px 0; border:1px solid #dbe4ee; border-radius:12px; background:#f7f9fc; }
+.company-roster-launch h3 { margin-bottom:4px; } .company-roster-launch p { color:#667085; font-size:13px; }
+.company-roster-modal[hidden] { display:none !important; }
+.company-roster-modal { position:fixed; inset:0; z-index:1800; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(16,24,40,.56); }
+.company-roster-dialog { width:min(680px,100%); max-height:90vh; overflow:auto; padding:20px; border-radius:14px; background:#fff; box-shadow:0 18px 48px rgba(0,0,0,.2); }
+.company-roster-dialog textarea { width:100%; min-height:120px; padding:12px; border:1px solid #d0d5dd; border-radius:8px; font:inherit; }
+@media(max-width:768px) { .topbar { align-items:stretch; } .topButtons { width:100%; justify-content:flex-start; } .topButtons button,.topButtons .nav-button { flex:1 1 calc(50% - 8px); min-width:0; min-height:44px; } .company-roster-launch { align-items:stretch; flex-direction:column; } .company-roster-launch button { width:100%; min-height:48px; } .company-inline-code input { flex-basis:100%; } .company-roster-dialog { padding:14px; } }

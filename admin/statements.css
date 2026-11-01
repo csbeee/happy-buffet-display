@@ -12,6 +12,15 @@ body{margin:0;background:#f3f5f7;color:#26332c;font-family:"Noto Sans KR",Arial,
 button{min-height:42px;padding:9px 15px;border:1px solid #d5ded8;border-radius:8px;background:#fff;color:#26372e;font:inherit;font-weight:700;cursor:pointer}
 button.primary{background:#176344;border-color:#176344;color:#fff}button:disabled{opacity:.5;cursor:not-allowed}
 .hint{margin:9px 0 0;color:#738078;font-size:12px}.status{margin-top:10px;color:#53645a;font-size:13px}
+.supplier-editor{margin-top:14px;padding:15px;border:1px solid #dce5df;border-radius:10px;background:#f9fbfa}
+.supplier-editor h2{margin:0;font-size:16px}.supplier-editor p{margin:4px 0 12px;color:#68766e;font-size:12px}
+.supplier-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.supplier-fields label{display:flex;flex-direction:column;gap:5px;color:#53625a;font-size:12px;font-weight:700}
+.supplier-fields label.wide{grid-column:span 2}
+.supplier-fields input{width:100%;min-height:39px;padding:8px 10px;border:1px solid #d5ded8;border-radius:7px;background:#fff;font:inherit;font-weight:400}
+#supplierSaveStatus{align-self:center}
+@media(max-width:700px){.supplier-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.supplier-fields label.wide{grid-column:span 2}}
+
 .statement-sheet{width:min(100%,210mm);min-height:250mm;margin:0 auto;padding:10mm 10mm;background:#fff;border:1px solid #e1e6e3;box-shadow:0 4px 20px #18251d12}
 .statement-title{margin:0 0 7mm;text-align:center;font-size:24px;letter-spacing:.35em}
 .party-panels{display:grid;grid-template-columns:1fr 1.15fr;gap:5mm;margin-bottom:6mm}

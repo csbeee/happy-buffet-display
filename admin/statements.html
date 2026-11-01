@@ -31,6 +31,23 @@
       </div>
       <p class="hint">식수 인원이 0명인 날짜는 명세서에서 자동 제외됩니다. 출력은 A4 세로 한 장 기준입니다.</p>
       <div id="status" class="status" role="status">거래처 목록을 불러오는 중입니다.</div>
+      <section class="supplier-editor" aria-label="공급자 정보 입력">
+        <h2>공급자 정보 입력</h2>
+        <p>입력 후 저장하면 이 브라우저에 보관되며, 거래명세서에 반영됩니다.</p>
+        <div class="supplier-fields">
+          <label>사업자등록번호<input id="supplierBusinessNo" type="text" placeholder="000-00-00000"></label>
+          <label>업체명<input id="supplierName" type="text" value="행복을 담은 한식뷔페"></label>
+          <label>대표자명<input id="supplierRepresentative" type="text" placeholder="대표자 이름"></label>
+          <label class="wide">주소<input id="supplierAddress" type="text" placeholder="사업장 주소"></label>
+          <label>업태<input id="supplierBusinessType" type="text" placeholder="예: 음식점업"></label>
+          <label>종목<input id="supplierBusinessItem" type="text" placeholder="예: 한식"></label>
+          <label>전화번호<input id="supplierPhone" type="tel" placeholder="전화번호"></label>
+        </div>
+        <div class="filter-actions">
+          <button id="saveSupplierBtn" class="primary" type="button">공급자 정보 저장</button>
+          <span id="supplierSaveStatus" class="status" role="status"></span>
+        </div>
+      </section>
     </section>
 
     <section id="statementPreview" class="statement-sheet" aria-label="거래명세서 미리보기">
@@ -48,13 +65,13 @@
         <section class="party-panel supplier-panel">
           <h2>공급자</h2>
           <dl>
-            <div><dt>사업자번호</dt><dd>________________</dd></div>
-            <div><dt>업체명</dt><dd>행복을 담은 한식뷔페</dd></div>
-            <div><dt>대표자명</dt><dd>________________</dd></div>
-            <div><dt>주소</dt><dd>________________________________</dd></div>
-            <div><dt>업태</dt><dd>________________</dd></div>
-            <div><dt>종목</dt><dd>________________</dd></div>
-            <div><dt>전화번호</dt><dd>________________</dd></div>
+            <div><dt>사업자번호</dt><dd id="previewSupplierBusinessNo">-</dd></div>
+            <div><dt>업체명</dt><dd id="previewSupplierName">행복을 담은 한식뷔페</dd></div>
+            <div><dt>대표자명</dt><dd id="previewSupplierRepresentative">-</dd></div>
+            <div><dt>주소</dt><dd id="previewSupplierAddress">-</dd></div>
+            <div><dt>업태</dt><dd id="previewSupplierBusinessType">-</dd></div>
+            <div><dt>종목</dt><dd id="previewSupplierBusinessItem">-</dd></div>
+            <div><dt>전화번호</dt><dd id="previewSupplierPhone">-</dd></div>
             <div class="stamp-row"><dt>도장/서명</dt><dd><span class="stamp-box"></span></dd></div>
           </dl>
         </section>

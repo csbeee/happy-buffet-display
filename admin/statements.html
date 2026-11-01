@@ -34,47 +34,59 @@
     </section>
 
     <section id="statementPreview" class="statement-sheet" aria-label="거래명세서 미리보기">
-      <div class="statement-topline">
-        <span>행복을 담은 한식뷔페</span>
-        <span>거래명세서</span>
-      </div>
-      <h1 class="statement-title">거 래 명 세 서</h1>
-      <div class="statement-meta">
-        <div><span>거래처</span><strong id="previewCompany">거래처를 선택해 주세요</strong></div>
-        <div><span>정산 기간</span><strong id="previewPeriod">-</strong></div>
-        <div><span>작성일</span><strong id="issuedDate">-</strong></div>
+      <h1 class="statement-title">거 래 명 세 표</h1>
+      <div class="party-panels">
+        <section class="party-panel recipient-panel">
+          <h2>공급받는 자</h2>
+          <dl>
+            <div><dt>발행일</dt><dd id="issuedDate">-</dd></div>
+            <div><dt>거래처명</dt><dd id="previewCompany">거래처를 선택해 주세요</dd></div>
+            <div class="recipient-total"><dt>총액</dt><dd id="recipientTotal">0원</dd></div>
+            <div><dt>정산기간</dt><dd id="previewPeriod">-</dd></div>
+          </dl>
+        </section>
+        <section class="party-panel supplier-panel">
+          <h2>공급자</h2>
+          <dl>
+            <div><dt>사업자번호</dt><dd>________________</dd></div>
+            <div><dt>업체명</dt><dd>행복을 담은 한식뷔페</dd></div>
+            <div><dt>대표자명</dt><dd>________________</dd></div>
+            <div><dt>주소</dt><dd>________________________________</dd></div>
+            <div><dt>업태</dt><dd>________________</dd></div>
+            <div><dt>종목</dt><dd>________________</dd></div>
+            <div><dt>전화번호</dt><dd>________________</dd></div>
+            <div class="stamp-row"><dt>도장/서명</dt><dd><span class="stamp-box"></span></dd></div>
+          </dl>
+        </section>
       </div>
       <div class="table-wrap">
         <table class="statement-table">
           <thead>
             <tr>
-              <th>날짜</th>
-              <th>요일</th>
-              <th>점심 인원</th>
-              <th>점심 금액</th>
-              <th>저녁 인원</th>
-              <th>저녁 금액</th>
-              <th>합계 인원</th>
-              <th>합계 금액</th>
+              <th>일자(요일)</th>
+              <th>중식</th>
+              <th>석식</th>
+              <th>계</th>
+              <th>단가</th>
+              <th>공급가액</th>
+              <th>세액</th>
             </tr>
           </thead>
           <tbody id="statementRows">
-            <tr><td colspan="8" class="empty">거래처와 정산 월을 선택해 주세요.</td></tr>
+            <tr><td colspan="7" class="empty">거래처와 정산 월을 선택해 주세요.</td></tr>
           </tbody>
           <tfoot id="statementFoot">
-            <tr><th colspan="2">월 합계</th><th>0명</th><th>0원</th><th>0명</th><th>0원</th><th>0명</th><th>0원</th></tr>
+            <tr><th>월 합계</th><th>0명</th><th>0명</th><th>0명</th><th>-</th><th>0원</th><th>0원</th></tr>
           </tfoot>
         </table>
       </div>
       <div class="statement-summary">
         <div><span>총 식수</span><strong id="summaryPeople">0명</strong></div>
-        <div><span>총 청구 금액</span><strong id="summaryAmount">0원</strong></div>
+        <div><span>공급가액</span><strong id="summarySupply">0원</strong></div>
+        <div><span>세액</span><strong id="summaryTax">0원</strong></div>
+        <div><span>총액 (공급가액+세액)</span><strong id="summaryAmount">0원</strong></div>
       </div>
-      <p class="statement-note">※ 식수 접수 장부를 기준으로 집계한 내역입니다. 식수가 없는 날짜는 표시하지 않습니다.</p>
-      <div class="signature-line">
-        <span>공급자: 행복을 담은 한식뷔페</span>
-        <span>확인: ____________________</span>
-      </div>
+      <p class="statement-note">※ 장부의 식대는 부가세 별도 금액으로 처리하며, 세액은 공급가액의 10%로 계산합니다. 식수가 없는 날짜는 표시하지 않습니다.</p>
     </section>
   </main>
 

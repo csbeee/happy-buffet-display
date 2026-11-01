@@ -106,8 +106,8 @@ test('monthly transaction statement groups existing meal entries by date and sup
   assert.ok(html.includes('id="companySelect"') && html.includes('id="monthSelect"'));
   assert.ok(html.includes('id="statementRows"') && html.includes('id="printBtn"'));
   assert.ok(source.includes('collection(db,"mealEntries")'));
-  assert.ok(source.includes('if (entry.companyId !== companyId) return'));
-  assert.ok(source.includes('if (!entry.serviceDate || count <= 0) return'));
+  assert.ok(source.includes('if(entry.companyId!==companyId) return'));
+  assert.ok(source.includes('if(!entry.serviceDate || count<=0) return'));
   assert.ok(source.includes('tax:Math.round(day.amount*0.1)'));
   assert.ok(source.includes('recipientTotal'));
   assert.ok(html.includes('사업자번호') && html.includes('대표자명') && html.includes('도장/서명'));

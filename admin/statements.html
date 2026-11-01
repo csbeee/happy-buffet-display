@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>거래명세서 | 행복을 담은 한식뷔페</title>
+  <link rel="stylesheet" href="./statements.css">
+</head>
+<body>
+  <header class="page-header no-print">
+    <div>
+      <h1>거래명세서 출력</h1>
+      <p>거래처와 월을 선택해 날짜별 식수 및 식대 내역을 확인하고 A4 한 장으로 출력합니다.</p>
+    </div>
+    <nav>
+      <a href="./index.html">← 관리자 화면</a>
+      <a href="./reports.html">매출 집계</a>
+      <a href="./meal-entries.html">식수 장부 조회</a>
+    </nav>
+  </header>
+
+  <main class="main">
+    <section class="filter-panel no-print">
+      <div class="filters">
+        <label>거래처<select id="companySelect" required><option value="">거래처 선택</option></select></label>
+        <label>정산 월<input id="monthSelect" type="month" required></label>
+      </div>
+      <div class="filter-actions">
+        <button id="previewBtn" class="primary" type="button">미리보기 갱신</button>
+        <button id="printBtn" type="button" disabled>인쇄 / PDF 저장</button>
+      </div>
+      <p class="hint">식수 인원이 0명인 날짜는 명세서에서 자동 제외됩니다. 출력은 A4 세로 한 장 기준입니다.</p>
+      <div id="status" class="status" role="status">거래처 목록을 불러오는 중입니다.</div>
+    </section>
+
+    <section id="statementPreview" class="statement-sheet" aria-label="거래명세서 미리보기">
+      <div class="statement-topline">
+        <span>행복을 담은 한식뷔페</span>
+        <span>거래명세서</span>
+      </div>
+      <h1 class="statement-title">거 래 명 세 서</h1>
+      <div class="statement-meta">
+        <div><span>거래처</span><strong id="previewCompany">거래처를 선택해 주세요</strong></div>
+        <div><span>정산 기간</span><strong id="previewPeriod">-</strong></div>
+        <div><span>작성일</span><strong id="issuedDate">-</strong></div>
+      </div>
+      <div class="table-wrap">
+        <table class="statement-table">
+          <thead>
+            <tr>
+              <th>날짜</th>
+              <th>요일</th>
+              <th>점심 인원</th>
+              <th>점심 금액</th>
+              <th>저녁 인원</th>
+              <th>저녁 금액</th>
+              <th>합계 인원</th>
+              <th>합계 금액</th>
+            </tr>
+          </thead>
+          <tbody id="statementRows">
+            <tr><td colspan="8" class="empty">거래처와 정산 월을 선택해 주세요.</td></tr>
+          </tbody>
+          <tfoot id="statementFoot">
+            <tr><th colspan="2">월 합계</th><th>0명</th><th>0원</th><th>0명</th><th>0원</th><th>0명</th><th>0원</th></tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="statement-summary">
+        <div><span>총 식수</span><strong id="summaryPeople">0명</strong></div>
+        <div><span>총 청구 금액</span><strong id="summaryAmount">0원</strong></div>
+      </div>
+      <p class="statement-note">※ 식수 접수 장부를 기준으로 집계한 내역입니다. 식수가 없는 날짜는 표시하지 않습니다.</p>
+      <div class="signature-line">
+        <span>공급자: 행복을 담은 한식뷔페</span>
+        <span>확인: ____________________</span>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./auth.js"></script>
+  <script type="module" src="./statements.js"></script>
+</body>
+</html>

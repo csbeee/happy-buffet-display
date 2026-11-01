@@ -62,6 +62,9 @@ test('admin meal ledger page supports filters, totals, details and edits with au
   assert.ok(source.includes('runTransaction(db'));
   assert.ok(source.includes('signatureDataUrl'));
   assert.ok(source.includes('before,after:{...next}'));
+  assert.ok(source.includes('const auditValue='), 'audit history formats roster IDs for display');
+  assert.ok(source.includes('rosterById.get(id)'), 'audit history resolves roster IDs to member names');
+  assert.ok(source.includes('auditValue(f.key,h.before?.[f.key])'), 'audit history formats both before and after values');
 });
 
 

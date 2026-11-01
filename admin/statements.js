@@ -116,9 +116,9 @@ async function buildPreview() {
   $("printBtn").disabled = true;
   setStatus("선택한 거래처의 월별 식수 자료를 집계하고 있습니다.");
   try {
+    // 기존 장부 화면과 같은 날짜 범위 조회를 사용해 별도 복합 인덱스가 필요하지 않도록 합니다.
     const q = query(
       collection(db, "mealEntries"),
-      where("companyId", "==", companyId),
       where("serviceDate", ">=", start),
       where("serviceDate", "<=", end)
     );
@@ -126,6 +126,7 @@ async function buildPreview() {
     const map = new Map();
     snapshot.docs.forEach((docSnap) => {
       const entry = docSnap.data();
+      if (entry.companyId !== companyId) return;
       const count = Math.max(0, Number(entry.headcount) || 0);
       if (!entry.serviceDate || count <= 0) return;
       let day = map.get(entry.serviceDate);

@@ -105,7 +105,7 @@ test('monthly transaction statement groups existing meal entries by date and sup
   assert.ok(read('admin/reports.html').includes('./statements.html'));
   assert.ok(html.includes('id="companySelect"') && html.includes('id="monthSelect"'));
   assert.ok(html.includes('id="statementRows"') && html.includes('id="printBtn"'));
-  assert.ok(source.includes('collection(db, "mealEntries")'));
+  assert.ok(source.includes('collection(db,"mealEntries")'));
   assert.ok(source.includes('if (entry.companyId !== companyId) return'));
   assert.ok(source.includes('if (!entry.serviceDate || count <= 0) return'));
   assert.ok(source.includes('tax:Math.round(day.amount*0.1)'));

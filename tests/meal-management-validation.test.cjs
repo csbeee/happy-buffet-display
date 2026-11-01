@@ -80,3 +80,17 @@ test('sales reports are separated from the meal ledger page', () => {
   assert.ok(reportSource.includes('function aggregate'));
   assert.ok(reportSource.includes('totalAmount'));
 });
+
+
+test('company management uses one selected company for details and roster workflow', () => {
+  const html = read('admin/index.html');
+  const source = read('admin/company-management.js');
+  assert.ok(html.includes('id="companyEditSelect"'));
+  assert.ok(html.includes('id="rosterCompanySelect" hidden'));
+  assert.ok(html.includes('id="rosterManagerPanel"'));
+  assert.ok(html.includes('id="companyNewButton"'));
+  assert.equal(html.includes('rosterManagerModal'), false);
+  assert.ok(source.includes('const companyId = editSelect.value;'));
+  assert.ok(source.includes('newCompanyButton?.addEventListener'));
+  assert.ok(source.includes('$("rosterCompanyCaption").textContent'));
+});

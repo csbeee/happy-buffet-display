@@ -13,6 +13,8 @@ const saveButton = $("companyManagerSave");
 const clearButton = $("companyManagerClear");
 const status = $("companyManagerStatus");
 const registrationForm = $("companyRegistrationForm");
+const registrationPanel = $("companyRegistration");
+const newCompanyButton = $("companyNewButton");
 const registrationSubmit = $("companyRegistrationSubmit");
 const editSelect = $("companyEditSelect");
 const editLoadButton = $("companyEditLoad");
@@ -177,7 +179,19 @@ function updateCompanyStateButtons(company) {
   if (deactivateButton) deactivateButton.disabled = !company || company.active === false;
   if (activateButton) { activateButton.hidden = !company || company.active !== false; activateButton.disabled = !company || company.active !== false; }
 }
-editSelect?.addEventListener("change", () => { const c = companyRecords.find((x) => x.id === editSelect.value) || null; select.value = c?.id || ""; updateSelectionStatus(); updateCompanyStateButtons(c); });
+editSelect?.addEventListener("change", async () => {
+  const company = companyRecords.find((item) => item.id === editSelect.value) || null;
+  select.value = company?.id || "";
+  if (rosterCompanySelect) rosterCompanySelect.value = company?.id || "";
+  updateSelectionStatus();
+  updateCompanyStateButtons(company);
+  if (registrationPanel) registrationPanel.hidden = true;
+  if (editingCompanyId) resetCompanyEditor();
+  $("rosterCompanyCaption").textContent = company ? company.name + "의 등록 명단" : "먼저 위에서 거래처를 선택해 주세요.";
+  $("openRosterManager").disabled = !company;
+  if (company) await loadRosterManagerList();
+  else { renderRosterManagerList([]); setRosterStatus("거래처를 선택해 주세요."); }
+});
 async function setCompanyActive(active) {
   const company = companyRecords.find((x) => x.id === editSelect.value); if (!company) return;
   const action = active ? "다시 사용" : "사용 중지";
@@ -194,6 +208,7 @@ editLoadButton?.addEventListener("click", () => {
   const company = companyRecords.find((item) => item.id === editSelect.value);
   if (!company) { setStatus("수정할 거래처를 선택해 주세요.", true); return; }
   editingCompanyId = company.id;
+  registrationPanel.hidden = false;
   select.value = company.id; updateSelectionStatus(); updateCompanyStateButtons(company);
   $("newCompanyName").value = company.name || "";
   $("newCompanyAliases").value = Array.isArray(company.aliases) ? company.aliases.join(", ") : "";
@@ -210,7 +225,14 @@ editLoadButton?.addEventListener("click", () => {
   $("newCompanyName").focus();
   registrationForm.scrollIntoView({ behavior: "smooth", block: "start" });
 });
-editCancelButton?.addEventListener("click", resetCompanyEditor);
+editCancelButton?.addEventListener("click", () => { resetCompanyEditor(); registrationPanel.hidden = true; });
+newCompanyButton?.addEventListener("click", () => {
+  resetCompanyEditor();
+  registrationPanel.hidden = false;
+  $("companyRegistrationHeading").textContent = "새 거래처 등록";
+  $("newCompanyName").focus();
+  registrationPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+});
 registrationForm?.addEventListener("reset", () => {
   if (editingCompanyId) setTimeout(resetCompanyEditor, 0);
 });
@@ -287,9 +309,14 @@ registrationForm?.addEventListener("submit", async (event) => {
     registrationSubmit.textContent = "거래처 등록";
     $("companyRegistrationHeading").textContent = "새 거래처 등록";
     editCancelButton.hidden = true;
+    registrationPanel.hidden = true;
     renderEditCompanyOptions();
-    select.value = savedId; editSelect.value = savedId; updateCompanyStateButtons(companyRecords.find((x) => x.id === savedId));
+    select.value = savedId; editSelect.value = savedId; rosterCompanySelect.value = savedId;
+    updateCompanyStateButtons(companyRecords.find((x) => x.id === savedId));
     updateSelectionStatus();
+    $("rosterCompanyCaption").textContent = (companyRecords.find((x) => x.id === savedId)?.name || name) + "의 등록 명단";
+    $("openRosterManager").disabled = false;
+    await loadRosterManagerList();
     setStatus(wasEditing ? "거래처 정보를 수정했습니다." : `'${name}' 거래처 등록이 완료되었습니다. 장부 확인번호는 아래에서 별도로 설정해 주세요.`);
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
@@ -311,11 +338,17 @@ const rosterSaveButton = $("rosterSaveButton");
 const rosterReloadButton = $("rosterReloadButton");
 const rosterManagerStatus = $("rosterManagerStatus");
 const rosterManagerList = $("rosterManagerList");
-const rosterModal = $("rosterManagerModal");
-$("openRosterManager")?.addEventListener("click", () => { rosterModal.hidden = false; renderRosterCompanyOptions(); rosterCompanySelect.focus(); });
-$("closeRosterManager")?.addEventListener("click", () => { rosterModal.hidden = true; });
-rosterModal?.addEventListener("click", (event) => { if (event.target === rosterModal) rosterModal.hidden = true; });
-document.addEventListener("keydown", (event) => { if (event.key === "Escape" && rosterModal && !rosterModal.hidden) rosterModal.hidden = true; });
+const rosterPanel = $("rosterManagerPanel");
+$("openRosterManager")?.addEventListener("click", async () => {
+  if (!editSelect.value) { setRosterStatus("먼저 위에서 거래처를 선택해 주세요.", true); return; }
+  rosterPanel.hidden = !rosterPanel.hidden;
+  if (!rosterPanel.hidden) {
+    rosterCompanySelect.value = editSelect.value;
+    await loadRosterManagerList();
+    rosterNamesInput.focus();
+  }
+});
+$("closeRosterManager")?.addEventListener("click", () => { rosterPanel.hidden = true; });
 
 function setRosterStatus(message, isError = false) {
   rosterManagerStatus.textContent = message;
@@ -339,7 +372,8 @@ function renderRosterManagerList(members) {
   });
 }
 async function loadRosterManagerList() {
-  const companyId = rosterCompanySelect.value;
+  const companyId = editSelect.value;
+  rosterCompanySelect.value = companyId;
   if (!companyId) {
     renderRosterManagerList([]);
     setRosterStatus("거래처를 선택해 주세요.");
@@ -362,7 +396,8 @@ async function loadRosterManagerList() {
 rosterCompanySelect?.addEventListener("change", loadRosterManagerList);
 rosterReloadButton?.addEventListener("click", loadRosterManagerList);
 rosterSaveButton?.addEventListener("click", async () => {
-  const companyId = rosterCompanySelect.value;
+  const companyId = editSelect.value;
+  rosterCompanySelect.value = companyId;
   const company = companyRecords.find((item) => item.id === companyId);
   const names = [...new Set(rosterNamesInput.value.split(/\r?\n/).map((name) => name.trim().replace(/\\s+/g, " ")).filter(Boolean))];
   if (!company) { setRosterStatus("먼저 거래처를 선택해 주세요.", true); return; }

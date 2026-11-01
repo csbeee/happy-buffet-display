@@ -803,3 +803,47 @@ body.company-management-open .topButtons button[onclick*="recommendations.html"]
     .top-action-items button,
     .top-action-items .nav-button { flex: 1 1 100%; }
 }
+
+
+/* Company management workspace v2 */
+.company-workspace { display:grid; gap:16px; }
+.company-picker-card,.company-registration,.company-roster-section {
+  margin:0; padding:18px; border:1px solid #e2e8e5; border-radius:14px; background:#fff;
+}
+.company-picker-card { display:grid; grid-template-columns:minmax(180px,1fr) minmax(320px,2fr) auto; align-items:center; gap:16px; }
+.company-picker-copy h3,.company-roster-heading h3 { margin:0 0 5px; font-size:17px; color:#26352d; }
+.company-picker-copy p,.company-roster-heading p { margin:0; color:#66756d; font-size:13px; line-height:1.5; }
+.company-picker-controls { display:flex; gap:8px; align-items:center; min-width:0; }
+.company-picker-controls select { flex:1; min-width:0; min-height:46px; padding:10px 12px; border:1px solid #cfd8d3; border-radius:8px; background:#fff; font:inherit; }
+.company-picker-controls button,.company-picker-actions button { min-height:44px; white-space:nowrap; }
+.company-picker-actions { display:flex; gap:8px; }
+.company-registration[hidden],.roster-manager-panel[hidden] { display:none !important; }
+.company-registration { background:#f9fbfa; }
+.company-registration-heading { margin-bottom:16px; }
+.company-registration-form { margin-top:0; }
+.company-roster-section { background:#fbfcfd; }
+.company-roster-heading { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:12px; }
+.company-roster-heading button { min-height:44px; }
+.roster-manager-panel { padding:14px; margin:12px 0; border:1px solid #d9e4ee; border-radius:10px; background:#f6f9fc; }
+.roster-manager-panel > label { display:block; margin-bottom:8px; font-weight:700; }
+.roster-manager-panel textarea { width:100%; box-sizing:border-box; min-height:100px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font:inherit; }
+.roster-manager-list { max-height:360px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.roster-manager-row { min-width:0; }
+.roster-empty { padding:14px; color:#667085; text-align:center; border:1px dashed #d0d5dd; border-radius:8px; background:#fff; }
+@media(max-width:850px) {
+  .company-picker-card { grid-template-columns:1fr; gap:12px; }
+  .company-picker-controls { flex-wrap:wrap; }
+  .company-picker-controls select { flex-basis:100%; }
+  .company-picker-controls button { flex:1; }
+  .company-picker-actions button { flex:1; }
+}
+@media(max-width:600px) {
+  .company-picker-card,.company-registration,.company-roster-section { padding:14px; }
+  .company-picker-controls { flex-direction:column; align-items:stretch; }
+  .company-picker-controls button { width:100%; min-height:46px; }
+  .company-roster-heading { align-items:stretch; flex-direction:column; }
+  .company-roster-heading button { width:100%; }
+  .roster-manager-list { grid-template-columns:1fr; max-height:420px; }
+  .roster-manager-panel .company-manager-actions { flex-direction:column; }
+  .roster-manager-panel .company-manager-actions button { width:100%; min-height:46px; }
+}

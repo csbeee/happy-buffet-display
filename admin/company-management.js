@@ -185,6 +185,7 @@ editSelect?.addEventListener("change", async () => {
   if (rosterCompanySelect) rosterCompanySelect.value = company?.id || "";
   updateSelectionStatus();
   updateCompanyStateButtons(company);
+  if (editLoadButton) editLoadButton.disabled = !company;
   if (registrationPanel) registrationPanel.hidden = true;
   if (editingCompanyId) resetCompanyEditor();
   $("rosterCompanyCaption").textContent = company ? company.name + "의 등록 명단" : "먼저 위에서 거래처를 선택해 주세요.";

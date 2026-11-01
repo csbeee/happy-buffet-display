@@ -5,6 +5,55 @@ const $ = id => document.getElementById(id);
 let companies = new Map();
 let currentRows = [];
 
+const supplierFields = [
+  ["supplierBusinessNo","previewSupplierBusinessNo"],
+  ["supplierName","previewSupplierName"],
+  ["supplierRepresentative","previewSupplierRepresentative"],
+  ["supplierAddress","previewSupplierAddress"],
+  ["supplierBusinessType","previewSupplierBusinessType"],
+  ["supplierBusinessItem","previewSupplierBusinessItem"],
+  ["supplierPhone","previewSupplierPhone"]
+];
+const supplierStorageKey = "happyBuffetSupplierProfile";
+function applySupplierProfile(profile = {}) {
+  supplierFields.forEach(([inputId,previewId]) => {
+    const input = $(inputId);
+    const value = String(profile[inputId] ?? (inputId === "supplierName" ? "행복을 담은 한식뷔페" : ""));
+    input.value = value;
+    $(previewId).textContent = value.trim() || "-";
+  });
+}
+function loadSupplierProfile() {
+  try {
+    const saved = localStorage.getItem(supplierStorageKey);
+    applySupplierProfile(saved ? JSON.parse(saved) : {});
+  } catch (error) {
+    console.warn("공급자 정보 로드 실패:",error);
+    applySupplierProfile();
+  }
+}
+function saveSupplierProfile() {
+  const profile = Object.fromEntries(supplierFields.map(([inputId]) => [inputId,$(inputId).value.trim()]));
+  if (!profile.supplierName) {
+    $("supplierSaveStatus").textContent = "업체명을 입력해 주세요.";
+    $("supplierName").focus();
+    return;
+  }
+  try {
+    localStorage.setItem(supplierStorageKey,JSON.stringify(profile));
+    applySupplierProfile(profile);
+    $("supplierSaveStatus").textContent = "저장했습니다. 다음에도 이 브라우저에서 사용할 수 있습니다.";
+  } catch (error) {
+    console.error("공급자 정보 저장 실패:",error);
+    $("supplierSaveStatus").textContent = "저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요.";
+  }
+}
+supplierFields.forEach(([inputId,previewId]) => $(inputId).addEventListener("input",() => {
+  $(previewId).textContent = $(inputId).value.trim() || "-";
+}));
+$("saveSupplierBtn").addEventListener("click",saveSupplierProfile);
+loadSupplierProfile();
+
 const won = value => (Number(value) || 0).toLocaleString("ko-KR") + "원";
 const people = value => (Number(value) || 0).toLocaleString("ko-KR") + "명";
 const todayKst = () => new Intl.DateTimeFormat("en-CA", {

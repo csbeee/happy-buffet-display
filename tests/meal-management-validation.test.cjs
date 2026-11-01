@@ -42,6 +42,7 @@ test('meal entry and admin JavaScript parse successfully', () => {
     'admin/company-management.js',
     'admin/meal-entries.js',
     'admin/reports.js',
+    'admin/statements.js',
     'firebase/firebase-config.js'
   ];
   for (const file of moduleFiles) {
@@ -105,7 +106,7 @@ test('monthly transaction statement groups existing meal entries by date and sup
   assert.ok(html.includes('id="companySelect"') && html.includes('id="monthSelect"'));
   assert.ok(html.includes('id="statementRows"') && html.includes('id="printBtn"'));
   assert.ok(source.includes('collection(db, "mealEntries")'));
-  assert.ok(source.includes('where("companyId", "==", companyId)'));
+  assert.ok(source.includes('if (entry.companyId !== companyId) return'));
   assert.ok(source.includes('if (!entry.serviceDate || count <= 0) return'));
   assert.ok(source.includes('window.print()'));
   assert.ok(style.includes('@page{size:A4 portrait'));

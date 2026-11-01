@@ -46,7 +46,7 @@ function renderEmpty(message) {
   $("statementRows").replaceChildren();
   const tr = document.createElement("tr");
   const td = document.createElement("td");
-  td.colSpan = 8;
+  td.colSpan = 7;
   td.className = "empty";
   td.textContent = message;
   tr.append(td);
@@ -67,14 +67,13 @@ function renderStatement(rows, companyName, month) {
     rows.forEach((row) => {
       const tr = document.createElement("tr");
       const values = [
-        row.date.slice(5).replace("-", "."),
-        dateLabel(row.date),
+        row.date.slice(5).replace("-", ".") + " (" + dateLabel(row.date) + ")",
         people(row.lunchPeople),
-        won(row.lunchAmount),
         people(row.dinnerPeople),
-        won(row.dinnerAmount),
         people(row.people),
-        won(row.amount)
+        row.unitPrice ? won(row.unitPrice) : "-",
+        won(row.amount),
+        won(row.tax)
       ];
       values.forEach((value) => {
         const td = document.createElement("td");
@@ -131,7 +130,7 @@ async function buildPreview() {
       if (!entry.serviceDate || count <= 0) return;
       let day = map.get(entry.serviceDate);
       if (!day) {
-        day = {date:entry.serviceDate,lunchPeople:0,lunchAmount:0,dinnerPeople:0,dinnerAmount:0,people:0,amount:0};
+        day = {date:entry.serviceDate,lunchPeople:0,lunchAmount:0,dinnerPeople:0,dinnerAmount:0,people:0,amount:0,weightedUnitTotal:0};
         map.set(entry.serviceDate, day);
       }
       const amount = entry.totalAmount !== undefined && entry.totalAmount !== null
@@ -146,8 +145,13 @@ async function buildPreview() {
       }
       day.people += count;
       day.amount += amount;
+      day.weightedUnitTotal += (Number(entry.mealPrice) || (amount / count)) * count;
     });
-    const rows = [...map.values()].sort((a,b) => a.date.localeCompare(b.date));
+    const rows = [...map.values()].map(day => ({
+      ...day,
+      unitPrice:day.people ? Math.round(day.weightedUnitTotal / day.people) : 0,
+      tax:Math.round(day.amount * 0.1)
+    })).sort((a,b) => a.date.localeCompare(b.date));
     renderStatement(rows, companies.get(companyId), month);
     setStatus(rows.length
       ? month + " · " + (companies.get(companyId) || "선택 거래처") + " · " + rows.length + "일의 식수 내역을 미리보기로 구성했습니다."

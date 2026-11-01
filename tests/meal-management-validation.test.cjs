@@ -94,3 +94,20 @@ test('company management uses one selected company for details and roster workfl
   assert.ok(source.includes('newCompanyButton?.addEventListener'));
   assert.ok(source.includes('$("rosterCompanyCaption").textContent'));
 });
+
+
+test('monthly transaction statement groups existing meal entries by date and supports one-page A4 preview/print', () => {
+  const html = read('admin/statements.html');
+  const source = read('admin/statements.js');
+  const style = read('admin/statements.css');
+  assert.ok(read('admin/index.html').includes('./statements.html'));
+  assert.ok(read('admin/reports.html').includes('./statements.html'));
+  assert.ok(html.includes('id="companySelect"') && html.includes('id="monthSelect"'));
+  assert.ok(html.includes('id="statementRows"') && html.includes('id="printBtn"'));
+  assert.ok(source.includes('collection(db, "mealEntries")'));
+  assert.ok(source.includes('where("companyId", "==", companyId)'));
+  assert.ok(source.includes('if (!entry.serviceDate || count <= 0) return'));
+  assert.ok(source.includes('window.print()'));
+  assert.ok(style.includes('@page{size:A4 portrait'));
+  assert.ok(style.includes('@media print'));
+});

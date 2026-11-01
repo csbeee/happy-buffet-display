@@ -49,18 +49,24 @@
       <button id="companyManagerClose" type="button">닫기</button>
     </div>
     <div id="companyManagerStatus" class="company-manager-status" role="status">거래처 목록을 불러오는 중입니다.</div>
-    <section class="company-registration" aria-labelledby="companyRegistrationHeading">
-      <div class="company-registration-heading">
-        <div><h3 id="companyRegistrationHeading">새 거래처 등록</h3><p>회사명은 필수이며, 나머지 항목은 필요한 만큼 입력할 수 있습니다.</p></div>
-      </div>      <section class="company-existing-manager" aria-labelledby="existingCompanyHeading">
-        <div class="company-subsection-heading"><h3 id="existingCompanyHeading">등록 거래처 정보 수정</h3><p>거래처를 선택해 정보를 불러온 뒤 수정할 수 있습니다. 거래처를 삭제하는 대신 접수 화면에서 숨김 처리해 과거 장부를 보존합니다.</p></div>
-        <div class="company-manager-form">
-          <label for="companyEditSelect">수정할 거래처</label>
-          <select id="companyEditSelect"><option value="">거래처 선택</option></select>
-          <div class="company-manager-actions company-edit-actions"><button id="companyEditLoad" type="button">정보 불러오기</button><button id="companyDeactivate" class="danger" type="button" disabled>사용 중지</button><button id="companyActivate" type="button" hidden disabled>다시 사용</button></div>
-        </div>
-      </section>
+    <section class="company-workspace" aria-label="거래처 작업 공간">
+    <section class="company-picker-card">
+      <div class="company-picker-copy"><h3>거래처 선택</h3><p>거래처를 한 번 선택하면 정보 수정과 사전 명단 관리를 이어서 할 수 있습니다.</p></div>
+      <div class="company-picker-controls">
+        <select id="companyEditSelect" aria-label="관리할 거래처 선택"><option value="">거래처 선택</option></select>
+        <button id="companyEditLoad" type="button" disabled>정보 불러오기</button>
+        <button id="companyNewButton" class="primary" type="button">+ 새 거래처 등록</button>
+      </div>
+      <div class="company-picker-actions">
+        <button id="companyDeactivate" class="danger" type="button" disabled>사용 중지</button>
+        <button id="companyActivate" type="button" hidden disabled>다시 사용</button>
+      </div>
+    </section>
 
+    <section id="companyRegistration" class="company-registration" hidden aria-labelledby="companyRegistrationHeading">
+      <div class="company-registration-heading">
+        <div><h3 id="companyRegistrationHeading">새 거래처 등록</h3><p>기본 정보를 입력하고 저장하세요. 선택한 거래처를 수정할 때도 이 입력 영역을 사용합니다.</p></div>
+      </div>
       <form id="companyRegistrationForm" class="company-registration-form">
         <div class="company-field">
           <label for="newCompanyName">거래처명 <span class="required-mark">필수</span></label>
@@ -82,43 +88,47 @@
         <div class="company-field">
           <label for="newCompanyMealPrice">1인 식대 (원)</label>
           <input id="newCompanyMealPrice" name="mealPrice" type="number" min="0" max="1000000" step="100" inputmode="numeric" value="7000" required>
-          <small>거래처별 식대가 다를 경우에만 수정하세요.</small>
         </div>
         <div class="company-field">
           <label for="newCompanyBillingType">정산 방식</label>
           <select id="newCompanyBillingType" name="billingType">
-            <option value="monthly">월말 정산</option>
-            <option value="prepaid">선불</option>
-            <option value="daily">일별 정산</option>
-            <option value="other">기타 / 협의</option>
+            <option value="monthly">월말 정산</option><option value="prepaid">선불</option><option value="daily">일별 정산</option><option value="other">기타 / 협의</option>
           </select>
         </div>
         <div class="company-field company-field-wide">
           <label for="newCompanyNote">관리 메모</label>
           <textarea id="newCompanyNote" name="note" rows="3" maxlength="500" placeholder="예: 세금계산서 발행, 담당자 연락 가능 시간, 현장명 등"></textarea>
         </div>
-        <div class="company-field company-field-wide"><label for="companyManagerCode">장부 확인번호 (숫자 3자리)</label><div class="company-inline-code"><input id="companyManagerCode" type="text" inputmode="numeric" maxlength="3" pattern="[0-9]{3}" autocomplete="off" placeholder="예: 003"><button id="companyManagerSave" class="primary" type="button">확인번호 저장</button><button id="companyManagerClear" type="button">확인번호 해제</button></div><small>거래처를 선택한 상태에서 설정하세요. 예: 장부 3번 → 003. 보안 인증 수단은 아닙니다.</small><select id="companyManagerSelect" hidden><option value="">거래처 선택</option></select></div><div class="company-field-wide company-subsection-heading"><h3>식수 입력 안내</h3><p>사전 등록 명단이 있으면 체크 인원에 추가 인원을 더하고, 명단이 없으면 총 인원을 입력합니다.</p></div>
+        <div class="company-field company-field-wide">
+          <label for="companyManagerCode">장부 확인번호 (숫자 3자리)</label>
+          <div class="company-inline-code"><input id="companyManagerCode" type="text" inputmode="numeric" maxlength="3" pattern="[0-9]{3}" autocomplete="off" placeholder="예: 003"><button id="companyManagerSave" class="primary" type="button" disabled>확인번호 저장</button><button id="companyManagerClear" type="button" disabled>확인번호 해제</button></div>
+          <small>선택 거래처의 접수 화면 진입용 번호입니다. 예: 장부 3번 → 003. 보안 인증 수단은 아닙니다.</small>
+          <select id="companyManagerSelect" hidden><option value="">거래처 선택</option></select>
+        </div>
+        <div class="company-field-wide company-subsection-heading"><h3>접수 설정</h3><p>식수 접수 화면 노출 여부와 자주 이용하는 거래처 여부를 설정합니다.</p></div>
         <div class="company-registration-options company-field-wide">
           <label class="company-check"><input id="newCompanyActive" type="checkbox" checked> 식수 접수 화면에 표시</label>
           <label class="company-check"><input id="newCompanyFavorite" type="checkbox"> 자주 이용하는 거래처로 표시</label>
         </div>
         <div class="company-field-wide company-registration-actions">
           <button id="companyRegistrationSubmit" class="primary" type="submit">거래처 등록</button>
-          <button id="companyRegistrationReset" type="reset">입력 초기화</button><button id="companyEditCancel" type="button" hidden>수정 취소</button>
+          <button id="companyRegistrationReset" type="reset">입력 초기화</button><button id="companyEditCancel" type="button" hidden>취소</button>
         </div>
       </form>
     </section>
 
-    <section class="company-roster-launch"><div><h3>사전 등록 명단</h3><p>거래처별 사전 등록 인원을 별도 창에서 관리합니다.</p></div><button id="openRosterManager" type="button">사전 등록 명단 관리</button></section>
+    <section class="company-roster-section">
+      <div class="company-roster-heading"><div><h3>사전 등록 명단</h3><p id="rosterCompanyCaption">먼저 위에서 거래처를 선택해 주세요.</p></div><button id="openRosterManager" type="button" disabled>명단 입력 열기</button></div>
+      <div id="rosterManagerPanel" class="roster-manager-panel" hidden>
+        <label for="rosterNamesInput">추가할 이름 (한 줄에 한 명씩)</label>
+        <textarea id="rosterNamesInput" rows="4" maxlength="10000" placeholder="홍길동&#10;김영희&#10;박철수"></textarea>
+        <div class="company-manager-actions"><button id="rosterSaveButton" class="primary" type="button">명단 추가 등록</button><button id="rosterReloadButton" type="button">명단 새로고침</button><button id="closeRosterManager" type="button">입력 닫기</button></div>
+        <div id="rosterManagerStatus" class="company-manager-status" role="status">거래처를 선택해 주세요.</div>
+      </div>
+      <div id="rosterManagerList" class="roster-manager-list"><div class="roster-empty">거래처를 선택하면 등록된 명단이 표시됩니다.</div></div>
+      <select id="rosterCompanySelect" hidden><option value="">거래처 선택</option></select>
+    </section>
   </section>
-  <div id="rosterManagerModal" class="company-roster-modal" hidden>
-    <div class="company-roster-dialog" role="dialog" aria-modal="true" aria-labelledby="companyRosterHeading">
-      <div class="company-manager-header"><div><h2 id="companyRosterHeading">사전 등록 명단 관리</h2><p>거래처별 이름을 한 줄에 한 명씩 입력해 추가합니다.</p></div><button id="closeRosterManager" type="button">닫기</button></div>
-      <div class="company-manager-form"><label for="rosterCompanySelect">명단 소속 거래처</label><select id="rosterCompanySelect"><option value="">거래처 선택</option></select>
-      <label for="rosterNamesInput">명단 이름 (한 줄에 한 명)</label><textarea id="rosterNamesInput" rows="5" maxlength="10000" placeholder="홍길동&#10;김영희&#10;박철수"></textarea>
-      <div class="company-manager-actions"><button id="rosterSaveButton" class="primary" type="button">명단 추가 등록</button><button id="rosterReloadButton" type="button">명단 새로고침</button></div>
-      <div id="rosterManagerStatus" class="company-manager-status" role="status">거래처를 선택해 주세요.</div><div id="rosterManagerList" class="roster-manager-list"></div></div>
-    </div></div>
   <section class="displayModeArea">
     <div class="displayModeHeader">
         <h2>전광판 모드</h2>

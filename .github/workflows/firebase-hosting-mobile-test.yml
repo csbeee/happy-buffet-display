@@ -1,7 +1,7 @@
 name: Firebase Hosting Test Site
 
 # Deploy the dedicated test branch to the isolated happybuffet-test Hosting site.
-# This workflow never deploys Functions or Firestore rules.
+# This workflow deploys Hosting and Firestore rules to the isolated test project only. It never deploys Functions.
 # Required repository secrets: FIREBASE_TEST_PROJECT_ID=happybuffet-test and FIREBASE_TEST_TOKEN.
 
 on:
@@ -54,8 +54,8 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Deploy to dedicated test Hosting site
+      - name: Deploy to dedicated test Hosting and Firestore rules
         env:
           TEST_PROJECT_ID: ${{ secrets.FIREBASE_TEST_PROJECT_ID }}
           TEST_TOKEN: ${{ secrets.FIREBASE_TEST_TOKEN }}
-        run: firebase deploy --only hosting --project "$TEST_PROJECT_ID" --token "$TEST_TOKEN"
+        run: firebase deploy --only hosting,firestore:rules --project "$TEST_PROJECT_ID" --token "$TEST_TOKEN"

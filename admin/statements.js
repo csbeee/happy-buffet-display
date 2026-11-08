@@ -1,4 +1,5 @@
 import {db} from "../firebase/firebase-config.js";
+import {buildMonthlyStatementRows} from "./settlement-utils.mjs";
 import {collection,getDocs,query,where} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const $ = id => document.getElementById(id);
@@ -175,32 +176,9 @@ async function buildPreview() {
     const q=query(collection(db,"mealEntries"),
       where("serviceDate",">=",start),where("serviceDate","<=",end));
     const snap=await getDocs(q);
-    const daily=new Map();
-    snap.docs.forEach(doc=>{
-      const entry=doc.data();
-      if(entry.companyId!==companyId) return;
-      const count=Math.max(0,Number(entry.headcount)||0);
-      if(!entry.serviceDate || count<=0) return;
-      let day=daily.get(entry.serviceDate);
-      if(!day) {
-        day={date:entry.serviceDate,lunchPeople:0,dinnerPeople:0,people:0,amount:0,weightedPrice:0};
-        daily.set(entry.serviceDate,day);
-      }
-      // 장부 금액은 부가세 별도 공급가액으로 취급합니다.
-      const supply=entry.totalAmount!==undefined && entry.totalAmount!==null
-        ? (Number(entry.totalAmount)||0)
-        : (Number(entry.mealPrice)||0)*count;
-      if(entry.mealPeriod==="dinner") day.dinnerPeople+=count;
-      else day.lunchPeople+=count;
-      day.people+=count;
-      day.amount+=supply;
-      day.weightedPrice+=(Number(entry.mealPrice)||supply/count)*count;
-    });
-    const rows=[...daily.values()].map(day=>({
-      ...day,
-      unitPrice:day.people ? Math.round(day.weightedPrice/day.people) : 0,
-      tax:Math.round(day.amount*0.1)
-    })).filter(day=>day.people>0).sort((a,b)=>a.date.localeCompare(b.date));
+    const rows=buildMonthlyStatementRows(
+      snap.docs.map(doc=>doc.data()),companyId,start,end
+    );
     renderStatement(rows,companies.get(companyId),month);
     setStatus(rows.length
       ? month+" · "+(companies.get(companyId)||"선택 거래처")+" · "+rows.length+"일의 내역을 미리보기로 구성했습니다."

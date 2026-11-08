@@ -106,8 +106,8 @@ test('monthly transaction statement groups existing meal entries by date and sup
   assert.ok(html.includes('id="companySelect"') && html.includes('id="monthSelect"'));
   assert.ok(html.includes('id="statementRows"') && html.includes('id="printBtn"'));
   assert.ok(source.includes('collection(db,"mealEntries")'));
-  assert.ok(source.includes('if(entry.companyId!==companyId) return'));
-  assert.ok(source.includes('if(!entry.serviceDate || count<=0) return'));
+  assert.ok(source.includes('buildMonthlyStatementRows'));
+  assert.ok(read('admin/settlement-utils.mjs').includes('entry?.companyId !== companyId'));
   assert.ok(source.includes('tax:Math.round(day.amount*0.1)'));
   assert.ok(source.includes('recipientTotal'));
   assert.ok(html.includes('사업자번호') && html.includes('대표자명') && html.includes('도장/서명'));
@@ -131,7 +131,7 @@ test('monthly settlement filters company and month, preserves explicit zero amou
   const rows = buildMonthlyStatementRows([
     { companyId: 'A', serviceDate: '2026-10-01', mealPeriod: 'lunch', headcount: 1, mealPrice: 1, totalAmount: 1 },
     { companyId: 'A', serviceDate: '2026-10-02', mealPeriod: 'dinner', headcount: 1, mealPrice: 1, totalAmount: 1 },
-    { companyId: 'A', serviceDate: '2026-10-03', mealPeriod: 'lunch', headcount: 1, mealPrice: 1, totalAmount: 1 },
+    { companyId: 'A', serviceDate: '2026-10-03', mealPeriod: 'lunch', headcount: 1, mealPrice: 3, totalAmount: 3 },
     { companyId: 'B', serviceDate: '2026-10-03', mealPeriod: 'lunch', headcount: 10, mealPrice: 7000, totalAmount: 70000 },
     { companyId: 'A', serviceDate: '2026-11-01', mealPeriod: 'lunch', headcount: 5, mealPrice: 7000, totalAmount: 35000 },
     { companyId: 'A', serviceDate: '2026-10-04', mealPeriod: 'snack', headcount: 2, mealPrice: 1000, totalAmount: 2000 },
@@ -140,7 +140,7 @@ test('monthly settlement filters company and month, preserves explicit zero amou
 
   assert.equal(rows.length, 3);
   assert.deepEqual(rows.map(row => row.tax), [0, 0, 1]);
-  assert.equal(rows.reduce((sum, row) => sum + row.amount, 0), 3);
-  assert.equal(rows.reduce((sum, row) => sum + row.tax, 0), Math.round(3 * 0.1));
+  assert.equal(rows.reduce((sum, row) => sum + row.amount, 0), 5);
+  assert.equal(rows.reduce((sum, row) => sum + row.tax, 0), Math.round(5 * 0.1));
   assert.equal(rows.reduce((sum, row) => sum + row.people, 0), 3);
 });

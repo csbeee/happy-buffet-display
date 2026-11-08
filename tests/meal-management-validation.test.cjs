@@ -108,7 +108,7 @@ test('monthly transaction statement groups existing meal entries by date and sup
   assert.ok(source.includes('collection(db,"mealEntries")'));
   assert.ok(source.includes('buildMonthlyStatementRows'));
   assert.ok(read('admin/settlement-utils.mjs').includes('entry?.companyId !== companyId'));
-  assert.ok(source.includes('tax:Math.round(day.amount*0.1)'));
+  assert.ok(read('admin/settlement-utils.mjs').includes('Math.round(cumulativeSupply * 0.1)'));
   assert.ok(source.includes('recipientTotal'));
   assert.ok(html.includes('사업자번호') && html.includes('대표자명') && html.includes('도장/서명'));
   for (const id of ['supplierBusinessNo','supplierName','supplierRepresentative','supplierAddress','supplierBusinessType','supplierBusinessItem','supplierPhone','saveSupplierBtn']) assert.ok(html.includes(`id="${id}"`));

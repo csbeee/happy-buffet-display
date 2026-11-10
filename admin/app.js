@@ -26,6 +26,78 @@ const dinnerLabels = { soup: "국", main: "메인", side: "반찬", kimchi: "김
 
 let currentDisplayMode = "normal";
 let todayMenuData = null;
+let saveInProgress = false;
+
+// 안드로이드 한글 IME 조합 중인 입력값이 저장 수집 전에 확정되도록 추적합니다.
+const composingTextTargets = new Set();
+
+document.addEventListener("compositionstart", event => {
+    composingTextTargets.add(event.target);
+}, true);
+
+document.addEventListener("compositionend", event => {
+    composingTextTargets.delete(event.target);
+}, true);
+
+async function settleTextInputsBeforeSave() {
+    const active = document.activeElement;
+
+    // 저장 버튼을 누르기 직전 포커스된 입력창을 명시적으로 종료합니다.
+    // 모바일 브라우저가 한글 조합 문자열을 input.value에 반영할 시간을 줍니다.
+    if (active && active.matches?.("input, textarea")) {
+        active.blur();
+    }
+
+    if (composingTextTargets.size) {
+        await Promise.race([
+            new Promise(resolve => {
+                const checkComposition = () => {
+                    if (!composingTextTargets.size) {
+                        document.removeEventListener("compositionend", checkComposition, true);
+                        resolve();
+                    }
+                };
+                document.addEventListener("compositionend", checkComposition, true);
+                checkComposition();
+            }),
+            new Promise(resolve => setTimeout(resolve, 700))
+        ]);
+    }
+
+    // Android Chrome의 IME 최종 input 반영을 위해 렌더링 프레임 두 번 대기합니다.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    if (composingTextTargets.size) {
+        console.warn("한글 입력 조합 종료 대기 시간 초과:", composingTextTargets.size);
+    }
+}
+
+function logMenuSaveDifferences(before, after) {
+    const keys = ["soup", "main", "side", "kimchi", "dessert", "notice"];
+    const differences = [];
+
+    for (const key of keys) {
+        if (JSON.stringify(before?.[key] ?? []) !== JSON.stringify(after?.[key] ?? [])) {
+            differences.push({ category: key, before: before?.[key] ?? [], after: after?.[key] ?? [] });
+        }
+    }
+
+    for (const key of ["soup", "main", "side", "kimchi", "dessert", "notice"]) {
+        if (JSON.stringify(before?.dinner?.[key] ?? []) !== JSON.stringify(after?.dinner?.[key] ?? [])) {
+            differences.push({
+                category: "dinner." + key,
+                before: before?.dinner?.[key] ?? [],
+                after: after?.dinner?.[key] ?? []
+            });
+        }
+    }
+
+    if (differences.length) {
+        console.error("저장 전후 메뉴 데이터 불일치:", differences);
+    } else {
+        console.info("저장 전후 메뉴 문자열 일치 확인");
+    }
+}
 
 function showLoading() {
     loading?.classList.remove("hidden");
@@ -363,9 +435,14 @@ async function loadToday() {
 ============================================ */
 
 async function saveToday() {
-    showLoading();
+    if (saveInProgress) return;
+    saveInProgress = true;
+    if (saveButton) saveButton.disabled = true;
 
     try {
+        await settleTextInputsBeforeSave();
+        showLoading();
+
         let saveData;
 
         if (currentDisplayMode === "special") {
@@ -396,6 +473,7 @@ async function saveToday() {
         await saveTodayMenu(saveData);
 
         todayMenuData = await getTodayMenu();
+        logMenuSaveDifferences(saveData, todayMenuData);
         updateSaveInfo(todayMenuData?.updatedAt);
 
         alert("저장되었습니다.");
@@ -405,6 +483,8 @@ async function saveToday() {
         alert("저장에 실패했습니다.\n" + (error?.message || error));
     } finally {
         hideLoading();
+        saveInProgress = false;
+        if (saveButton) saveButton.disabled = false;
     }
 }
 

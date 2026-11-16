@@ -167,13 +167,13 @@ function draw(category, items = []) {
         li.className = "fade";
 
 
-        const img = document.createElement("img");
+        const icon = document.createElement("span");
 
-        img.className = "menu-icon";
+        icon.className = "menu-icon";
 
-        img.src = getMenuIcon(menu);
+        icon.textContent = getMenuIcon(menu);
 
-        img.alt = "";
+        icon.setAttribute("aria-hidden", "true");
 
 
         const title = document.createElement("span");
@@ -183,7 +183,7 @@ function draw(category, items = []) {
         title.textContent = menu;
 
 
-        li.appendChild(img);
+        li.appendChild(icon);
 
         li.appendChild(title);
 

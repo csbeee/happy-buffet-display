@@ -159,7 +159,7 @@ header {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    font-family: "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", sans-serif;
     font-size: 46px;
     line-height: 1;
 }

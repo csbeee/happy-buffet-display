@@ -1,0 +1,25 @@
+name: Deploy emoji fix to Firebase Test
+
+on:
+  push:
+    branches:
+      - fix/emoji-display-chrome
+
+jobs:
+  deploy-test:
+    name: Deploy to happybuffet-test only
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy test Hosting only
+        run: firebase deploy --only hosting --project "happybuffet-test" --token "${{ secrets.FIREBASE_TOKEN }}"

@@ -155,8 +155,13 @@ header {
 .menu-icon {
     width: 54px;
     height: 54px;
-    object-fit: contain;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    font-size: 46px;
+    line-height: 1;
 }
 
 .title {
@@ -192,6 +197,7 @@ header {
 #main .menu-icon {
     width: 58px;
     height: 58px;
+    font-size: 50px;
 }
 
 #main .title {

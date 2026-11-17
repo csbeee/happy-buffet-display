@@ -100,4 +100,10 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     (adminHeader || document.body).append(userBar);
   }
+
+  // 메뉴 앱은 관리자 인증이 확인된 뒤에만 시작합니다.
+  window.happyBuffetAdminAuthenticated = true;
+  window.dispatchEvent(new CustomEvent("happybuffet-admin-auth-ready", {
+    detail: { uid: user.uid, email: user.email || ADMIN_EMAIL }
+  }));
 });

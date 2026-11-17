@@ -1,0 +1,55 @@
+name: Deploy Firebase Backend (Production)
+
+# Manual-only. Production rules and functions are never deployed by a normal push.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_production:
+        description: "Enter true only after the test project has passed verification"
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  deploy_backend:
+    if: ${{ inputs.confirm_production == true }}
+    name: Deploy Firestore rules and Cloud Functions to production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Validate production secrets and target
+        env:
+          PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          if [ -z "$PROJECT_ID" ] || [ -z "$FIREBASE_TOKEN" ]; then
+            echo "Missing FIREBASE_PROJECT_ID or FIREBASE_TOKEN."
+            exit 1
+          fi
+          if [ "$PROJECT_ID" != "todaymenu-30fe7" ]; then
+            echo "Refusing deployment: production project ID mismatch."
+            exit 1
+          fi
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Firebase CLI and Functions dependencies
+        run: |
+          npm install --global firebase-tools
+          npm install --prefix functions --no-audit --no-fund
+
+      - name: Validate backend JavaScript
+        run: node --check functions/index.js
+
+      - name: Deploy Firestore rules and Cloud Functions
+        env:
+          PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: firebase deploy --only firestore:rules,functions --project "$PROJECT_ID" --token "$FIREBASE_TOKEN" --non-interactive

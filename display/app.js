@@ -750,10 +750,13 @@ function renderSpecial(menu) {
 
 
             /* 컨셉데이 메뉴도 한 줄 유지 */
+            const isLandscape =
+                document.body.dataset.orientation === "landscape";
+
             fitMenuText(
                 itemTitles,
-                50,
-                38
+                isLandscape ? 48 : 50,
+                isLandscape ? 42 : 38
             );
 
         }

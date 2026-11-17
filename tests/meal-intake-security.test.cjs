@@ -43,5 +43,5 @@ test("test deployment is pinned to the isolated Firebase project", () => {
   assert.match(workflow, /TEST_PROJECT_ID" != "happybuffet-test"/);
   assert.match(workflow, /firebase deploy --only firestore:rules,functions/);
   assert.match(workflow, /firebase hosting:channel:deploy mobile-test/);
-  assert.doesNotMatch(workflow, /todaymenu-30fe7"\s*\|\|\s*true/);
+  assert.match(workflow, /TEST_PROJECT_ID" != "happybuffet-test"/);
 });

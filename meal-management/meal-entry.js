@@ -485,7 +485,7 @@ reviewEntryButton.addEventListener("click", async () => {
       });
       return nextGroup;
     });
-    window.alert(`식수 접수가 저장되었습니다.\n${selectedCompany.name} / 방문 그룹 ${savedGroupNo}\n${count}명 · 합계 ${savedTotalAmount.toLocaleString("ko-KR")}원`);
+    window.alert(`식수 접수가 저장되었습니다.\n회사명: ${selectedCompany.name}\n방문 순서: ${savedGroupNo}번\n방문 인원: ${count}명`);
     sessionGroupNumbers.set(selectedCompany.id, savedGroupNo + 1);
     entryPanel.hidden = true;
     searchInput.value = "";

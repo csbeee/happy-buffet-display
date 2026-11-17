@@ -2,7 +2,7 @@
 // Happy Buffet Display - Admin App
 // ============================================
 
-import { getTodayMenu, saveTodayMenu, formatUpdatedAt } from "../firebase/firestore.js";
+import { getTodayMenu, saveTodayMenu, saveDisplayLayout, formatUpdatedAt } from "../firebase/firestore.js";
 import { renderMenu, resetMenu, collectMenu, initMenuUI, createMenuItem } from "./menu-ui.js";
 import { MENU_CATEGORY } from "../shared/menu-category.js";
 import { initLibraryModal, loadLibrary } from "./library-modal.js";
@@ -27,6 +27,13 @@ const dinnerLabels = { soup: "국", main: "메인", side: "반찬", kimchi: "김
 let currentDisplayMode = "normal";
 let todayMenuData = null;
 let saveInProgress = false;
+let currentDisplayLayout = "portrait";
+
+function setDisplayLayoutUI(layout) {
+    currentDisplayLayout = layout === "landscape" ? "landscape" : "portrait";
+    document.getElementById("portraitLayoutBtn")?.classList.toggle("active", currentDisplayLayout === "portrait");
+    document.getElementById("landscapeLayoutBtn")?.classList.toggle("active", currentDisplayLayout === "landscape");
+}
 
 // 안드로이드 한글 IME 조합 중인 입력값이 저장 수집 전에 확정되도록 추적합니다.
 const composingTextTargets = new Set();
@@ -387,6 +394,7 @@ async function loadToday() {
     try {
         const menu = await getTodayMenu();
         todayMenuData = menu;
+        setDisplayLayoutUI(menu?.displayLayout || "portrait");
 
         console.log("Today Data =", menu);
 
@@ -488,6 +496,29 @@ async function saveToday() {
     }
 }
 
+async function saveDisplayLayoutFromAdmin(layout) {
+    const info = document.getElementById("layoutSaveInfo");
+    const buttons = [
+        document.getElementById("portraitLayoutBtn"),
+        document.getElementById("landscapeLayoutBtn")
+    ].filter(Boolean);
+
+    buttons.forEach(button => button.disabled = true);
+    if (info) info.textContent = "화면 방향 저장 중...";
+
+    try {
+        await saveDisplayLayout(layout);
+        setDisplayLayoutUI(layout);
+        if (info) info.textContent = `${layout === "landscape" ? "가로형" : "세로형"}이 전광판에 적용되었습니다. 모니터 화면을 확인해 주세요.`;
+    } catch (error) {
+        console.error("전광판 화면 방향 저장 실패:", error);
+        if (info) info.textContent = "저장 실패: " + (error?.message || error);
+        alert("화면 방향 저장에 실패했습니다.\n" + (error?.message || error));
+    } finally {
+        buttons.forEach(button => button.disabled = false);
+    }
+}
+
 /* ============================================
    Events
 ============================================ */
@@ -500,6 +531,9 @@ function bindEvents() {
     addConceptSectionBtn?.addEventListener("click", () => {
         addConceptSection();
     });
+
+    document.getElementById("portraitLayoutBtn")?.addEventListener("click", () => saveDisplayLayoutFromAdmin("portrait"));
+    document.getElementById("landscapeLayoutBtn")?.addEventListener("click", () => saveDisplayLayoutFromAdmin("landscape"));
 
     saveButton?.addEventListener("click", saveToday);
 

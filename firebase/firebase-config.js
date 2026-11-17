@@ -1,27 +1,25 @@
 // firebase/firebase-config.js
-// TEST BRANCH ONLY: uses the HappyBuffet-Test Firebase project.
-// App Check / ReCaptchaEnterpriseProvider is intentionally not used in the free local-test setup.
-// Do not deploy this configuration to the production project.
+// PRODUCTION: Happy Buffet Display / Meal Management.
+// Keep the production Firebase project separate from happybuffet-test.
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCOmdYqn2RI9QWnOBlLqLhl2MTcZJeW4lc",
-  authDomain: "happybuffet-test.firebaseapp.com",
-  projectId: "happybuffet-test",
-  storageBucket: "happybuffet-test.firebasestorage.app",
-  messagingSenderId: "225132730139",
-  appId: "1:225132730139:web:7d6a6b53035648eefca5be"
+  apiKey: "AIzaSyC5jGVYthXgAdoNten0TIkjm_s6JLRh5tM",
+  authDomain: "todaymenu-30fe7.firebaseapp.com",
+  projectId: "todaymenu-30fe7",
+  storageBucket: "todaymenu-30fe7.firebasestorage.app",
+  messagingSenderId: "487318917655",
+  appId: "1:487318917655:web:515f36c0cfb14508ebc252"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Kept for compatibility with any test-branch code that reads this flag.
-// No App Check provider is initialized in this setup.
+// App Check is intentionally not initialized in this free production setup.
 const appCheckReady = false;
 
 export { app, auth, db, appCheckReady };

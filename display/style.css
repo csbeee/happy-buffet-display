@@ -550,6 +550,79 @@ footer {
 
 /* END v4.8 */
 
+/* =========================================================
+   22. LANDSCAPE ONLY - unified today's menu + dessert panel
+   세로형은 기존 레이아웃을 그대로 유지합니다.
+   ========================================================= */
+body[data-orientation="landscape"] #normalLayout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(300px, 0.72fr);
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) auto;
+    grid-template-areas:
+        "today today dessert"
+        "soup main dessert"
+        "side kimchi dessert"
+        "notice notice notice";
+    gap: 10px 14px;
+}
+body[data-orientation="landscape"] #normalLayout::before {
+    content: "오늘의 메뉴";
+    grid-area: today;
+    display: flex;
+    align-items: center;
+    padding: 8px 18px;
+    border-radius: 12px;
+    background: #b9380a;
+    color: #fff;
+    font-size: clamp(30px, 2.2vw, 42px);
+    font-weight: 950;
+    line-height: 1.15;
+}
+body[data-orientation="landscape"] #mealLabel {
+    display: none;
+}
+body[data-orientation="landscape"] #card-soup { grid-area: soup; }
+body[data-orientation="landscape"] #card-main { grid-area: main; }
+body[data-orientation="landscape"] #card-side { grid-area: side; }
+body[data-orientation="landscape"] #card-kimchi { grid-area: kimchi; }
+body[data-orientation="landscape"] #card-dessert { grid-area: dessert; }
+body[data-orientation="landscape"] .bottom-row {
+    display: contents;
+}
+body[data-orientation="landscape"] #card-soup .menu-title,
+body[data-orientation="landscape"] #card-main .menu-title,
+body[data-orientation="landscape"] #card-side .menu-title,
+body[data-orientation="landscape"] #card-kimchi .menu-title {
+    display: none;
+}
+body[data-orientation="landscape"] #card-dessert .menu-title {
+    display: flex;
+}
+body[data-orientation="landscape"] #card-soup,
+body[data-orientation="landscape"] #card-main,
+body[data-orientation="landscape"] #card-side,
+body[data-orientation="landscape"] #card-kimchi {
+    background: #fff;
+    border-color: #d9dee5;
+}
+body[data-orientation="landscape"] #card-dessert {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+body[data-orientation="landscape"] #card-dessert ul {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+body[data-orientation="landscape"] #card-dessert .title {
+    font-size: clamp(38px, 2.5vw, 48px);
+}
+body[data-orientation="landscape"] #noticeCard {
+    grid-area: notice;
+}
+
+
 .meal-label { margin:0 0 14px; padding:14px 20px; text-align:center; border-radius:16px; background:#1d4ed8; color:#fff; font-size:42px; font-weight:950; letter-spacing:1px; }
 @media (max-width:700px) { .meal-label { font-size:28px; } }
 

@@ -87,4 +87,10 @@ onAuthStateChanged(auth, async (user) => {
   });
   userBar.append(email, logoutButton);
   document.body.append(userBar);
+
+  // 관리자 인증이 완료된 뒤에만 메뉴 앱을 초기화하도록 알립니다.
+  // 인증 전 Firestore 조회로 권한 오류가 발생해 빈 화면이 되는 문제를 방지합니다.
+  window.dispatchEvent(new CustomEvent("happybuffet-admin-auth-ready", {
+    detail: { uid: user.uid, email: user.email || ADMIN_EMAIL }
+  }));
 });

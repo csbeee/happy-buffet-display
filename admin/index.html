@@ -131,7 +131,26 @@
     </section>
   </section>
 </section>
-  <section class="displayModeArea">
+  <section class="displayOrientationArea" aria-labelledby="displayOrientationHeading">
+    <div class="displayModeHeader">
+        <h2 id="displayOrientationHeading">전광판 화면 방향</h2>
+        <p class="orientation-help">실제 전광판 설치 방향에 맞춰 선택하세요. 저장하면 메뉴 화면에 즉시 반영됩니다.</p>
+    </div>
+    <div class="displayOrientationOptions">
+        <label class="orientation-option">
+            <input type="radio" name="displayOrientation" value="portrait" checked>
+            <span class="orientation-preview portrait-preview" aria-hidden="true"></span>
+            <span><strong>세로형</strong><small>9:16 · 기존 화면</small></span>
+        </label>
+        <label class="orientation-option">
+            <input type="radio" name="displayOrientation" value="landscape">
+            <span class="orientation-preview landscape-preview" aria-hidden="true"></span>
+            <span><strong>가로형</strong><small>16:9 · 넓은 메뉴 배치</small></span>
+        </label>
+    </div>
+</section>
+
+<section class="displayModeArea">
     <div class="displayModeHeader">
         <h2>전광판 모드</h2>
     </div>

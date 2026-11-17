@@ -201,10 +201,21 @@ function draw(category, items = []) {
        기타: 기본 50px / 최소 40px
     ---------------------------------------- */
 
+    const isLandscape =
+        document.body.dataset.orientation === "landscape";
+
     if (category === "main") {
-        fitMenuText(titles, 56, 42);
+        fitMenuText(
+            titles,
+            isLandscape ? 68 : 56,
+            isLandscape ? 48 : 42
+        );
     } else {
-        fitMenuText(titles, 50, 40);
+        fitMenuText(
+            titles,
+            isLandscape ? (category === "side" ? 50 : 54) : 50,
+            isLandscape ? 42 : 40
+        );
     }
 
 }

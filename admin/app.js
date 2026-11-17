@@ -458,8 +458,13 @@ async function init() {
     console.log("③ admin init 완료");
 }
 
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-} else {
-    init();
-}
+// auth.js에서 관리자 Google 계정 인증이 확인된 뒤에만 앱을 시작합니다.
+// 인증 전 Firestore 조회가 먼저 실행되면 보안 규칙에 의해 실패하고,
+// 로그인 후에도 메뉴 화면이 초기화되지 않는 문제가 발생할 수 있습니다.
+let adminAppInitialized = false;
+
+window.addEventListener("happybuffet-admin-auth-ready", async () => {
+    if (adminAppInitialized) return;
+    adminAppInitialized = true;
+    await init();
+}, { once: true });

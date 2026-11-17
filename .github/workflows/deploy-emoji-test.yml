@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - fix/emoji-display-chrome
+      - feature/display-landscape-layout
 
 jobs:
   deploy-test:

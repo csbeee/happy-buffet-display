@@ -37,7 +37,7 @@ import {
     
     onSnapshot
 
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 // Use the shared TEST Firebase project configuration for all admin Firestore access.
 import { db } from "./firebase-config.js";

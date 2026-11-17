@@ -3,6 +3,8 @@
 // ============================================
 
 import { getTodayMenu, saveTodayMenu, formatUpdatedAt } from "../firebase/firestore.js";
+import { auth } from "../firebase/firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import { renderMenu, resetMenu, collectMenu, initMenuUI, createMenuItem } from "./menu-ui.js";
 import { MENU_CATEGORY } from "../shared/menu-category.js";
 import { initLibraryModal, loadLibrary } from "./library-modal.js";
@@ -538,8 +540,7 @@ async function init() {
     console.log("③ admin init 완료");
 }
 
-// Google 관리자 인증이 완료된 뒤 메뉴 입력 화면과 저장 기록을 초기화합니다.
-// 인증 이벤트가 먼저 발생한 경우도 전역 상태를 확인해 놓치지 않습니다.
+// Google 관리자 인증이 완료된 뒤 메뉴 앱을 초기화합니다.
 let adminAppInitialized = false;
 
 function startAdminApp() {
@@ -550,8 +551,10 @@ function startAdminApp() {
     });
 }
 
-if (window.happyBuffetAdminAuthenticated === true) {
-    startAdminApp();
-} else {
-    window.addEventListener("happybuffet-admin-auth-ready", startAdminApp, { once: true });
-}
+// 앱 자체가 Firebase Auth 상태를 직접 구독합니다.
+// auth.js의 사용자 정의 이벤트 발생 순서나 캐시 상태에 의존하지 않습니다.
+onAuthStateChanged(auth, user => {
+    if (user && (user.email || "").toLowerCase() === "seob1984@gmail.com") {
+        startAdminApp();
+    }
+});

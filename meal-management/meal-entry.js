@@ -1,18 +1,12 @@
-import { app, db } from "../firebase/firebase-config.js";
+import { app } from "../firebase/firebase-config.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-functions.js";
-import {
-  addDoc,
-  collection,
-  getDocs,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-
 const $ = (id) => document.getElementById(id);
 
 const functions = getFunctions(app);
 const verifyCompanyCodeCall = httpsCallable(functions, "verifyCompanyCode");
 const submitMealEntryCall = httpsCallable(functions, "submitMealEntry");
+const getMealEntryCompaniesCall = httpsCallable(functions, "getMealEntryCompanies");
+const getCompanyRosterCall = httpsCallable(functions, "getCompanyRoster");
 
 const searchInput = $("companySearch");
 const companyGrid = $("companyGrid");
@@ -36,7 +30,6 @@ const entryMode = $("entryMode");
 const groupNumberInput = $("groupNumber");
 const totalCountWrap = $("totalCountWrap");
 const totalCountInput = $("totalCount");
-const representativeNameInput = $("representativeName");
 const signatureCanvas = $("signatureCanvas");
 const signatureMessage = $("signatureMessage");
 const entryMessage = $("entryMessage");
@@ -202,9 +195,8 @@ async function loadCompanies() {
   connectionState.textContent = "Firebase 연결 중";
 
   try {
-    const snapshot = await getDocs(collection(db, "companies"));
-    companies = snapshot.docs
-      .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+    const response = await getMealEntryCompaniesCall({});
+    companies = (Array.isArray(response.data?.companies) ? response.data.companies : [])
       .filter((company) => company.active !== false && typeof company.name === "string" && company.name.trim())
       .map((company) => ({
         ...company,
@@ -245,12 +237,7 @@ verifyCodeButton.addEventListener("click", async () => {
   if (!selectedCompany) { codeMessage.textContent = "거래처를 먼저 선택해 주세요."; return; }
   const code = codeInput.value.trim();
   if (!/^\d{3}$/.test(code)) { codeMessage.textContent = "장부 확인번호는 숫자 3자리로 입력해 주세요. 예: 003"; codeInput.focus(); return; }
-  const ledgerNumber = String(selectedCompany.ledgerNumber ?? "");
-  if (!/^\d{3}$/.test(ledgerNumber) && (!selectedCompany.accessCodeSalt || !selectedCompany.accessCodeHash)) {
-    codeMessage.textContent = "이 거래처의 장부 확인번호가 아직 등록되지 않았습니다. 관리자에게 확인번호 설정을 요청해 주세요.";
-    return;
-  }
-  verifyCodeButton.disabled = true;
+verifyCodeButton.disabled = true;
   verifyCodeButton.textContent = "확인 중…";
   codeMessage.textContent = "비밀번호를 확인하고 있습니다.";
   try {
@@ -340,10 +327,9 @@ async function loadRosterForCompany(company) {
   rosterList.replaceChildren();
   rosterSearch.value = "";
   try {
-    const rosterQuery = query(collection(db, "companyRosters"), where("companyId", "==", company.id));
-    const snapshot = await getDocs(rosterQuery);
-    rosterMembers = snapshot.docs
-      .map((item) => ({ id: item.id, ...item.data() }))
+    if (!verifiedTicket) throw new Error("거래처 확인이 만료되었습니다. 다시 확인해 주세요.");
+    const response = await getCompanyRosterCall({ companyId: company.id, ticket: verifiedTicket });
+    rosterMembers = (Array.isArray(response.data?.members) ? response.data.members : [])
       .filter((member) => member.active !== false && typeof member.name === "string" && member.name.trim())
       .sort((a, b) => String(a.name).localeCompare(String(b.name), "ko"));
     renderRoster();
@@ -449,7 +435,7 @@ signatureCanvas.addEventListener("pointerdown", (event) => {
 signatureCanvas.addEventListener("pointermove", (event) => {
   if (!signatureDrawing) return;
   event.preventDefault(); const p = signaturePoint(event); const ctx = signatureCanvas.getContext("2d"); ctx.lineTo(p.x, p.y); ctx.stroke();
-  signatureHasInk = true; signatureMessage.textContent = "서명이 입력되었습니다. 아직 저장되지는 않았습니다.";
+  signatureHasInk = true; signatureMessage.textContent = "서명이 입력되었습니다.";
 });
 function finishSignature() { signatureDrawing = false; }
 signatureCanvas.addEventListener("pointerup", finishSignature);
@@ -464,10 +450,8 @@ reviewEntryButton.textContent = "식수 접수 저장";
 reviewEntryButton.addEventListener("click", async () => {
   if (savingEntry) return;
   entryMessage.hidden = false;
-  const rep = representativeNameInput.value.trim();
   const count = getCalculatedCount();
   if (!verifiedTicket || verifiedTicket === "local-ok") { entryMessage.textContent = "서버 확인이 만료되었습니다. 거래처 확인을 다시 진행해 주세요."; return; }
-  if (!rep) { entryMessage.textContent = "그룹 대표자 이름을 입력해 주세요."; representativeNameInput.focus(); return; }
   if (rosterLoadFailed && entryMode.value !== "total") { entryMessage.textContent = "명단을 불러오지 못했습니다. 명단 확인 방식으로 접수할 수 없습니다."; return; }
   if (entryMode.value === "roster" && getRosterCount() < 1) { entryMessage.textContent = "방문한 명단을 한 명 이상 체크해 주세요."; return; }
   if (entryMode.value === "mixed" && count < 1) { entryMessage.textContent = "명단 체크 또는 추가 인원을 1명 이상 입력해 주세요."; return; }
@@ -484,7 +468,7 @@ reviewEntryButton.addEventListener("click", async () => {
     entryMessage.textContent = "서명 이미지가 너무 큽니다. 서명을 지우고 간단하게 다시 입력해 주세요.";
     return;
   }
-  if (!window.confirm(`거래처: ${selectedCompany.name}\n방문 그룹: ${groupNo}\n식수 인원: ${count}명\n대표자: ${rep}\n\n이 내용을 실제 식수 기록으로 저장할까요?`)) return;
+  if (!window.confirm(`거래처: ${selectedCompany.name}\n방문 그룹: ${groupNo}\n식수 인원: ${count}명\n\n서명과 함께 식수 기록을 저장할까요?`)) return;
 
   savingEntry = true;
   reviewEntryButton.disabled = true;
@@ -498,7 +482,6 @@ reviewEntryButton.addEventListener("click", async () => {
       entryMode: mode,
       headcount: count,
       rosterIds: [...checkedRosterIds],
-      representativeName: rep,
       signatureDataUrl
     });
     const saved = response.data || {};
@@ -511,7 +494,6 @@ reviewEntryButton.addEventListener("click", async () => {
     codeMessage.hidden = false;
     codeMessage.textContent = "한 번의 접수가 저장되었습니다. 다음 그룹 접수 전 장부 확인번호를 다시 입력해 주세요.";
     codeInput.value = "";
-    representativeNameInput.value = "";
     countInput.value = "0";
     checkedRosterIds = new Set();
     signatureCanvas.getContext("2d").clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);

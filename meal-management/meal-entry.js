@@ -422,6 +422,40 @@ $("clearSignature").addEventListener("click", () => {
   signatureHasInk = false; signatureMessage.textContent = "서명이 지워졌습니다.";
 });
 let savingEntry = false;
+
+function showSaveToast() {
+  let toast = document.getElementById("mealSaveToast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "mealSaveToast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    toast.textContent = "저장되었습니다.";
+    Object.assign(toast.style, {
+      position: "fixed",
+      left: "50%",
+      bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
+      transform: "translateX(-50%)",
+      zIndex: "99999",
+      padding: "14px 24px",
+      borderRadius: "999px",
+      background: "#173f35",
+      color: "#fff",
+      fontSize: "16px",
+      fontWeight: "700",
+      boxShadow: "0 4px 18px rgba(0,0,0,.2)",
+      opacity: "0",
+      transition: "opacity 150ms ease"
+    });
+    document.body.append(toast);
+  }
+  toast.textContent = "저장되었습니다.";
+  toast.style.opacity = "1";
+  if (toast._hideTimer) clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => {
+    toast.style.opacity = "0";
+  }, 1000);
+}
 reviewEntryButton.textContent = "식수 접수 저장";
 reviewEntryButton.addEventListener("click", async () => {
   if (savingEntry) return;
@@ -485,7 +519,7 @@ reviewEntryButton.addEventListener("click", async () => {
       });
       return nextGroup;
     });
-    window.alert(`식수 접수가 저장되었습니다.\n회사명: ${selectedCompany.name}\n방문 순서: ${savedGroupNo}번\n방문 인원: ${count}명`);
+    showSaveToast();
     sessionGroupNumbers.set(selectedCompany.id, savedGroupNo + 1);
     entryPanel.hidden = true;
     searchInput.value = "";

@@ -886,6 +886,11 @@ watchTodayMenu(
 
 
         latestMenu = menu;
+
+        const displayLayout = menu.displayLayout === "landscape" ? "landscape" : "portrait";
+        document.body.classList.toggle("landscape-layout", displayLayout === "landscape");
+        document.body.classList.toggle("portrait-layout", displayLayout === "portrait");
+
         console.log(
             "Display Today Menu:",
             menu

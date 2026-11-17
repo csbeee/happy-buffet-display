@@ -13,6 +13,7 @@ import { loadAutocomplete } from "./autocomplete.js";
 const saveButton = document.getElementById("saveBtn");
 const previewButton = document.getElementById("previewBtn");
 const saveInfo = document.getElementById("saveInfo");
+const orientationInputs = [...document.querySelectorAll('input[name="displayOrientation"]')];
 const loading = document.getElementById("loading");
 const normalModeBtn = document.getElementById("normalModeBtn");
 const specialModeBtn = document.getElementById("specialModeBtn");
@@ -390,6 +391,9 @@ async function loadToday() {
         const menu = await getTodayMenu();
         todayMenuData = menu;
 
+        const savedOrientation = menu?.displayOrientation === "landscape" ? "landscape" : "portrait";
+        orientationInputs.forEach(input => { input.checked = input.value === savedOrientation; });
+
         console.log("Today Data =", menu);
 
         if (!menu) {
@@ -456,7 +460,8 @@ async function saveToday() {
                 ...normalMenu,
                 dinner: collectDinnerData(),
                 ...collectConcept(),
-                displayMode: "special"
+                displayMode: "special",
+                displayOrientation: orientationInputs.find(input => input.checked)?.value || "portrait"
             };
         } else {
             // 일반 메뉴 저장 시 기존 스페셜데이 데이터 보존
@@ -466,7 +471,8 @@ async function saveToday() {
                 ...(todayMenuData || {}),
                 ...normalMenu,
                 dinner: collectDinnerData(),
-                displayMode: currentDisplayMode
+                displayMode: currentDisplayMode,
+                displayOrientation: orientationInputs.find(input => input.checked)?.value || "portrait"
             };
         }
 

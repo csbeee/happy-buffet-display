@@ -217,7 +217,7 @@ async function loadCompanies() {
   } catch (error) {
     console.error("거래처 목록을 불러오지 못했습니다.", error);
     const message = error?.code === "permission-denied"
-      ? "거래처 목록을 가져오지 못했습니다. 테스트 프로젝트의 서버 함수 배포 상태를 확인해 주세요."
+      ? "거래처 목록을 가져오지 못했습니다. 서버 함수 배포 상태를 확인해 주세요."
       : "거래처 목록을 불러오지 못했습니다. 인터넷 연결과 Firebase 설정을 확인해 주세요.";
     showLoadError(message);
   }
@@ -237,7 +237,7 @@ verifyCodeButton.addEventListener("click", async () => {
   if (!selectedCompany) { codeMessage.textContent = "거래처를 먼저 선택해 주세요."; return; }
   const code = codeInput.value.trim();
   if (!/^\d{3}$/.test(code)) { codeMessage.textContent = "장부 확인번호는 숫자 3자리로 입력해 주세요. 예: 003"; codeInput.focus(); return; }
-verifyCodeButton.disabled = true;
+  verifyCodeButton.disabled = true;
   verifyCodeButton.textContent = "확인 중…";
   codeMessage.textContent = "비밀번호를 확인하고 있습니다.";
   try {

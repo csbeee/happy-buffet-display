@@ -430,31 +430,43 @@ function showSaveToast() {
     toast.id = "mealSaveToast";
     toast.setAttribute("role", "status");
     toast.setAttribute("aria-live", "polite");
-    toast.textContent = "저장되었습니다.";
     Object.assign(toast.style, {
       position: "fixed",
+      top: "calc(16px + env(safe-area-inset-top, 0px))",
       left: "50%",
-      bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
       transform: "translateX(-50%)",
       zIndex: "99999",
-      padding: "14px 24px",
-      borderRadius: "999px",
-      background: "#173f35",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "9px",
+      minWidth: "190px",
+      maxWidth: "calc(100vw - 32px)",
+      boxSizing: "border-box",
+      padding: "15px 24px",
+      borderRadius: "14px",
+      background: "#15803d",
       color: "#fff",
-      fontSize: "16px",
+      fontSize: "17px",
       fontWeight: "700",
-      boxShadow: "0 4px 18px rgba(0,0,0,.2)",
+      textAlign: "center",
+      boxShadow: "0 4px 18px rgba(0,0,0,.22)",
       opacity: "0",
+      pointerEvents: "none",
       transition: "opacity 150ms ease"
     });
+    const icon = document.createElement("span");
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = "✓";
+    icon.style.fontSize = "21px";
+    toast.append(icon, document.createTextNode("저장되었습니다."));
     document.body.append(toast);
   }
-  toast.textContent = "저장되었습니다.";
   toast.style.opacity = "1";
   if (toast._hideTimer) clearTimeout(toast._hideTimer);
   toast._hideTimer = setTimeout(() => {
     toast.style.opacity = "0";
-  }, 1000);
+  }, 1500);
 }
 reviewEntryButton.textContent = "식수 접수 저장";
 reviewEntryButton.addEventListener("click", async () => {

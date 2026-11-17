@@ -55,3 +55,10 @@ test("both Firebase client modules stay on the isolated test project and SDK ver
   assert.doesNotMatch(firestore, /firebasejs\/11\.10\.0/);
   assert.match(firestore, /firebasejs\/12\.0\.0/);
 });
+
+test("server validates selected roster ownership and records the current company meal price", () => {
+  const functions = read("functions/index.js");
+  assert.match(functions, /rosterSnaps\.some\(\(snap\) =>[\s\S]*?snap\.data\(\)\.companyId !== companyId[\s\S]*?snap\.data\(\)\.active === false/);
+  assert.match(functions, /mealPrice: savedMealPrice/);
+  assert.match(functions, /totalAmount: headcount \* savedMealPrice/);
+});

@@ -824,6 +824,10 @@ function renderToday(menu) {
         return;
     }
 
+    // 화면 방향은 관리자 설정을 따르며, 이전 데이터는 세로형으로 유지합니다.
+    document.body.dataset.orientation =
+        menu.displayOrientation === "landscape" ? "landscape" : "portrait";
+
 
     const mode = menu.displayMode === "special"
         ? "special"

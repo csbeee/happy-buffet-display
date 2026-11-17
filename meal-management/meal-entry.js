@@ -217,7 +217,7 @@ async function loadCompanies() {
   } catch (error) {
     console.error("거래처 목록을 불러오지 못했습니다.", error);
     const message = error?.code === "permission-denied"
-      ? "Firestore 접근 권한이 없습니다. 보안 규칙과 인증 설정을 먼저 확인해야 합니다."
+      ? "거래처 목록을 가져오지 못했습니다. 테스트 프로젝트의 서버 함수 배포 상태를 확인해 주세요."
       : "거래처 목록을 불러오지 못했습니다. 인터넷 연결과 Firebase 설정을 확인해 주세요.";
     showLoadError(message);
   }
@@ -338,7 +338,7 @@ async function loadRosterForCompany(company) {
     rosterLoadFailed = true;
     rosterEmpty.hidden = false;
     rosterEmpty.querySelector("strong").textContent = "명단을 불러오지 못했습니다.";
-    rosterEmpty.querySelector("p").textContent = "Firestore 읽기 권한 또는 보안 규칙을 확인해 주세요.";
+    rosterEmpty.querySelector("p").textContent = "거래처 확인이 만료되었거나 명단 조회 서버 함수에 문제가 있습니다. 확인번호를 다시 입력해 주세요.";
     rosterCountLabel.textContent = "불러오기 실패";
   }
 }

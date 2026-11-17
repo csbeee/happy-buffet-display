@@ -538,8 +538,20 @@ async function init() {
     console.log("③ admin init 완료");
 }
 
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
+// Google 관리자 인증이 완료된 뒤 메뉴 입력 화면과 저장 기록을 초기화합니다.
+// 인증 이벤트가 먼저 발생한 경우도 전역 상태를 확인해 놓치지 않습니다.
+let adminAppInitialized = false;
+
+function startAdminApp() {
+    if (adminAppInitialized) return;
+    adminAppInitialized = true;
+    init().catch(error => {
+        console.error("관리자 앱 초기화 실패:", error);
+    });
+}
+
+if (window.happyBuffetAdminAuthenticated === true) {
+    startAdminApp();
 } else {
-    init();
+    window.addEventListener("happybuffet-admin-auth-ready", startAdminApp, { once: true });
 }

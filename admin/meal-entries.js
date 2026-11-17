@@ -1,0 +1,224 @@
+import {auth,db} from "../firebase/firebase-config.js";
+import {collection,doc,getDocs,query,where,runTransaction,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+const $=id=>document.getElementById(id), rows=$("entryRows"), status=$("status");
+let entries=[],selected=null,companies=new Map();
+const kst=(d=0)=>{const x=new Date(Date.now()+32400000);x.setUTCDate(x.getUTCDate()+d);return x.toISOString().slice(0,10)};
+const won=n=>(Number(n)||0).toLocaleString("ko-KR")+"원";
+const meal=v=>v==="dinner"?"저녁":v==="lunch"?"점심":v||"미분류";
+const safe=v=>v===null||v===undefined||v===""?"-":String(v);
+const time=v=>{if(!v)return "-";const d=typeof v.toDate==="function"?v.toDate():new Date(v);return isNaN(d)?"-":new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d)};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function defaults(){$("startDate").value=kst(-6);$("endDate").value=kst()}
+function renderCompanies(){const el=$("companyFilter"),v=el.value;el.replaceChildren(new Option("전체 거래처",""));[...companies].sort((a,b)=>a[1].localeCompare(b[1],"ko")).forEach(([id,n])=>el.add(new Option(n,id)));if(companies.has(v))el.value=v}
+function summary(list){const s=p=>list.filter(x=>!p||x.mealPeriod===p).reduce((a,x)=>({n:a.n+(Number(x.headcount)||0),m:a.m+(Number(x.totalAmount)||0)}),{n:0,m:0});const a=s(""),l=s("lunch"),d=s("dinner");$("totalPeople").textContent=a.n.toLocaleString()+"명";$("totalAmount").textContent=won(a.m);$("lunchPeople").textContent=l.n.toLocaleString()+"명";$("lunchAmount").textContent=won(l.m);$("dinnerPeople").textContent=d.n.toLocaleString()+"명";$("dinnerAmount").textContent=won(d.m);$("entryCount").textContent=list.length+"건"}
+function render(list){rows.replaceChildren();if(!list.length){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=10;td.className="empty-cell";td.textContent="조건에 맞는 식수 장부가 없습니다.";tr.append(td);rows.append(tr);return}list.forEach(e=>{const tr=document.createElement("tr");[e.serviceDate,safe(e.companyName),meal(e.mealPeriod),safe(e.groupNumber)+"번",safe(e.representativeName),(Number(e.headcount)||0)+"명",won(e.mealPrice),won(e.totalAmount),safe(e.status,"확인")].forEach((v,i)=>{const td=document.createElement("td");td.textContent=v;if(i>=5&&i<=7)td.className="num";tr.append(td)});const td=document.createElement("td"),b=document.createElement("button");b.type="button";b.className="detail-btn";b.textContent="상세";b.onclick=()=>detail(e);td.append(b);tr.append(td);rows.append(tr)})}
+function apply(){const c=$("companyFilter").value,p=$("periodFilter").value;const list=entries.filter(e=>(!c||e.companyId===c)&&(!p||e.mealPeriod===p));summary(list);render(list);status.textContent=$("startDate").value+" ~ "+$("endDate").value+" · "+list.length+"건 조회"}
+async function load(){
+  const a=$("startDate").value,b=$("endDate").value;
+  if(!a||!b||a>b){status.textContent="조회 날짜를 확인해 주세요.";return}
+  status.textContent="식수 장부 조회 중…";$("searchBtn").disabled=true;
+  try{
+    let snap,companySnap;
+    try{
+      const q=query(collection(db,"mealEntries"),where("serviceDate",">=",a),where("serviceDate","<=",b));
+      snap=await getDocs(q);
+    }catch(error){
+      error.lookupTarget="mealEntries";
+      throw error;
+    }
+    try{
+      companySnap=await getDocs(collection(db,"companies"));
+    }catch(error){
+      error.lookupTarget="companies";
+      throw error;
+    }
+    entries=snap.docs.map(d=>({id:d.id,...d.data()})).sort((x,y)=>(y.serviceDate||"").localeCompare(x.serviceDate||"")||(Number(y.groupNumber)||0)-(Number(x.groupNumber)||0));
+    companies=new Map(companySnap.docs.map(d=>[d.id,d.data().name||d.id]));
+    entries.forEach(e=>{if(e.companyId&&!companies.has(e.companyId))companies.set(e.companyId,e.companyName||e.companyId)});
+    renderCompanies();apply();
+  }catch(e){
+    console.error("식수 장부 조회 실패 상세:",{
+      target:e.lookupTarget||"unknown",code:e.code||null,name:e.name||null,message:e.message||String(e),
+      projectId:"happybuffet-test",startDate:a,endDate:b
+    },e);
+    const code=e.code||"코드 없음";
+    const target=e.lookupTarget||"조회 단계 확인 필요";
+    const detail=e.message||String(e);
+    status.textContent="조회 실패 ["+target+"] · "+code+" · "+detail;
+    rows.innerHTML='<tr><td colspan="10" class="empty-cell">장부를 불러오지 못했습니다.</td></tr>';
+    summary([]);
+  }finally{$("searchBtn").disabled=false}
+}
+function item(label,value,wide=false){const d=document.createElement("div");d.className="detail-item"+(wide?" detail-wide":"");const s=document.createElement("span"),b=document.createElement("strong");s.textContent=label;b.textContent=safe(value);d.append(s,b);return d}
+async function detail(e){
+  selected=e;
+  const host=$("detailContent");
+  host.replaceChildren();
+  [
+    ["날짜",e.serviceDate],
+    ["거래처",e.companyName],
+    ["구분",meal(e.mealPeriod)],
+    ["방문 그룹",e.groupNumber?e.groupNumber+"번":"-"],
+    ["대표자",e.representativeName],
+    ["입력 방식",e.entryMode],
+    ["인원",(Number(e.headcount)||0)+"명"],
+    ["1인 식대",won(e.mealPrice)],
+    ["합계",won(e.totalAmount)],
+    ["상태",e.status],
+    ["접수 시간",time(e.createdAt)],
+    ["접수 ID",e.id]
+  ].forEach(x=>host.append(item(x[0],x[1],x[0]==="접수 ID")));
+
+  // 상세 화면과 수정 이력에서 공통으로 사용할 사전 명단 ID → 이름 매핑
+  const rosterById=new Map();
+  let rosterLookupFailed=false;
+  if(e.companyId){
+    try{
+      const rosterSnap=await getDocs(query(collection(db,"companyRosters"),where("companyId","==",e.companyId)));
+      rosterSnap.docs.forEach(d=>{
+        const name=d.data().name;
+        if(typeof name==="string"&&name.trim())rosterById.set(d.id,name.trim());
+      });
+    }catch(err){
+      rosterLookupFailed=true;
+      console.error("사전 명단 이름 조회 실패:",err);
+    }
+  }
+
+  if(Array.isArray(e.rosterIds)&&e.rosterIds.length){
+    if(rosterLookupFailed){
+      host.append(item("사전 명단","이름 조회 실패 ("+(e.companyId?"권한 또는 네트워크 오류":"거래처 정보 없음")+")",true));
+    }else{
+      const names=e.rosterIds.map(id=>rosterById.get(id)).filter(Boolean);
+      const missing=e.rosterIds.length-names.length;
+      const value=names.length
+        ?names.join(", ")+(missing?" · 이름 확인 불가 "+missing+"명":"")
+        :"등록 명단에서 이름을 찾을 수 없습니다.";
+      host.append(item("사전 명단",value,true));
+    }
+  }
+
+  if(e.signatureDataUrl){
+    const w=document.createElement("div");
+    w.className="detail-item detail-wide";
+    const s=document.createElement("span"),img=document.createElement("img");
+    s.textContent="대표자 서명";
+    img.className="signature-image";
+    img.alt="접수 당시 서명";
+    img.src=e.signatureDataUrl;
+    w.append(s,img);
+    host.append(w);
+  }
+
+  // 기존 수정 이력의 before/after.rosterIds도 화면 표시 시 이름으로 변환합니다.
+  const auditValue=(key,value)=>{
+    if(key!=="rosterIds")return safe(value);
+    const ids=Array.isArray(value)?value:[];
+    if(!ids.length)return "없음";
+    const names=ids.map(id=>rosterById.get(id)).filter(Boolean);
+    const missing=ids.length-names.length;
+    if(!names.length)return "등록 명단에서 이름을 찾을 수 없습니다. ("+ids.length+"명)";
+    return names.join(", ")+(missing?" · 이름 확인 불가 "+missing+"명":"");
+  };
+
+  $("auditList").textContent="수정 이력 조회 중…";
+  $("detailDialog").showModal();
+  try{
+    const snap=await getDocs(query(collection(db,"mealEntryEditHistory"),where("entryId","==",e.id)));
+    const list=$("auditList");
+    list.replaceChildren();
+    if(snap.empty){
+      list.textContent="아직 수정 이력이 없습니다.";
+      return;
+    }
+    const history=snap.docs.map(ds=>({id:ds.id,...ds.data()}))
+      .sort((a,b)=>{
+        const ms=v=>v?.toMillis?v.toMillis():v?.toDate?v.toDate().getTime():0;
+        return ms(b.editedAt)-ms(a.editedAt);
+      }).slice(0,50);
+    history.forEach(h=>{
+      const card=document.createElement("article");
+      card.className="audit-card";
+      const head=document.createElement("div");
+      head.innerHTML="<strong>"+esc(h.editorEmail||"관리자")+"</strong> · "+esc(time(h.editedAt));
+      const ul=document.createElement("ul");
+      (h.changedFields||[]).forEach(f=>{
+        const li=document.createElement("li");
+        li.textContent=f.label+": "+auditValue(f.key,h.before?.[f.key])+" → "+auditValue(f.key,h.after?.[f.key]);
+        ul.append(li);
+      });
+      card.append(head,ul);
+      list.append(card);
+    });
+  }catch(err){
+    console.error(err);
+    $("auditList").textContent="수정 이력 조회 실패 ("+(err.code||"오류")+"). Firestore 읽기 권한을 확인해 주세요.";
+  }
+}
+function updateTotal(){$("editTotalAmount").textContent=won((Number($("editHeadcount").value)||0)*(Number($("editMealPrice").value)||0))}
+let editRosterMembers=[],editRosterIds=new Set(),editRosterMissing=[];
+async function loadEditRoster(){
+  const section=$("editRosterSection"),list=$("editRosterList");
+  list.replaceChildren();$("editRosterNote").textContent="명단을 불러오는 중입니다.";
+  if(!selected?.companyId){$("editRosterNote").textContent="거래처 정보가 없어 명단을 불러올 수 없습니다.";return}
+  try{
+    const snap=await getDocs(query(collection(db,"companyRosters"),where("companyId","==",selected.companyId)));
+    editRosterMembers=snap.docs.map(d=>({id:d.id,...d.data()})).filter(m=>typeof m.name==="string"&&m.name.trim());
+    editRosterMissing=[...editRosterIds].filter(id=>!editRosterMembers.some(m=>m.id===id));
+    renderEditRoster();
+    $("editRosterNote").textContent="기존 접수에서 체크한 명단은 그대로 복원됩니다. 비활성 명단도 기존 기록 보존을 위해 표시됩니다.";
+  }catch(err){
+    console.error("수정용 사전 명단 조회 실패:",err);
+    $("editRosterNote").textContent="명단 조회 실패: "+(err.code||"오류")+" · 명단을 불러오지 못해 저장할 수 없습니다.";
+    $("editRosterList").replaceChildren();
+  }
+}
+function renderEditRoster(){
+  const host=$("editRosterList"),keyword=($("editRosterSearch").value||"").trim().toLocaleLowerCase("ko-KR");
+  host.replaceChildren();
+  const members=editRosterMembers.filter(m=>String(m.name).toLocaleLowerCase("ko-KR").includes(keyword));
+  members.forEach(m=>{
+    const label=document.createElement("label");label.className="edit-roster-item";
+    const cb=document.createElement("input");cb.type="checkbox";cb.checked=editRosterIds.has(m.id);cb.disabled=m.active===false&&!cb.checked;
+    cb.addEventListener("change",()=>{if(cb.checked)editRosterIds.add(m.id);else editRosterIds.delete(m.id);updateEditRosterCount();updateEditHeadcount()});
+    const name=document.createElement("span");name.textContent=m.name+(m.active===false?" (비활성)":"");
+    label.append(cb,name);host.append(label);
+  });
+  editRosterMissing.forEach(id=>{
+    const label=document.createElement("label");label.className="edit-roster-item";
+    const cb=document.createElement("input");cb.type="checkbox";cb.checked=true;cb.disabled=true;
+    const name=document.createElement("span");name.textContent="현재 명단에서 찾을 수 없는 기존 체크 항목 ("+id+")";
+    label.append(cb,name);host.append(label);
+  });
+  if(!members.length&&!editRosterMissing.length){const p=document.createElement("p");p.className="hint";p.textContent="등록된 명단이 없습니다.";host.append(p)}
+  updateEditRosterCount();
+}
+function updateEditRosterCount(){$("editRosterCount").textContent=editRosterIds.size+"명 선택"}
+function updateEditHeadcount(){
+  const mode=$("editEntryMode").value,additional=Number($("editAdditionalCount").value)||0;
+  const count=mode==="roster"?editRosterIds.size:mode==="mixed"?editRosterIds.size+additional:additional;
+  $("editHeadcount").value=count;updateTotal();
+}
+function updateEditMode(){
+  const mode=$("editEntryMode").value;
+  $("editRosterSection").hidden=mode==="total";
+  $("editAdditionalWrap").hidden=mode==="roster";
+  $("editAdditionalCount").readOnly=mode==="roster";
+  updateEditHeadcount();
+}
+async function edit(){
+  if(!selected)return;
+  $("editDate").value=selected.serviceDate||kst();$("editPeriod").value=selected.mealPeriod==="dinner"?"dinner":"lunch";
+  $("editRepresentative").value=selected.representativeName||"";
+  const mode=["total","roster","mixed"].includes(selected.entryMode)?selected.entryMode:"total";
+  $("editEntryMode").value=mode;
+  editRosterIds=new Set(Array.isArray(selected.rosterIds)?selected.rosterIds:[]);
+  $("editRosterSearch").value="";
+  const extra=Math.max(0,(Number(selected.headcount)||0)-editRosterIds.size);
+  $("editAdditionalCount").value=mode==="mixed"?extra:mode==="total"?(Number(selected.headcount)||1):0;
+  $("editMealPrice").value=selected.mealPrice??7000;$("editStatus").textContent="";
+  updateEditMode();await loadEditRoster();$("editDialog").showModal();
+}
+const fields=[["serviceDate","식사 날짜"],["mealPeriod","식사 구분"],["representativeName","대표자"],["entryMode","입력 방식"],["rosterIds","사전 명단"],["headcount","식수 인원"],["mealPrice","1인 식대"],["totalAmount","합계 금액"]];
+async function save(ev){ev.preventDefault();if(!selected)return;const mode=$("editEntryMode").value,extra=Number($("editAdditionalCount").value);if(!Number.isInteger(extra)||extra<0||extra>500){$("editStatus").textContent="추가 인원은 0~500명 사이의 정수로 입력해 주세요.";return}const rosterIds=mode==="total"?(Array.isArray(selected.rosterIds)?selected.rosterIds:[]):[...editRosterIds];const count=mode==="roster"?rosterIds.length:mode==="mixed"?rosterIds.length+extra:extra;const next={serviceDate:$("editDate").value,mealPeriod:$("editPeriod").value,representativeName:$("editRepresentative").value.trim(),entryMode:mode,rosterIds,headcount:count,mealPrice:Number($("editMealPrice").value)};if(!next.serviceDate||!next.representativeName||!Number.isInteger(next.headcount)||next.headcount<1||next.headcount>500||!Number.isInteger(next.mealPrice)||next.mealPrice<0||next.mealPrice>1000000){$("editStatus").textContent="날짜, 대표자, 인원(1~500명), 식대를 확인해 주세요.";return}next.totalAmount=next.headcount*next.mealPrice;const original=selected;const changed=fields.filter(([k])=>k==="rosterIds"?(JSON.stringify([...(original[k]||[])].sort())!==JSON.stringify([...(next[k]||[])].sort())):(original[k]??null)!==(next[k]??null));if(!changed.length){$("editStatus").textContent="변경된 내용이 없습니다.";return}if(!confirm("장부를 수정하고 수정 이력을 저장할까요?"))return;const btn=$("saveEditBtn");btn.disabled=true;btn.textContent="저장 중…";try{const ref=doc(db,"mealEntries",original.id),audit=doc(collection(db,"mealEntryEditHistory")),email=auth.currentUser?.email||"관리자";await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error("원본 장부가 없어 수정할 수 없습니다.");const current=snap.data(),before={};fields.forEach(([k])=>before[k]=current[k]??(k==="rosterIds"?[]:null));const actual=fields.filter(([k])=>k==="rosterIds"?(JSON.stringify([...(current[k]||[])].sort())!==JSON.stringify([...(next[k]||[])].sort())):(before[k]??null)!==(next[k]??null));if(!actual.length)throw Error("다른 사용자가 먼저 수정했습니다. 다시 조회해 주세요.");tx.update(ref,{...next,updatedAt:serverTimestamp(),lastEditedAt:serverTimestamp(),lastEditedBy:email});tx.set(audit,{entryId:original.id,companyId:current.companyId||"",companyName:current.companyName||"",before,after:{...next},changedFields:actual.map(([key,label])=>({key,label})),editorEmail:email,editedAt:serverTimestamp(),source:"admin-meal-ledger"})});$("editDialog").close();$("detailDialog").close();await load();const fresh=entries.find(x=>x.id===original.id);if(fresh)await detail(fresh)}catch(e){console.error(e);$("editStatus").textContent=e.message||"수정에 실패했습니다."}finally{btn.disabled=false;btn.textContent="수정 저장"}}
+$("searchBtn").addEventListener("click",load);$("refreshBtn").addEventListener("click",load);$("todayBtn").addEventListener("click",()=>{$("startDate").value=kst();$("endDate").value=kst();load()});$("companyFilter").addEventListener("change",apply);$("periodFilter").addEventListener("change",apply);$("editEntryBtn").addEventListener("click",edit);$("editForm").addEventListener("submit",save);["editMealPrice"].forEach(id=>$(id).addEventListener("input",updateTotal));$("editEntryMode").addEventListener("change",updateEditMode);$("editAdditionalCount").addEventListener("input",updateEditHeadcount);$("editRosterSearch").addEventListener("input",renderEditRoster);document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>$(b.dataset.close).close()));defaults();load();

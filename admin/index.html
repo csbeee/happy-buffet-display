@@ -9,23 +9,128 @@
 <body>
 
 <header class="topbar">
-    <div>
+    <div class="admin-brand">
         <h1>행복을 담은 한식뷔페</h1>
         <span>관리자 v4.5.1 Stable</span>
     </div>
-    <div class="topButtons">
-        <button id="resetBtn">초기화</button>
-        <button id="libraryBtn">메뉴 라이브러리</button>
-        <button type="button" onclick="location.href='./history.html'">메뉴 이력</button>
-        <button type="button" onclick="location.href='./recommendations.html'">추천 메뉴·통계</button>
-    </div>
+    <nav class="topButtons" aria-label="관리자 메뉴">
+        <div class="top-action-group">
+            <span class="top-action-label">메뉴 관리</span>
+            <div class="top-action-items">
+                <button id="libraryBtn" type="button">메뉴 라이브러리</button>
+                <a class="nav-button" href="./history.html">메뉴 이력</a>
+                <a class="nav-button" href="./recommendations.html">추천 메뉴·통계</a>
+            </div>
+        </div>
+        <div class="top-action-group">
+            <span class="top-action-label">거래처 · 식수 · 매출</span>
+            <div class="top-action-items">
+                <button id="companyManagerToggle" type="button">거래처 관리</button>
+                <a class="nav-button" href="./meal-entries.html">식수 장부 조회</a>
+                <a class="nav-button" href="./reports.html">매출 집계</a>
+                <a class="nav-button" href="./statements.html">거래명세서 출력</a>
+            </div>
+        </div>
+        <div class="top-action-group top-action-group-utility">
+            <span class="top-action-label">기타</span>
+            <div class="top-action-items">
+                <button id="resetBtn" type="button">초기화</button>
+            </div>
+        </div>
+    </nav>
 </header>
 
 <section class="saveArea">
     <span id="saveInfo">저장 기록 없음</span>
 </section>
 
-<section class="displayModeArea">
+<section id="companyManagerPanel" class="company-manager-panel" hidden aria-labelledby="companyManagerHeading">
+    <div class="company-manager-header">
+      <div><h2 id="companyManagerHeading">거래처 관리</h2><p>거래처 정보를 등록하고, 식수 접수용 장부 확인번호를 관리합니다.</p></div>
+      <button id="companyManagerClose" type="button">닫기</button>
+    </div>
+    <div id="companyManagerStatus" class="company-manager-status" role="status">거래처 목록을 불러오는 중입니다.</div>
+    <section class="company-workspace" aria-label="거래처 작업 공간">
+    <section class="company-picker-card">
+      <div class="company-picker-copy"><h3>거래처 선택</h3><p>거래처를 한 번 선택하면 정보 수정과 사전 명단 관리를 이어서 할 수 있습니다.</p></div>
+      <div class="company-picker-controls">
+        <select id="companyEditSelect" aria-label="관리할 거래처 선택"><option value="">거래처 선택</option></select>
+        <button id="companyEditLoad" type="button" disabled>정보 불러오기</button>
+        <button id="companyNewButton" class="primary" type="button">+ 새 거래처 등록</button>
+      </div>
+      <div class="company-picker-actions">
+        <button id="companyDeactivate" class="danger" type="button" disabled>사용 중지</button>
+        <button id="companyActivate" type="button" hidden disabled>다시 사용</button>
+      </div>
+    </section>
+
+    <section id="companyRegistration" class="company-registration" hidden aria-labelledby="companyRegistrationHeading">
+      <div class="company-registration-heading">
+        <div><h3 id="companyRegistrationHeading">새 거래처 등록</h3><p>기본 정보를 입력하고 저장하세요. 선택한 거래처를 수정할 때도 이 입력 영역을 사용합니다.</p></div>
+      </div>
+      <form id="companyRegistrationForm" class="company-registration-form">
+        <div class="company-field">
+          <label for="newCompanyName">거래처명 <span class="required-mark">필수</span></label>
+          <input id="newCompanyName" name="name" type="text" maxlength="80" autocomplete="organization" required placeholder="예: 가나다건설">
+        </div>
+        <div class="company-field">
+          <label for="newCompanyAliases">검색 별칭</label>
+          <input id="newCompanyAliases" name="aliases" type="text" maxlength="200" placeholder="쉼표로 구분 (예: 가나다, 현장 A)">
+          <small>식수 접수 화면에서 별칭으로도 거래처를 찾을 수 있습니다.</small>
+        </div>
+        <div class="company-field">
+          <label for="newCompanyContactName">연락 담당자 이름</label>
+          <input id="newCompanyContactName" name="contactName" type="text" maxlength="50" autocomplete="name" placeholder="담당자 이름">
+        </div>
+        <div class="company-field">
+          <label for="newCompanyContactPhone">연락처</label>
+          <input id="newCompanyContactPhone" name="contactPhone" type="tel" maxlength="20" autocomplete="tel" inputmode="tel" placeholder="예: 010-1234-5678">
+        </div>
+        <div class="company-field">
+          <label for="newCompanyMealPrice">1인 식대 (원)</label>
+          <input id="newCompanyMealPrice" name="mealPrice" type="number" min="0" max="1000000" step="100" inputmode="numeric" value="7000" required>
+        </div>
+        <div class="company-field">
+          <label for="newCompanyBillingType">정산 방식</label>
+          <select id="newCompanyBillingType" name="billingType">
+            <option value="monthly">월말 정산</option><option value="prepaid">선불</option><option value="daily">일별 정산</option><option value="other">기타 / 협의</option>
+          </select>
+        </div>
+        <div class="company-field company-field-wide">
+          <label for="newCompanyNote">관리 메모</label>
+          <textarea id="newCompanyNote" name="note" rows="3" maxlength="500" placeholder="예: 세금계산서 발행, 담당자 연락 가능 시간, 현장명 등"></textarea>
+        </div>
+        <div class="company-field company-field-wide">
+          <label for="companyManagerCode">장부 확인번호 (숫자 3자리)</label>
+          <div class="company-inline-code"><input id="companyManagerCode" type="text" inputmode="numeric" maxlength="3" pattern="[0-9]{3}" autocomplete="off" placeholder="예: 003"><button id="companyManagerSave" class="primary" type="button" disabled>확인번호 저장</button><button id="companyManagerClear" type="button" disabled>확인번호 해제</button></div>
+          <small>선택 거래처의 접수 화면 진입용 번호입니다. 예: 장부 3번 → 003. 보안 인증 수단은 아닙니다.</small>
+          <select id="companyManagerSelect" hidden><option value="">거래처 선택</option></select>
+        </div>
+        <div class="company-field-wide company-subsection-heading"><h3>접수 설정</h3><p>식수 접수 화면 노출 여부와 자주 이용하는 거래처 여부를 설정합니다.</p></div>
+        <div class="company-registration-options company-field-wide">
+          <label class="company-check"><input id="newCompanyActive" type="checkbox" checked> 식수 접수 화면에 표시</label>
+          <label class="company-check"><input id="newCompanyFavorite" type="checkbox"> 자주 이용하는 거래처로 표시</label>
+        </div>
+        <div class="company-field-wide company-registration-actions">
+          <button id="companyRegistrationSubmit" class="primary" type="submit">거래처 등록</button>
+          <button id="companyRegistrationReset" type="reset">입력 초기화</button><button id="companyEditCancel" type="button" hidden>취소</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="company-roster-section">
+      <div class="company-roster-heading"><div><h3>사전 등록 명단</h3><p id="rosterCompanyCaption">먼저 위에서 거래처를 선택해 주세요.</p></div><button id="openRosterManager" type="button" disabled>명단 입력 열기</button></div>
+      <div id="rosterManagerPanel" class="roster-manager-panel" hidden>
+        <label for="rosterNamesInput">추가할 이름 (한 줄에 한 명씩)</label>
+        <textarea id="rosterNamesInput" rows="4" maxlength="10000" placeholder="홍길동&#10;김영희&#10;박철수"></textarea>
+        <div class="company-manager-actions"><button id="rosterSaveButton" class="primary" type="button">명단 추가 등록</button><button id="rosterReloadButton" type="button">명단 새로고침</button><button id="closeRosterManager" type="button">입력 닫기</button></div>
+        <div id="rosterManagerStatus" class="company-manager-status" role="status">거래처를 선택해 주세요.</div>
+      </div>
+      <div id="rosterManagerList" class="roster-manager-list"><div class="roster-empty">거래처를 선택하면 등록된 명단이 표시됩니다.</div></div>
+      <select id="rosterCompanySelect" hidden><option value="">거래처 선택</option></select>
+    </section>
+  </section>
+  <section class="displayModeArea">
     <div class="displayModeHeader">
         <h2>전광판 모드</h2>
     </div>
@@ -151,6 +256,8 @@
 
 <!-- menu-ui.js의 initMenuUI()는 Sortable 전역 객체를 사용합니다. -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+<script type="module" src="./auth.js"></script>
+<script type="module" src="company-management.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

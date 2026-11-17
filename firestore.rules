@@ -2,18 +2,124 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "seob1984@gmail.com"
+        && request.auth.token.email_verified == true;
+    }
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
+    function validServiceDate(value) {
+      return value is string && value.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    function counterAfter(companyId, serviceDate, mealPeriod, groupNumber) {
+      let counterPath = /databases/$(database)/documents/mealEntryCounters/$(companyId + "_" + serviceDate + "_" + mealPeriod);
+      return existsAfter(counterPath)
+        && getAfter(counterPath).data.companyId == companyId
+        && getAfter(counterPath).data.serviceDate == serviceDate
+        && getAfter(counterPath).data.mealPeriod == mealPeriod
+        && getAfter(counterPath).data.lastGroupNumber == groupNumber;
+    }
+
+    function validMealEntry() {
+      let d = request.resource.data;
+      let companyPath = /databases/$(database)/documents/companies/$(d.companyId);
+      return d.keys().hasOnly([
+          "companyId", "companyName", "serviceDate", "mealPeriod",
+          "groupNumber", "entryMode", "headcount", "rosterIds",
+          "representativeName", "signatureDataUrl", "submissionId",
+          "mealPrice", "totalAmount", "status", "createdAt", "source"
+        ])
+        && d.companyId is string && d.companyId.size() > 0
+        && exists(companyPath)
+        && d.companyName == get(companyPath).data.name
+        && d.mealPrice == get(companyPath).data.mealPrice
+        && d.mealPrice is int && d.mealPrice >= 0 && d.mealPrice <= 1000000
+        && validServiceDate(d.serviceDate)
+        && d.mealPeriod in ["lunch", "dinner"]
+        && d.groupNumber is int && d.groupNumber >= 1
+        && d.entryMode in ["total", "roster", "mixed"]
+        && d.headcount is int && d.headcount >= 1 && d.headcount <= 500
+        && d.rosterIds is list && d.rosterIds.size() <= 500
+        && d.representativeName is string && d.representativeName.size() <= 100
+        && d.signatureDataUrl is string
+        && d.signatureDataUrl.matches('^data:image/png;base64,[A-Za-z0-9+/=]+$')
+        && d.signatureDataUrl.size() <= 200000
+        && d.submissionId is string && d.submissionId.size() >= 16 && d.submissionId.size() <= 100
+        && d.totalAmount == d.mealPrice * d.headcount
+        && d.status == "confirmed"
+        && d.createdAt == request.time
+        && d.source == "meal-management-tablet"
+        && counterAfter(d.companyId, d.serviceDate, d.mealPeriod, d.groupNumber);
+    }
+
+    function validCounterShape() {
+      return request.resource.data.keys().hasOnly([
+          "companyId", "serviceDate", "mealPeriod", "lastGroupNumber", "updatedAt"
+        ])
+        && request.resource.data.companyId is string
+        && request.resource.data.companyId.size() > 0
+        && validServiceDate(request.resource.data.serviceDate)
+        && request.resource.data.mealPeriod in ["lunch", "dinner"]
+        && request.resource.data.lastGroupNumber is int
+        && request.resource.data.lastGroupNumber >= 1
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // Test environment only. Public reads are required by the no-login tablet flow.
+    // Admin writes are restricted to the verified owner Google account.
+    match /todayMenu/{documentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /menus/{documentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /menuHistory/{documentId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Tablet needs company and roster reads before a user signs in.
+    // These collections must contain test data only while this rule set is used.
+    match /companies/{companyId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /companyRosters/{rosterId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // The tablet can read the current visit number and increment it by exactly one.
+    // A corresponding meal entry must be created in the same transaction.
+    match /mealEntryCounters/{counterId} {
+      allow read: if true;
+      allow create: if validCounterShape()
+        && request.resource.data.lastGroupNumber == 1;
+      allow update: if validCounterShape()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["lastGroupNumber", "updatedAt"])
+        && request.resource.data.lastGroupNumber == resource.data.lastGroupNumber + 1;
+      allow delete: if isAdmin();
+    }
+
+    // Anonymous tablet submissions are create-only; ledger reads and edits are admin-only.
+    match /mealEntries/{entryId} {
+      allow create: if validMealEntry();
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /mealEntryEditHistory/{historyId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Deny every collection not explicitly listed above.
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2026, 8, 3);
+      allow read, write: if false;
     }
   }
 }

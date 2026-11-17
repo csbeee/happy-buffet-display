@@ -624,3 +624,226 @@ button.danger:hover {
 .dinner-menu-page { padding-top: 0; }
 .dinner-menu-container { padding-top: 12px; }
 .dinner-category .category-title { color: #174a7e; }
+
+
+/* Keep the company registration screen focused: hide menu-editing controls while open. */
+body.company-management-open .saveArea,
+body.company-management-open .displayModeArea,
+body.company-management-open #normalMenuEditor,
+body.company-management-open #dinnerEditor,
+body.company-management-open #conceptEditor,
+body.company-management-open .bottomBar,
+body.company-management-open #resetBtn,
+body.company-management-open #libraryBtn,
+body.company-management-open .topButtons button[onclick*="history.html"],
+body.company-management-open .topButtons button[onclick*="recommendations.html"] {
+  display: none !important;
+}
+
+/* Company password management panel */
+.company-manager-panel { max-width:1200px; margin:18px auto; padding:20px; background:#fff; border:1px solid #dbe4e0; border-radius:14px; box-shadow:0 3px 12px rgba(0,0,0,.04); }
+.company-manager-panel[hidden] { display:none !important; }
+.company-manager-header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:18px; }
+.company-manager-header h2 { font-size:22px; margin-bottom:6px; }
+.company-manager-header p,.company-manager-note { color:#667085; font-size:13px; }
+.company-manager-status { padding:12px 14px; margin-bottom:16px; background:#f0f7f4; border-radius:8px; color:#235747; }
+.company-manager-status.error { background:#fff1f0; color:#b42318; }
+.company-manager-form { max-width:620px; display:grid; gap:9px; }
+.company-manager-form label { font-weight:700; margin-top:6px; }
+.company-manager-form select,.company-manager-form input { width:100%; min-height:48px; border:1px solid #d0d5dd; border-radius:8px; padding:10px 12px; font:inherit; background:#fff; }
+.company-manager-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+.company-manager-actions button { min-height:46px; }
+.company-manager-note { line-height:1.6; margin-top:4px; }
+@media(max-width:768px) { .company-manager-panel { margin:12px; padding:14px; } .company-manager-header h2 { font-size:19px; } .company-manager-actions button { flex:1; } }
+
+
+/* Company registration form: desktop grid with thumb-friendly mobile controls */
+.company-registration { margin:20px 0 24px; padding:18px; border:1px solid #e3e9e6; border-radius:12px; background:#f9fbfa; }
+.company-registration-heading { margin-bottom:14px; }
+.company-registration-heading h3,.company-subsection-heading h3 { font-size:18px; margin-bottom:5px; }
+.company-registration-heading p,.company-subsection-heading p { color:#667085; font-size:13px; line-height:1.5; }
+.company-registration-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.company-field { min-width:0; display:flex; flex-direction:column; gap:6px; }
+.company-field label { font-weight:700; font-size:14px; }
+.company-field input:not([type="checkbox"]),.company-field select,.company-field textarea { width:100%; min-height:46px; border:1px solid #d0d5dd; border-radius:8px; padding:10px 12px; font:inherit; background:#fff; color:#222; }
+.company-field textarea { resize:vertical; min-height:80px; }
+.company-field small { color:#667085; font-size:12px; line-height:1.45; }
+.company-field-wide { grid-column:1 / -1; }
+.required-mark { display:inline-block; margin-left:4px; color:#b42318; font-size:11px; }
+.company-registration-options { display:flex; flex-wrap:wrap; gap:16px; }
+.company-check { display:inline-flex; align-items:center; gap:8px; font-weight:500 !important; }
+.company-check input { width:18px; height:18px; accent-color:#1976d2; }
+.company-registration-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.company-registration-actions button { min-height:46px; }
+.company-subsection-heading { margin:8px 0 14px; padding-top:18px; border-top:1px solid #e5e7eb; }
+@media(max-width:768px) {
+  .company-registration { padding:14px; margin:14px 0 20px; }
+  .company-registration-form { grid-template-columns:1fr; gap:12px; }
+  .company-field-wide { grid-column:auto; }
+  .company-registration-actions { flex-direction:column; }
+  .company-registration-actions button { width:100%; min-height:48px; }
+  .company-registration-options { flex-direction:column; gap:10px; }
+}
+
+
+/* Company roster manager */
+.roster-manager-list { display: grid; gap: 6px; margin-top: 12px; max-height: 320px; overflow-y: auto; }
+.roster-manager-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #e0e7e2; border-radius: 10px; background: #fff; }
+.roster-manager-row span:last-child { color: #687670; font-size: 12px; white-space: nowrap; }
+#rosterNamesInput { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #cbd6ce; border-radius: 10px; font: inherit; }
+
+/* Admin navigation and company management refresh */
+.topbar { flex-wrap:wrap; gap:14px; padding:14px 22px; }
+.topButtons { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.topButtons button,.topButtons .nav-button { min-height:40px; padding:9px 14px; border:1px solid #d8dfe8; border-radius:8px; background:#fff; color:#344054; font:500 13px/1.2 "Noto Sans KR",sans-serif; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; }
+.topButtons button:hover,.topButtons .nav-button:hover { background:#f1f5f9; border-color:#b8c4d3; }
+.topButtons #companyManagerToggle { background:#eaf2ff; border-color:#b9d0f5; color:#174a7e; font-weight:700; }
+.topButtons #resetBtn { color:#b42318; }
+.company-edit-actions { display:flex; flex-wrap:wrap; gap:8px; } .company-edit-actions button { min-height:44px; }
+.company-inline-code { display:flex; flex-wrap:wrap; gap:8px; align-items:center; } .company-inline-code input { flex:1; min-width:130px; }
+.company-roster-launch { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px; margin:18px 0; border:1px solid #dbe4ee; border-radius:12px; background:#f7f9fc; }
+.company-roster-launch h3 { margin-bottom:4px; } .company-roster-launch p { color:#667085; font-size:13px; }
+.company-roster-modal[hidden] { display:none !important; }
+.company-roster-modal { position:fixed; inset:0; z-index:1800; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(16,24,40,.56); }
+.company-roster-dialog { width:min(680px,100%); max-height:90vh; overflow:auto; padding:20px; border-radius:14px; background:#fff; box-shadow:0 18px 48px rgba(0,0,0,.2); }
+.company-roster-dialog textarea { width:100%; min-height:120px; padding:12px; border:1px solid #d0d5dd; border-radius:8px; font:inherit; }
+@media(max-width:768px) { .topbar { align-items:stretch; } .topButtons { width:100%; justify-content:flex-start; } .topButtons button,.topButtons .nav-button { flex:1 1 calc(50% - 8px); min-width:0; min-height:44px; } .company-roster-launch { align-items:stretch; flex-direction:column; } .company-roster-launch button { width:100%; min-height:48px; } .company-inline-code input { flex-basis:100%; } .company-roster-dialog { padding:14px; } }
+
+/* 관리자 상단 영역: 인증바 → 제목 → 기능별 버튼 그룹 */
+.topbar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 20px 16px;
+}
+.topbar .admin-brand { order: 1; }
+.topbar .topButtons {
+    order: 2;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+}
+.top-action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid #e2e8e5;
+    border-radius: 10px;
+    background: #f8faf9;
+}
+.top-action-label {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    color: #66756d;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+.top-action-items {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+.top-action-items button,
+.top-action-items .nav-button {
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 1px solid #d8e0dc;
+    border-radius: 7px;
+    background: #fff;
+    color: #33463d;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.3;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.top-action-items button:hover,
+.top-action-items .nav-button:hover {
+    background: #edf4f0;
+    border-color: #b9cbc1;
+}
+.topbar .hb-auth-user {
+    order: 0;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    justify-content: flex-end;
+    margin: 0;
+}
+.topbar .admin-brand {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+}
+.topbar .admin-brand span {
+    margin: 0;
+}
+@media (max-width: 768px) {
+    .topbar { padding: 12px; gap: 10px; }
+    .topbar .topButtons { justify-content: stretch; gap: 8px; }
+    .top-action-group { flex: 1 1 100%; }
+    .top-action-items { width: 100%; }
+    .top-action-items button,
+    .top-action-items .nav-button { flex: 1 1 auto; white-space: normal; }
+}
+@media (max-width: 420px) {
+    .topbar { flex-direction: column; }
+    .topbar .admin-brand { width: 100%; }
+    .topbar .hb-auth-user { align-self: stretch; }
+    .top-action-items button,
+    .top-action-items .nav-button { flex: 1 1 100%; }
+}
+
+
+/* Company management workspace v2 */
+.company-workspace { display:grid; gap:16px; }
+.company-picker-card,.company-registration,.company-roster-section {
+  margin:0; padding:18px; border:1px solid #e2e8e5; border-radius:14px; background:#fff;
+}
+.company-picker-card { display:grid; grid-template-columns:minmax(180px,1fr) minmax(320px,2fr) auto; align-items:center; gap:16px; }
+.company-picker-copy h3,.company-roster-heading h3 { margin:0 0 5px; font-size:17px; color:#26352d; }
+.company-picker-copy p,.company-roster-heading p { margin:0; color:#66756d; font-size:13px; line-height:1.5; }
+.company-picker-controls { display:flex; gap:8px; align-items:center; min-width:0; }
+.company-picker-controls select { flex:1; min-width:0; min-height:46px; padding:10px 12px; border:1px solid #cfd8d3; border-radius:8px; background:#fff; font:inherit; }
+.company-picker-controls button,.company-picker-actions button { min-height:44px; white-space:nowrap; }
+.company-picker-actions { display:flex; gap:8px; }
+.company-registration[hidden],.roster-manager-panel[hidden] { display:none !important; }
+.company-registration { background:#f9fbfa; }
+.company-registration-heading { margin-bottom:16px; }
+.company-registration-form { margin-top:0; }
+.company-roster-section { background:#fbfcfd; }
+.company-roster-heading { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:12px; }
+.company-roster-heading button { min-height:44px; }
+.roster-manager-panel { padding:14px; margin:12px 0; border:1px solid #d9e4ee; border-radius:10px; background:#f6f9fc; }
+.roster-manager-panel > label { display:block; margin-bottom:8px; font-weight:700; }
+.roster-manager-panel textarea { width:100%; box-sizing:border-box; min-height:100px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font:inherit; }
+.roster-manager-list { max-height:360px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.roster-manager-row { min-width:0; }
+.roster-empty { padding:14px; color:#667085; text-align:center; border:1px dashed #d0d5dd; border-radius:8px; background:#fff; }
+@media(max-width:850px) {
+  .company-picker-card { grid-template-columns:1fr; gap:12px; }
+  .company-picker-controls { flex-wrap:wrap; }
+  .company-picker-controls select { flex-basis:100%; }
+  .company-picker-controls button { flex:1; }
+  .company-picker-actions button { flex:1; }
+}
+@media(max-width:600px) {
+  .company-picker-card,.company-registration,.company-roster-section { padding:14px; }
+  .company-picker-controls { flex-direction:column; align-items:stretch; }
+  .company-picker-controls button { width:100%; min-height:46px; }
+  .company-roster-heading { align-items:stretch; flex-direction:column; }
+  .company-roster-heading button { width:100%; }
+  .roster-manager-list { grid-template-columns:1fr; max-height:420px; }
+  .roster-manager-panel .company-manager-actions { flex-direction:column; }
+  .roster-manager-panel .company-manager-actions button { width:100%; min-height:46px; }
+}

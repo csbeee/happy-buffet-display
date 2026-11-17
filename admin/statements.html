@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>거래명세서 | 행복을 담은 한식뷔페</title>
+  <link rel="stylesheet" href="./statements.css">
+</head>
+<body>
+  <header class="page-header no-print">
+    <div>
+      <h1>거래명세서 출력</h1>
+      <p>거래처와 월을 선택해 날짜별 식수 및 식대 내역을 확인하고 A4 한 장으로 출력합니다.</p>
+    </div>
+    <nav>
+      <a href="./index.html">← 관리자 화면</a>
+      <a href="./reports.html">매출 집계</a>
+      <a href="./meal-entries.html">식수 장부 조회</a>
+    </nav>
+  </header>
+
+  <main class="main">
+    <section class="filter-panel no-print">
+      <div class="filters">
+        <label>거래처<select id="companySelect" required><option value="">거래처 선택</option></select></label>
+        <label>정산 월<input id="monthSelect" type="month" required></label>
+      </div>
+      <div class="filter-actions">
+        <button id="previewBtn" class="primary" type="button">미리보기 갱신</button>
+        <button id="printBtn" type="button" disabled>인쇄 / PDF 저장</button>
+      </div>
+      <p class="hint">식수 인원이 0명인 날짜는 명세서에서 자동 제외됩니다. 출력은 A4 세로 한 장 기준입니다.</p>
+      <div id="status" class="status" role="status">거래처 목록을 불러오는 중입니다.</div>
+      <section class="supplier-editor" aria-label="공급자 정보 입력">
+        <h2>공급자 정보 입력</h2>
+        <p>입력 후 저장하면 이 브라우저에 보관되며, 거래명세서에 반영됩니다.</p>
+        <div class="supplier-fields">
+          <label>사업자등록번호<input id="supplierBusinessNo" type="text" placeholder="000-00-00000"></label>
+          <label>업체명<input id="supplierName" type="text" value="행복을 담은 한식뷔페"></label>
+          <label>대표자명<input id="supplierRepresentative" type="text" placeholder="대표자 이름"></label>
+          <label class="wide">주소<input id="supplierAddress" type="text" placeholder="사업장 주소"></label>
+          <label>업태<input id="supplierBusinessType" type="text" placeholder="예: 음식점업"></label>
+          <label>종목<input id="supplierBusinessItem" type="text" placeholder="예: 한식"></label>
+          <label>전화번호<input id="supplierPhone" type="tel" placeholder="전화번호"></label>
+        </div>
+        <div class="filter-actions">
+          <button id="saveSupplierBtn" class="primary" type="button">공급자 정보 저장</button>
+          <span id="supplierSaveStatus" class="status" role="status"></span>
+        </div>
+      </section>
+    </section>
+
+    <section id="statementPreview" class="statement-sheet" aria-label="거래명세서 미리보기">
+      <h1 class="statement-title">거 래 명 세 표</h1>
+      <div class="party-panels">
+        <section class="party-panel recipient-panel">
+          <h2>공급받는 자</h2>
+          <dl>
+            <div><dt>발행일</dt><dd id="issuedDate">-</dd></div>
+            <div><dt>거래처명</dt><dd id="previewCompany">거래처를 선택해 주세요</dd></div>
+            <div class="recipient-total"><dt>총액</dt><dd id="recipientTotal">0원</dd></div>
+            <div><dt>정산기간</dt><dd id="previewPeriod">-</dd></div>
+          </dl>
+        </section>
+        <section class="party-panel supplier-panel">
+          <h2>공급자</h2>
+          <dl>
+            <div><dt>사업자번호</dt><dd id="previewSupplierBusinessNo">-</dd></div>
+            <div><dt>업체명</dt><dd id="previewSupplierName">행복을 담은 한식뷔페</dd></div>
+            <div><dt>대표자명</dt><dd id="previewSupplierRepresentative">-</dd></div>
+            <div><dt>주소</dt><dd id="previewSupplierAddress">-</dd></div>
+            <div><dt>업태</dt><dd id="previewSupplierBusinessType">-</dd></div>
+            <div><dt>종목</dt><dd id="previewSupplierBusinessItem">-</dd></div>
+            <div><dt>전화번호</dt><dd id="previewSupplierPhone">-</dd></div>
+            <div class="stamp-row"><dt>도장/서명</dt><dd><span class="stamp-box"></span></dd></div>
+          </dl>
+        </section>
+      </div>
+      <div class="table-wrap">
+        <table class="statement-table">
+          <thead>
+            <tr>
+              <th>일자(요일)</th>
+              <th>중식</th>
+              <th>석식</th>
+              <th>계</th>
+              <th>단가</th>
+              <th>공급가액</th>
+              <th>세액</th>
+            </tr>
+          </thead>
+          <tbody id="statementRows">
+            <tr><td colspan="7" class="empty">거래처와 정산 월을 선택해 주세요.</td></tr>
+          </tbody>
+          <tfoot id="statementFoot">
+            <tr><th>월 합계</th><th>0명</th><th>0명</th><th>0명</th><th>-</th><th>0원</th><th>0원</th></tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="statement-summary">
+        <div><span>총 식수</span><strong id="summaryPeople">0명</strong></div>
+        <div><span>공급가액</span><strong id="summarySupply">0원</strong></div>
+        <div><span>세액</span><strong id="summaryTax">0원</strong></div>
+        <div><span>총액 (공급가액+세액)</span><strong id="summaryAmount">0원</strong></div>
+      </div>
+      <p class="statement-note">※ 장부 금액은 부가세 별도 공급가액입니다. 세액은 월 누적 공급가액의 10%로 계산하며, 일별 세액 합계가 월 세액과 일치하도록 원 단위 반올림 차이를 누적 방식으로 배분합니다. 식수가 없는 날짜는 표시하지 않습니다.</p>
+    </section>
+  </main>
+
+  <script type="module" src="./auth.js"></script>
+  <script type="module" src="./statements.js"></script>
+</body>
+</html>

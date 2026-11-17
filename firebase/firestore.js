@@ -46,14 +46,26 @@ import {
    Firebase Config
 ============================================ */
 
-const firebaseConfig = {
-  apiKey: "AIzaSyC5jGVYthXgAdoNten0TIkjm_s6JLRh5tM",
-  authDomain: "todaymenu-30fe7.firebaseapp.com",
-  projectId: "todaymenu-30fe7",
-  storageBucket: "todaymenu-30fe7.firebasestorage.app",
-  messagingSenderId: "487318917655",
-  appId: "1:487318917655:web:515f36c0cfb14508ebc252"
-};
+const isTestHosting = ["happybuffet-test.web.app", "happybuffet-test.firebaseapp.com"]
+    .includes(globalThis.location?.hostname);
+
+const firebaseConfig = isTestHosting
+  ? {
+      apiKey: "AIzaSyCOmdYqn2RI9QWnOBlLqLhl2MTcZJeW4lc",
+      authDomain: "happybuffet-test.firebaseapp.com",
+      projectId: "happybuffet-test",
+      storageBucket: "happybuffet-test.firebasestorage.app",
+      messagingSenderId: "225132730139",
+      appId: "1:225132730139:web:7d6a6b53035648eefca5be"
+    }
+  : {
+      apiKey: "AIzaSyC5jGVYthXgAdoNten0TIkjm_s6JLRh5tM",
+      authDomain: "todaymenu-30fe7.firebaseapp.com",
+      projectId: "todaymenu-30fe7",
+      storageBucket: "todaymenu-30fe7.firebasestorage.app",
+      messagingSenderId: "487318917655",
+      appId: "1:487318917655:web:515f36c0cfb14508ebc252"
+    };
 
 /* ============================================
    Initialize
@@ -102,6 +114,12 @@ export function watchTodayMenu(callback) {
     }, (error) => {
         console.error("오늘 메뉴 실시간 감지 실패:", error);
     });
+}
+
+// 전광판 레이아웃은 메뉴 내용/이력과 분리해 현재 문서에 저장합니다.
+export async function saveDisplayLayout(layout) {
+    const safeLayout = layout === "landscape" ? "landscape" : "portrait";
+    await setDoc(TODAY_DOC, { displayLayout: safeLayout }, { merge: true });
 }
 
 export async function saveTodayMenu(menu) {

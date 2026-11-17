@@ -820,19 +820,19 @@ body[data-orientation="landscape"] .special-section li {
 
 /* =========================================================
    23. LANDSCAPE FINAL OVERRIDES
-   반드시 파일 마지막에 위치: 기존 가로형 규칙과의 우선순위 충돌 방지
+   기존 가로형 규칙보다 뒤에서 최종 적용
    ========================================================= */
 body[data-orientation="landscape"] #normalLayout {
     flex: 1 1 auto;
     min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(280px, 0.9fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(280px, 0.72fr);
     grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) auto;
     grid-template-areas:
-        "today dessert"
-        "soup dessert"
-        "main dessert"
-        "notice notice";
+        "today today dessert"
+        "soup main dessert"
+        "side kimchi dessert"
+        "notice notice notice";
     gap: 10px 14px;
     align-content: stretch;
 }
@@ -850,38 +850,14 @@ body[data-orientation="landscape"] #normalLayout::before {
     font-weight: 950;
     line-height: 1.15;
 }
-body[data-orientation="landscape"] #mealLabel {
-    display: none !important;
-}
+body[data-orientation="landscape"] #mealLabel { display: none !important; }
 body[data-orientation="landscape"] #card-soup { grid-area: soup; }
 body[data-orientation="landscape"] #card-main { grid-area: main; }
 body[data-orientation="landscape"] #card-side { grid-area: side; }
 body[data-orientation="landscape"] #card-kimchi { grid-area: kimchi; }
 body[data-orientation="landscape"] #card-dessert { grid-area: dessert; }
+body[data-orientation="landscape"] .bottom-row { display: contents !important; }
 
-/* bottom-row는 레이아웃 래퍼 역할만 하고 김치/후식 카드를 그리드에 직접 참여 */
-body[data-orientation="landscape"] .bottom-row {
-    display: contents !important;
-}
-
-/* 오늘의 메뉴에 속하는 네 카테고리를 2x2로 정렬 */
-body[data-orientation="landscape"] #normalLayout {
-    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) auto;
-    grid-template-areas:
-        "today dessert"
-        "soup dessert"
-        "main dessert"
-        "notice notice";
-}
-body[data-orientation="landscape"] #card-side {
-    grid-area: side;
-}
-body[data-orientation="landscape"] #card-kimchi {
-    grid-area: kimchi;
-}
-body[data-orientation="landscape"] #normalLayout::before {
-    grid-column: 1;
-}
 body[data-orientation="landscape"] #card-soup,
 body[data-orientation="landscape"] #card-main,
 body[data-orientation="landscape"] #card-side,
@@ -899,18 +875,6 @@ body[data-orientation="landscape"] #card-side .menu-title,
 body[data-orientation="landscape"] #card-kimchi .menu-title {
     display: none !important;
 }
-body[data-orientation="landscape"] #card-soup,
-body[data-orientation="landscape"] #card-main {
-    grid-row: auto;
-}
-body[data-orientation="landscape"] #card-side {
-    grid-column: 1;
-    grid-row: 3;
-}
-body[data-orientation="landscape"] #card-kimchi {
-    grid-column: 1;
-    grid-row: 4;
-}
 body[data-orientation="landscape"] #card-dessert {
     min-width: 0;
     min-height: 0;
@@ -919,9 +883,7 @@ body[data-orientation="landscape"] #card-dessert {
     overflow: hidden;
     border-radius: 14px;
 }
-body[data-orientation="landscape"] #card-dessert .menu-title {
-    display: flex !important;
-}
+body[data-orientation="landscape"] #card-dessert .menu-title { display: flex !important; }
 body[data-orientation="landscape"] #card-dessert ul {
     flex: 1 1 auto;
     display: flex;
@@ -929,19 +891,8 @@ body[data-orientation="landscape"] #card-dessert ul {
     justify-content: center;
     min-height: 0;
 }
-body[data-orientation="landscape"] #noticeCard {
-    grid-area: notice;
-    min-width: 0;
-}
+body[data-orientation="landscape"] #noticeCard { grid-area: notice; min-width: 0; }
 
-/* 1366x768 등 낮은 화면에서도 공지와 카드가 화면 밖으로 밀리지 않게 */
 @media (max-height: 850px) and (orientation: landscape) {
-    body[data-orientation="landscape"] #normalLayout {
-        gap: 6px 10px;
-    }
-    body[data-orientation="landscape"] #card-soup .menu-card,
-    body[data-orientation="landscape"] #card-main .menu-card {
-        min-height: 0;
-    }
+    body[data-orientation="landscape"] #normalLayout { gap: 6px 10px; }
 }
-

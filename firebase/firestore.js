@@ -4,7 +4,7 @@
 // File : firebase/firestore.js
 // ============================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 
 import {
 
@@ -40,19 +40,19 @@ import {
     
     onSnapshot
 
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 /* ============================================
    Firebase Config
 ============================================ */
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC5jGVYthXgAdoNten0TIkjm_s6JLRh5tM",
-  authDomain: "todaymenu-30fe7.firebaseapp.com",
-  projectId: "todaymenu-30fe7",
-  storageBucket: "todaymenu-30fe7.firebasestorage.app",
-  messagingSenderId: "487318917655",
-  appId: "1:487318917655:web:515f36c0cfb14508ebc252"
+  apiKey: "AIzaSyCOmdYqn2RI9QWnOBlLqLhl2MTcZJeW4lc",
+  authDomain: "happybuffet-test.firebaseapp.com",
+  projectId: "happybuffet-test",
+  storageBucket: "happybuffet-test.firebasestorage.app",
+  messagingSenderId: "225132730139",
+  appId: "1:225132730139:web:7d6a6b53035648eefca5be"
 };
 
 /* ============================================

@@ -251,11 +251,14 @@ exports.submitMealEntry = onCall(
     const koreaHour = nowKorea.getUTCHours();
     const mealPeriod = koreaHour >= 16 ? "dinner" : "lunch";
     const counterRef = db.collection("mealEntryCounters").doc(`${companyId}_${serviceDate}_${mealPeriod}`);
+    const rosterRefs = rosterIds.map((id) => db.collection("companyRosters").doc(id));
     let savedGroupNumber = 0;
+    let savedMealPrice = 0;
 
     await db.runTransaction(async (tx) => {
-      const [ticketSnap, companySnap, existingEntry, counterSnap] = await Promise.all([
-        tx.get(ticketRef), tx.get(companyRef), tx.get(entryRef), tx.get(counterRef)
+      const [ticketSnap, companySnap, existingEntry, counterSnap, ...rosterSnaps] = await Promise.all([
+        tx.get(ticketRef), tx.get(companyRef), tx.get(entryRef), tx.get(counterRef),
+        ...rosterRefs.map((ref) => tx.get(ref))
       ]);
       if (existingEntry.exists) {
         throw new HttpsError("already-exists", "이미 접수된 기록입니다. 중복 접수하지 않았습니다.");
@@ -270,6 +273,25 @@ exports.submitMealEntry = onCall(
       }
       if (!companySnap.exists || companySnap.data().active === false) {
         throw new HttpsError("not-found", "거래처를 찾을 수 없거나 비활성 상태입니다.");
+      }
+
+      // Never trust roster IDs supplied by a kiosk. Every selected member must
+      // exist, belong to this exact company, and still be active at submission time.
+      const invalidRoster = rosterSnaps.some((snap) =>
+        !snap.exists ||
+        snap.data().companyId !== companyId ||
+        snap.data().active === false
+      );
+      if (invalidRoster) {
+        throw new HttpsError("invalid-argument", "선택한 명단 중 이 거래처에 속하지 않거나 사용 중지된 항목이 있습니다. 명단을 다시 확인해 주세요.");
+      }
+      if (entryMode === "total" && rosterIds.length > 0) {
+        throw new HttpsError("invalid-argument", "총 인원 입력 방식에는 사전 명단을 포함할 수 없습니다.");
+      }
+
+      savedMealPrice = Number(companySnap.data().mealPrice ?? 7000);
+      if (!Number.isFinite(savedMealPrice) || savedMealPrice < 0 || savedMealPrice > 1000000) {
+        throw new HttpsError("failed-precondition", "거래처의 1인 식대 설정을 확인해 주세요.");
       }
 
       savedGroupNumber = Math.max(0, Number(counterSnap.exists ? counterSnap.data().lastGroupNumber : 0) || 0) + 1;
@@ -289,6 +311,8 @@ exports.submitMealEntry = onCall(
         groupNumber: savedGroupNumber,
         entryMode,
         headcount,
+        mealPrice: savedMealPrice,
+        totalAmount: headcount * savedMealPrice,
         rosterIds,
         signatureDataUrl,
         submissionId,

@@ -43,7 +43,7 @@ async function verifyScryptCode(code, salt, expectedHash) {
  * headcount, and idempotency key before creating a billable entry.
  */
 exports.verifyCompanyCode = onCall(
-  { enforceAppCheck: true, maxInstances: 10, timeoutSeconds: 15 },
+  { enforceAppCheck: false, maxInstances: 10, timeoutSeconds: 15 },
   async (request) => {
     const companyId = cleanString(request.data?.companyId, 128);
     const code = typeof request.data?.code === "string" ? request.data.code.trim() : "";
@@ -139,18 +139,73 @@ exports.verifyCompanyCode = onCall(
 );
 
 /**
+ * Return only the public fields required by the kiosk.
+ * Sensitive company contacts and access-code material never leave the server.
+ */
+exports.getMealEntryCompanies = onCall(
+  { enforceAppCheck: false, maxInstances: 10, timeoutSeconds: 15 },
+  async () => {
+    const snapshot = await db.collection("companies").get();
+    return {
+      companies: snapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: cleanString(data.name, 120),
+            aliases: Array.isArray(data.aliases) ? data.aliases.filter((x) => typeof x === "string").slice(0, 20) : [],
+            sortOrder: Number.isFinite(Number(data.sortOrder)) ? Number(data.sortOrder) : 9999,
+            favorite: data.favorite === true,
+            active: data.active !== false,
+            mealEntryMode: cleanString(data.mealEntryMode, 20) || "mixed",
+            rosterMode: cleanString(data.rosterMode, 20) || "optional",
+            allowDailyModeOverride: data.allowDailyModeOverride !== false
+          };
+        })
+        .filter((company) => company.active && company.name)
+    };
+  }
+);
+
+/**
+ * Return a company's roster only after the caller has verified that company's code.
+ * The short-lived ticket is checked but not consumed; submitMealEntry consumes it.
+ */
+exports.getCompanyRoster = onCall(
+  { enforceAppCheck: false, maxInstances: 10, timeoutSeconds: 15 },
+  async (request) => {
+    const companyId = cleanString(request.data?.companyId, 128);
+    const ticket = cleanString(request.data?.ticket, 256);
+    if (!companyId || !/^[A-Za-z0-9_-]{1,128}$/.test(companyId) || !ticket || ticket.length < 32 || ticket.length > 256) {
+      throw new HttpsError("invalid-argument", "거래처 확인을 다시 진행해 주세요.");
+    }
+    const ticketSnap = await db.collection("companyAccessTickets").doc(hashKey(ticket)).get();
+    const expiresAt = ticketSnap.exists ? ticketSnap.data().expiresAt?.toMillis?.() ?? 0 : 0;
+    if (!ticketSnap.exists || ticketSnap.data().companyId !== companyId || ticketSnap.data().usedAt || expiresAt <= Date.now()) {
+      throw new HttpsError("permission-denied", "확인 정보가 만료되었습니다. 거래처 확인을 다시 해 주세요.");
+    }
+    const snapshot = await db.collection("companyRosters").where("companyId", "==", companyId).get();
+    return {
+      members: snapshot.docs
+        .map((doc) => ({ id: doc.id, name: cleanString(doc.data().name, 80), active: doc.data().active !== false }))
+        .filter((member) => member.active && member.name)
+        .sort((a, b) => a.name.localeCompare(b.name, "ko"))
+    };
+  }
+);
+
+/**
  * Persist one verified visit group. Tickets are short-lived and consumed once.
  * The Admin SDK bypasses Firestore client rules; all input validation is therefore
  * performed here before a billable meal entry is written.
  */
 exports.submitMealEntry = onCall(
-  { enforceAppCheck: true, maxInstances: 10, timeoutSeconds: 20 },
+  { enforceAppCheck: false, maxInstances: 10, timeoutSeconds: 20 },
   async (request) => {
     const data = request.data || {};
     const companyId = cleanString(data.companyId, 128);
     const ticket = cleanString(data.ticket, 256);
     const submissionId = cleanString(data.submissionId, 80);
-    const representativeName = cleanString(data.representativeName, 40);
     const entryMode = cleanString(data.entryMode, 20);
     const groupNumber = Number(data.groupNumber);
     const headcount = Number(data.headcount);
@@ -168,8 +223,8 @@ exports.submitMealEntry = onCall(
     if (!/^[A-Za-z0-9_-]{16,80}$/.test(submissionId)) {
       throw new HttpsError("invalid-argument", "접수 식별값이 올바르지 않습니다. 다시 시도해 주세요.");
     }
-    if (!representativeName || !["total", "roster", "mixed"].includes(entryMode)) {
-      throw new HttpsError("invalid-argument", "대표자 이름 또는 입력 방식을 확인해 주세요.");
+    if (!["total", "roster", "mixed"].includes(entryMode)) {
+      throw new HttpsError("invalid-argument", "식수 입력 방식을 확인해 주세요.");
     }
     if (!Number.isInteger(groupNumber) || groupNumber < 1 || groupNumber > 100000) {
       throw new HttpsError("invalid-argument", "방문 그룹 번호가 올바르지 않습니다.");
@@ -235,7 +290,6 @@ exports.submitMealEntry = onCall(
         entryMode,
         headcount,
         rosterIds,
-        representativeName,
         signatureDataUrl,
         submissionId,
         status: "pending",

@@ -45,3 +45,13 @@ test("test deployment is pinned to the isolated Firebase project", () => {
   assert.match(workflow, /firebase hosting:channel:deploy mobile-test/);
   assert.match(workflow, /TEST_PROJECT_ID" != "happybuffet-test"/);
 });
+
+test("both Firebase client modules stay on the isolated test project and SDK version", () => {
+  const config = read("firebase/firebase-config.js");
+  const firestore = read("firebase/firestore.js");
+  assert.match(config, /projectId: "happybuffet-test"/);
+  assert.match(firestore, /projectId: "happybuffet-test"/);
+  assert.doesNotMatch(config + firestore, /projectId: "todaymenu-30fe7"/);
+  assert.doesNotMatch(firestore, /firebasejs\/11\.10\.0/);
+  assert.match(firestore, /firebasejs\/12\.0\.0/);
+});

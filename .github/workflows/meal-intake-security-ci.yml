@@ -1,0 +1,30 @@
+name: Meal Intake Security Validation
+
+on:
+  pull_request:
+    branches:
+      - feature/meal-management-tablet
+    paths:
+      - "functions/**"
+      - "meal-management/**"
+      - "firebase/**"
+      - "firestore.rules"
+      - "firebase.json"
+      - "tests/meal-intake-security.test.cjs"
+      - ".github/workflows/meal-intake-security-ci.yml"
+  push:
+    branches:
+      - fix/secure-meal-intake-rules
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check Cloud Functions syntax
+        run: node --check functions/index.js
+      - name: Run security regression tests
+        run: node --test tests/meal-intake-security.test.cjs

@@ -38,12 +38,24 @@ test("Firestore denies anonymous access except read-only public menu data", () =
   assert.match(rules, /match \/\{document=\*\*\}[\s\S]*?allow read, write: if isAdmin\(\);/);
 });
 
-test("test deployment is pinned to the isolated Firebase project", () => {
+test("test preview deploys Hosting only to the isolated Spark project", () => {
   const workflow = read(".github/workflows/firebase-hosting-mobile-test.yml");
   assert.match(workflow, /TEST_PROJECT_ID" != "happybuffet-test"/);
-  assert.match(workflow, /firebase deploy --only firestore:rules,functions/);
   assert.match(workflow, /firebase hosting:channel:deploy mobile-test/);
-  assert.match(workflow, /TEST_PROJECT_ID" != "happybuffet-test"/);
+  assert.doesNotMatch(workflow, /firebase deploy|functions|firestore:rules/);
+  assert.equal(
+    fs.existsSync(path.join(__dirname, "..", ".github/workflows/deploy-firebase-backend.yml")),
+    false,
+    "Cloud Functions backend deployment workflow must not be present in the free-only branch"
+  );
+});
+
+test("admin menu initializes only after successful Google admin authentication", () => {
+  const auth = read("admin/auth.js");
+  const app = read("admin/app.js");
+  assert.match(auth, /happybuffet-admin-auth-ready/);
+  assert.match(app, /happybuffet-admin-auth-ready/);
+  assert.doesNotMatch(app, /document\.addEventListener\("DOMContentLoaded", init/);
 });
 
 test("both Firebase client modules stay on the isolated test project and SDK version", () => {

@@ -847,3 +847,61 @@ body.company-management-open .topButtons button[onclick*="recommendations.html"]
   .roster-manager-panel .company-manager-actions { flex-direction:column; }
   .roster-manager-panel .company-manager-actions button { width:100%; min-height:46px; }
 }
+
+
+/* Admin display orientation selector */
+.displayOrientationArea {
+    max-width: 1200px;
+    margin: 18px auto 0;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #dfe5ec;
+    border-radius: 12px;
+}
+.displayOrientationArea h2 { font-size: 18px; margin-bottom: 5px; }
+.orientation-help { color: #667085; font-size: 13px; line-height: 1.5; }
+.displayOrientationOptions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+.orientation-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 190px;
+    padding: 12px 16px;
+    border: 2px solid #d8dfe8;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+}
+.orientation-option:has(input:checked) {
+    border-color: #1976d2;
+    background: #f0f6ff;
+}
+.orientation-option input {
+    width: 18px;
+    height: 18px;
+    accent-color: #1976d2;
+}
+.orientation-option strong,
+.orientation-option small { display: block; }
+.orientation-option strong { font-size: 15px; color: #1d2939; }
+.orientation-option small { margin-top: 3px; color: #667085; font-size: 12px; }
+.orientation-preview {
+    display: block;
+    flex: 0 0 auto;
+    border: 2px solid #667085;
+    border-radius: 3px;
+    background: repeating-linear-gradient(to bottom, #dce7f5 0 4px, #fff 4px 8px);
+}
+.portrait-preview { width: 26px; height: 42px; }
+.landscape-preview { width: 48px; height: 28px; }
+@media (max-width: 768px) {
+    .displayOrientationArea { margin: 12px; padding: 14px; }
+    .displayOrientationOptions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .orientation-option { min-width: 0; padding: 10px; gap: 8px; }
+    .landscape-preview { width: 38px; height: 24px; }
+}

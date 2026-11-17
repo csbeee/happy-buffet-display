@@ -1,12 +1,13 @@
-name: Firebase Test Environment Deploy
+name: Firebase Test Hosting Preview
 
-# Manual-only test deployment. This workflow refuses the production project.
+# Manual-only preview deployment. Spark/free compatible: Hosting only.
+# This workflow never deploys Cloud Functions, Firestore rules, or production.
 on:
   workflow_dispatch:
 
 jobs:
-  deploy_test:
-    name: Deploy rules, functions and mobile preview to test Firebase
+  deploy_test_hosting:
+    name: Deploy admin/menu preview to happybuffet-test Hosting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout selected test branch
@@ -18,15 +19,15 @@ jobs:
           TEST_TOKEN: ${{ secrets.FIREBASE_TEST_TOKEN }}
         run: |
           if [ -z "$TEST_PROJECT_ID" ] || [ -z "$TEST_TOKEN" ]; then
-            echo "Missing FIREBASE_TEST_PROJECT_ID or FIREBASE_TEST_TOKEN. No deployment performed."
+            echo "Missing test Firebase secrets. No deployment performed."
             exit 1
           fi
           if [ "$TEST_PROJECT_ID" != "happybuffet-test" ]; then
-            echo "Refusing deployment: this workflow is restricted to happybuffet-test."
+            echo "Refusing deployment: only happybuffet-test is allowed."
             exit 1
           fi
           if [ "$TEST_PROJECT_ID" = "todaymenu-30fe7" ]; then
-            echo "Production deployment is forbidden in this workflow."
+            echo "Production deployment is forbidden."
             exit 1
           fi
 
@@ -35,25 +36,11 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Firebase CLI and Functions dependencies
-        run: |
-          npm install --global firebase-tools
-          npm install --prefix functions --no-audit --no-fund
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools
 
-      - name: Validate backend JavaScript
-        run: node --check functions/index.js
-
-      - name: Run security regression tests
-        run: node --test tests/*.test.cjs
-
-      - name: Deploy Firestore rules and callable Cloud Functions to test only
+      - name: Deploy preview channel to test Hosting only
         env:
           TEST_PROJECT_ID: ${{ secrets.FIREBASE_TEST_PROJECT_ID }}
           TEST_TOKEN: ${{ secrets.FIREBASE_TEST_TOKEN }}
-        run: firebase deploy --only firestore:rules,functions --project "$TEST_PROJECT_ID" --token "$TEST_TOKEN" --non-interactive
-
-      - name: Deploy mobile preview channel to test only
-        env:
-          TEST_PROJECT_ID: ${{ secrets.FIREBASE_TEST_PROJECT_ID }}
-          TEST_TOKEN: ${{ secrets.FIREBASE_TEST_TOKEN }}
-        run: firebase hosting:channel:deploy mobile-test --project "$TEST_PROJECT_ID" --token "$TEST_TOKEN" --expires 30d
+        run: firebase hosting:channel:deploy mobile-test --project "$TEST_PROJECT_ID" --token "$TEST_TOKEN" --expires 30d --non-interactive

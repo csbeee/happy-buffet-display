@@ -1109,3 +1109,118 @@ body[data-orientation="landscape"] #updatedAt {
         font-size: clamp(32px, 2.2vw, 40px) !important;
     }
 }
+
+
+/* =========================================================
+   25. LANDSCAPE LAYOUT REFINEMENT
+   메뉴 간격 축소 / 반찬 줄바꿈 방지 / 시안에 가까운 정돈된 배치
+   세로형 화면은 변경하지 않음
+   ========================================================= */
+@media (orientation: landscape) {
+  body[data-orientation="landscape"] #normalLayout {
+    grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr) minmax(230px, 0.62fr);
+    grid-template-rows: 64px minmax(0, 0.9fr) minmax(0, 1.1fr) auto;
+    grid-template-areas:
+      "today today dessert"
+      "soup side dessert"
+      "main kimchi dessert"
+      "notice notice notice";
+    column-gap: 24px;
+    row-gap: 8px;
+  }
+
+  /* 오늘의 메뉴 제목은 시안처럼 왼쪽 메뉴 영역 위에 */
+  body[data-orientation="landscape"] #normalLayout::before {
+    grid-area: today;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0 4px 8px;
+    border-bottom: 2px solid #d8e2e8;
+  }
+
+  /* 국/메인: 목록을 가운데로 모으되 항목 사이의 과도한 간격 제거 */
+  body[data-orientation="landscape"] #card-soup ul,
+  body[data-orientation="landscape"] #card-main ul {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 4px;
+  }
+  body[data-orientation="landscape"] #card-soup li,
+  body[data-orientation="landscape"] #card-main li {
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 3px 0;
+    margin: 0;
+    line-height: 1.18;
+  }
+  body[data-orientation="landscape"] #card-soup .title,
+  body[data-orientation="landscape"] #card-main .title {
+    display: block;
+    width: 100%;
+    font-size: clamp(44px, 3.15vw, 60px) !important;
+    line-height: 1.2;
+    letter-spacing: -1.5px;
+    font-weight: 800;
+  }
+
+  /* 반찬/김치 열을 넓히고 한 줄 표시 우선 */
+  body[data-orientation="landscape"] #card-side ul,
+  body[data-orientation="landscape"] #card-kimchi ul {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 2px;
+  }
+  body[data-orientation="landscape"] #card-side li,
+  body[data-orientation="landscape"] #card-kimchi li {
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 3px 0;
+    margin: 0;
+    line-height: 1.2;
+  }
+  body[data-orientation="landscape"] #card-side .title,
+  body[data-orientation="landscape"] #card-kimchi .title {
+    display: block;
+    width: 100%;
+    font-size: clamp(28px, 1.95vw, 37px) !important;
+    line-height: 1.22;
+    letter-spacing: -1.1px;
+    font-weight: 750;
+    white-space: nowrap !important;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  /* 후식은 별도 패널, 전체 메뉴와 같은 타이포그래피 */
+  body[data-orientation="landscape"] #card-dessert .title {
+    font-size: clamp(30px, 2.05vw, 39px);
+    line-height: 1.25;
+    letter-spacing: -1px;
+  }
+}
+
+/* 낮은 높이의 일반 가로형 모니터 */
+@media (max-height: 850px) and (orientation: landscape) {
+  body[data-orientation="landscape"] #normalLayout {
+    grid-template-rows: 54px minmax(0, 0.9fr) minmax(0, 1.1fr) auto;
+    row-gap: 5px;
+  }
+  body[data-orientation="landscape"] #card-soup .title,
+  body[data-orientation="landscape"] #card-main .title {
+    font-size: clamp(40px, 2.9vw, 54px) !important;
+  }
+  body[data-orientation="landscape"] #card-side .title,
+  body[data-orientation="landscape"] #card-kimchi .title {
+    font-size: clamp(26px, 1.8vw, 34px) !important;
+  }
+}

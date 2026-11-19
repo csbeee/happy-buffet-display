@@ -34,6 +34,11 @@ body {
     overflow-x: hidden;
 }
 
+/* 세로형 전광판에서는 상단 '점심 메뉴/저녁 메뉴' 제목을 표시하지 않습니다. */
+body[data-orientation="portrait"] #mealLabel {
+    display: none !important;
+}
+
 /* 02. MAIN DISPLAY */
 .container {
     width: 1080px;

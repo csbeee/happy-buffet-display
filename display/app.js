@@ -447,6 +447,24 @@ function renderNormal(menu) {
         toggleCard("card-" + key, values[key]);
     }
 
+    // 가로형에서는 김치를 별도 영역으로 나누지 않고 반찬 목록에 합칩니다.
+    // 원본 Firestore 데이터와 세로형 표시 방식은 그대로 유지합니다.
+    if (document.body.dataset.orientation === "landscape") {
+        const combinedSides = [
+            ...values.side,
+            ...values.kimchi
+        ];
+
+        values.side = combinedSides;
+        values.kimchi = [];
+
+        draw("side", combinedSides);
+        toggleCard("card-side", combinedSides);
+
+        draw("kimchi", []);
+        toggleCard("card-kimchi", []);
+    }
+
     drawNotice(dinnerMode ? (dinner.notice || menu.notice) : menu.notice);
     drawUpdatedTime(menu.updatedAt);
 }

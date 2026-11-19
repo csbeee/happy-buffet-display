@@ -1484,3 +1484,128 @@ body[data-orientation="landscape"] #updatedAt {
     font-size: clamp(32px, 2.1vw, 38px) !important;
   }
 }
+
+
+/* =========================================================
+   28. LANDSCAPE VISUAL BALANCE
+   실제 16:9 전광판 기준: 제목 띠 제거, 3열 글자 균형 조정
+   상단 헤더/하단 안내 및 세로형은 유지
+   ========================================================= */
+@media (orientation: landscape) {
+  body[data-orientation="landscape"] #normalLayout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr) minmax(0, 0.86fr) !important;
+    grid-template-rows: 52px minmax(0, 0.9fr) minmax(0, 1.1fr) auto !important;
+    grid-template-areas:
+      "today today dessert"
+      "soup side dessert"
+      "main side dessert"
+      "notice notice notice" !important;
+    column-gap: clamp(18px, 1.8vw, 28px) !important;
+    row-gap: 6px !important;
+  }
+
+  /* 빨간 배너 대신 본문 제목처럼 절제된 스타일 */
+  body[data-orientation="landscape"] #normalLayout::before {
+    background: transparent !important;
+    color: #17364a !important;
+    border: 0 !important;
+    border-bottom: 2px solid #d7e1e8 !important;
+    border-radius: 0 !important;
+    padding: 0 2px 8px !important;
+    font-size: clamp(30px, 2.05vw, 38px) !important;
+    letter-spacing: -1.2px !important;
+  }
+
+  body[data-orientation="landscape"] #card-soup,
+  body[data-orientation="landscape"] #card-main,
+  body[data-orientation="landscape"] #card-side,
+  body[data-orientation="landscape"] #card-dessert {
+    padding: 6px 2px !important;
+  }
+
+  body[data-orientation="landscape"] #card-soup::before,
+  body[data-orientation="landscape"] #card-main::before,
+  body[data-orientation="landscape"] #card-side::before,
+  body[data-orientation="landscape"] #card-dessert::before {
+    margin-bottom: 10px !important;
+    color: #17364a !important;
+    font-size: clamp(24px, 1.55vw, 30px) !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.6px !important;
+  }
+
+  /* 국과 메인은 강조하되 지나치게 커지지 않도록 통일 */
+  body[data-orientation="landscape"] #card-soup ul,
+  body[data-orientation="landscape"] #card-main ul {
+    height: calc(100% - 40px) !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 0 !important;
+  }
+
+  body[data-orientation="landscape"] #card-soup .title,
+  body[data-orientation="landscape"] #card-main .title {
+    color: #17364a !important;
+    font-size: clamp(42px, 2.65vw, 50px) !important;
+    line-height: 1.18 !important;
+    letter-spacing: -1.2px !important;
+    font-weight: 850 !important;
+  }
+
+  /* 반찬은 한 줄 정렬, 항목 사이 간격과 글자 크기를 안정화 */
+  body[data-orientation="landscape"] #card-side ul {
+    height: calc(100% - 40px) !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    padding: 0 !important;
+  }
+
+  body[data-orientation="landscape"] #card-side li {
+    padding: 2px 0 !important;
+  }
+
+  body[data-orientation="landscape"] #card-side .title {
+    color: #263f50 !important;
+    font-size: clamp(32px, 2.25vw, 42px) !important;
+    line-height: 1.18 !important;
+    letter-spacing: -0.9px !important;
+    font-weight: 800 !important;
+  }
+
+  /* 후식은 반찬보다 약간 작게, 대신 읽기 쉬운 크기로 */
+  body[data-orientation="landscape"] #card-dessert ul {
+    height: calc(100% - 40px) !important;
+    justify-content: center !important;
+    gap: 16px !important;
+    padding: 0 2px !important;
+  }
+
+  body[data-orientation="landscape"] #card-dessert .title {
+    color: #263f50 !important;
+    font-size: clamp(31px, 2.15vw, 40px) !important;
+    line-height: 1.22 !important;
+    letter-spacing: -0.8px !important;
+    font-weight: 800 !important;
+  }
+}
+
+/* 1366x768급 낮은 화면에서도 메뉴가 잘리지 않도록 여백만 추가 축소 */
+@media (max-height: 850px) and (orientation: landscape) {
+  body[data-orientation="landscape"] #normalLayout {
+    grid-template-rows: 44px minmax(0, 0.9fr) minmax(0, 1.1fr) auto !important;
+    row-gap: 4px !important;
+  }
+
+  body[data-orientation="landscape"] #card-soup .title,
+  body[data-orientation="landscape"] #card-main .title {
+    font-size: clamp(38px, 2.5vw, 46px) !important;
+  }
+
+  body[data-orientation="landscape"] #card-side .title {
+    font-size: clamp(30px, 2.05vw, 38px) !important;
+  }
+
+  body[data-orientation="landscape"] #card-dessert .title {
+    font-size: clamp(29px, 1.95vw, 36px) !important;
+  }
+}

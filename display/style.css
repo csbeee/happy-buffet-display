@@ -1224,3 +1224,216 @@ body[data-orientation="landscape"] #updatedAt {
     font-size: clamp(26px, 1.8vw, 34px) !important;
   }
 }
+
+
+/* =========================================================
+   26. LANDSCAPE THREE-COLUMN MENU
+   상단 헤더와 하단 푸터는 기존 스타일 유지
+   본문만 메인/반찬/후식 3열로 재배치
+   세로형 화면에는 영향 없음
+   ========================================================= */
+@media (orientation: landscape) {
+  body[data-orientation="landscape"] #normalLayout {
+    display: grid;
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.12fr) minmax(230px, 0.72fr);
+    grid-template-rows: 58px minmax(0, 0.85fr) minmax(0, 1.15fr) auto;
+    grid-template-areas:
+      "today today dessert"
+      "soup side dessert"
+      "main side dessert"
+      "notice notice notice";
+    column-gap: clamp(18px, 2vw, 32px);
+    row-gap: 8px;
+    align-content: stretch;
+  }
+
+  body[data-orientation="landscape"] #normalLayout::before {
+    content: "오늘의 메뉴";
+    grid-area: today;
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    padding: 4px 2px 10px;
+    color: #17364a;
+    font-size: clamp(30px, 2.15vw, 40px);
+    font-weight: 850;
+    letter-spacing: -1.2px;
+    border-bottom: 2px solid #d8e2e8;
+  }
+
+  body[data-orientation="landscape"] #mealLabel {
+    display: none !important;
+  }
+
+  body[data-orientation="landscape"] #card-soup { grid-area: soup; }
+  body[data-orientation="landscape"] #card-main { grid-area: main; }
+  body[data-orientation="landscape"] #card-side { grid-area: side; }
+  body[data-orientation="landscape"] #card-dessert { grid-area: dessert; }
+
+  /* 김치 카드는 숨기고, JS에서 김치 메뉴를 반찬 목록에 합칩니다. */
+  body[data-orientation="landscape"] #card-kimchi {
+    display: none !important;
+  }
+
+  body[data-orientation="landscape"] .bottom-row {
+    display: contents !important;
+  }
+
+  /* 본문 카테고리는 카드 없이 제목과 메뉴만 표시 */
+  body[data-orientation="landscape"] #card-soup,
+  body[data-orientation="landscape"] #card-main,
+  body[data-orientation="landscape"] #card-side,
+  body[data-orientation="landscape"] #card-dessert {
+    min-width: 0;
+    min-height: 0;
+    overflow: visible;
+    padding: 8px 2px;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body[data-orientation="landscape"] #card-soup .menu-title,
+  body[data-orientation="landscape"] #card-main .menu-title,
+  body[data-orientation="landscape"] #card-side .menu-title,
+  body[data-orientation="landscape"] #card-dessert .menu-title {
+    display: none !important;
+  }
+
+  body[data-orientation="landscape"] #card-soup::before,
+  body[data-orientation="landscape"] #card-main::before,
+  body[data-orientation="landscape"] #card-side::before,
+  body[data-orientation="landscape"] #card-dessert::before {
+    display: block;
+    margin: 0 0 12px;
+    color: #526675;
+    font-size: clamp(24px, 1.7vw, 32px);
+    font-weight: 850;
+    letter-spacing: -0.8px;
+    line-height: 1.2;
+  }
+
+  body[data-orientation="landscape"] #card-soup::before { content: "국 / 찌개"; }
+  body[data-orientation="landscape"] #card-main::before { content: "메인 메뉴"; }
+  body[data-orientation="landscape"] #card-side::before { content: "반찬"; }
+  body[data-orientation="landscape"] #card-dessert::before { content: "후식"; }
+
+  body[data-orientation="landscape"] #card-soup ul,
+  body[data-orientation="landscape"] #card-main ul {
+    height: calc(100% - 42px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    padding: 4px 0;
+  }
+
+  body[data-orientation="landscape"] #card-soup li,
+  body[data-orientation="landscape"] #card-main li {
+    min-width: 0;
+    min-height: 0;
+    padding: 4px 0;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  body[data-orientation="landscape"] #card-soup .title,
+  body[data-orientation="landscape"] #card-main .title {
+    display: block;
+    width: 100%;
+    color: #17364a;
+    font-size: clamp(48px, 3.3vw, 64px) !important;
+    font-weight: 850;
+    line-height: 1.2;
+    letter-spacing: -1.6px;
+    white-space: nowrap;
+  }
+
+  /* 반찬은 김치까지 한 목록으로, 한 줄씩 세로 정렬 */
+  body[data-orientation="landscape"] #card-side ul,
+  body[data-orientation="landscape"] #card-side ul.two-column {
+    height: calc(100% - 42px);
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 2px 0;
+  }
+
+  body[data-orientation="landscape"] #card-side li {
+    min-width: 0;
+    min-height: 0;
+    padding: 2px 0;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  body[data-orientation="landscape"] #card-side .title {
+    display: block;
+    width: 100%;
+    color: #294657;
+    font-size: clamp(29px, 2.05vw, 39px) !important;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -1px;
+    white-space: nowrap !important;
+  }
+
+  /* 후식은 오른쪽 독립 영역, 카드 배경 없이 반찬과 같은 표현 */
+  body[data-orientation="landscape"] #card-dessert ul {
+    height: calc(100% - 42px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding: 4px 0;
+  }
+
+  body[data-orientation="landscape"] #card-dessert li {
+    min-width: 0;
+    min-height: 0;
+    padding: 4px 0;
+    border: 0 !important;
+    background: transparent !important;
+    text-align: left;
+  }
+
+  body[data-orientation="landscape"] #card-dessert .title {
+    display: block;
+    width: 100%;
+    color: #294657;
+    font-size: clamp(27px, 1.9vw, 36px) !important;
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: -0.9px;
+    white-space: normal;
+  }
+
+  /* 안내 문구 영역과 footer는 기존 디자인 유지 */
+  body[data-orientation="landscape"] #noticeCard {
+    grid-area: notice;
+  }
+}
+
+@media (max-height: 850px) and (orientation: landscape) {
+  body[data-orientation="landscape"] #normalLayout {
+    grid-template-rows: 48px minmax(0, 0.85fr) minmax(0, 1.15fr) auto;
+    row-gap: 5px;
+  }
+
+  body[data-orientation="landscape"] #card-soup .title,
+  body[data-orientation="landscape"] #card-main .title {
+    font-size: clamp(42px, 3vw, 56px) !important;
+  }
+
+  body[data-orientation="landscape"] #card-side .title {
+    font-size: clamp(26px, 1.85vw, 34px) !important;
+  }
+
+  body[data-orientation="landscape"] #card-dessert .title {
+    font-size: clamp(24px, 1.7vw, 32px) !important;
+  }
+}

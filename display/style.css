@@ -1437,3 +1437,50 @@ body[data-orientation="landscape"] #updatedAt {
     font-size: clamp(24px, 1.7vw, 32px) !important;
   }
 }
+
+
+/* =========================================================
+   27. LANDSCAPE READABILITY BOOST
+   반찬/후식 글자 확대 및 제목 대비 강화
+   상단/하단과 세로형 레이아웃은 유지
+   ========================================================= */
+@media (orientation: landscape) {
+  body[data-orientation="landscape"] #normalLayout::before {
+    color: #102a43 !important;
+    font-weight: 900;
+  }
+
+  body[data-orientation="landscape"] #card-soup::before,
+  body[data-orientation="landscape"] #card-main::before,
+  body[data-orientation="landscape"] #card-side::before,
+  body[data-orientation="landscape"] #card-dessert::before {
+    color: #102a43 !important;
+    font-weight: 900;
+  }
+
+  body[data-orientation="landscape"] #card-side .title {
+    color: #172b3a !important;
+    font-size: clamp(36px, 2.5vw, 46px) !important;
+    font-weight: 850;
+    line-height: 1.2;
+    letter-spacing: -1.1px;
+  }
+
+  body[data-orientation="landscape"] #card-dessert .title {
+    color: #172b3a !important;
+    font-size: clamp(34px, 2.2vw, 40px) !important;
+    font-weight: 850;
+    line-height: 1.25;
+    letter-spacing: -1px;
+  }
+}
+
+@media (max-height: 850px) and (orientation: landscape) {
+  body[data-orientation="landscape"] #card-side .title {
+    font-size: clamp(34px, 2.35vw, 42px) !important;
+  }
+
+  body[data-orientation="landscape"] #card-dessert .title {
+    font-size: clamp(32px, 2.1vw, 38px) !important;
+  }
+}

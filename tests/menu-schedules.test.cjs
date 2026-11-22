@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const zlib = require('node:zlib');
+const { spawnSync } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
@@ -43,4 +44,14 @@ test('admin page exposes bulk import and per-date editing', () => {
   assert.ok(source.includes('importMenuSchedules(records)'));
   assert.ok(source.includes('saveMenuSchedule(updated)'));
   assert.ok(source.includes('menu-schedules-2026.json.gz'));
+});
+
+test('menu schedule browser and Firestore modules pass JavaScript syntax checks', () => {
+  for (const file of ['admin/menu-schedules.js', 'firebase/firestore.js']) {
+    const result = spawnSync(process.execPath, ['--input-type=module', '--check'], {
+      input: read(file),
+      encoding: 'utf8'
+    });
+    assert.equal(result.status, 0, file + ': ' + result.stderr);
+  }
 });

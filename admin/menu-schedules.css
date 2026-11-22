@@ -13,7 +13,7 @@ body{margin:0;background:#f4f6f9;color:#263238;font-family:"Noto Sans KR",-apple
 .panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
 .panel-heading h2{margin:0 0 5px;font-size:19px}
 .source-tag{white-space:nowrap;padding:5px 9px;border-radius:7px;background:#edf3f0;color:#315b4b;font-size:12px;font-weight:700}
-.status-line{min-height:22px;margin:8px 0;color:#52636e;font-size:13px}
+.status-line{min-height:22px;margin:8px 0;color:#52636e;font-size:13px}.status-line.error{color:#b42318}
 .dataset-summary{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
 .summary-chip{padding:7px 10px;border-radius:8px;background:#f1f4f6;color:#34434d;font-size:13px}
 .table-wrap{overflow:auto;max-height:360px;border:1px solid #e7ebee;border-radius:9px}
@@ -37,7 +37,7 @@ select{min-width:190px;min-height:40px;padding:8px 10px;border:1px solid #d4dde2
 .meal-editor{padding:16px;border:1px solid #e5eaed;border-radius:10px;background:#fbfcfc}
 .meal-editor h3{margin:0 0 12px;font-size:17px}
 .meal-editor label{display:block;margin:12px 0 0;font-size:13px;font-weight:700}
-textarea{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #d7dfe3;border-radius:8px;background:#fff;color:#263238;font:14px/1.6 inherit;resize:vertical}
+textarea{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #d7dfe3;border-radius:8px;background:#fff;color:#263238;font:inherit;font-size:14px;line-height:1.6;resize:vertical}
 .editor-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
 [hidden]{display:none!important}
 @media(max-width:720px){.topbar{align-items:flex-start;flex-direction:column;padding:12px 16px}.admin-brand h1{font-size:19px}.schedule-page{width:calc(100% - 22px);margin-top:16px}.schedule-panel{padding:15px}.panel-heading{flex-direction:column}.meal-editor-grid{grid-template-columns:1fr}.schedule-intro h2{font-size:21px}}

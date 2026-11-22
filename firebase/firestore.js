@@ -158,7 +158,7 @@ export function watchTodayMenu(callback) {
 }
 
 export async function getMenuSchedule(date) {
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(date || ""))) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || ""))) {
         throw new Error("날짜 형식이 올바르지 않습니다.");
     }
     const snapshot = await getDoc(doc(db, "menuSchedules", date));
@@ -166,7 +166,7 @@ export async function getMenuSchedule(date) {
 }
 
 export async function saveMenuSchedule(record) {
-    if (!record?.date || !/^\\d{4}-\\d{2}-\\d{2}$/.test(record.date)) {
+    if (!record?.date || !/^\d{4}-\d{2}-\d{2}$/.test(record.date)) {
         throw new Error("저장할 날짜가 올바르지 않습니다.");
     }
     await setDoc(
@@ -185,7 +185,7 @@ export async function importMenuSchedules(records) {
     for (let offset = 0; offset < records.length; offset += 400) {
         const batch = writeBatch(db);
         records.slice(offset, offset + 400).forEach(record => {
-            if (!record?.date || !/^\\d{4}-\\d{2}-\\d{2}$/.test(record.date)) {
+            if (!record?.date || !/^\d{4}-\d{2}-\d{2}$/.test(record.date)) {
                 throw new Error("날짜 형식이 올바르지 않은 메뉴 데이터가 포함되어 있습니다.");
             }
             batch.set(doc(db, "menuSchedules", record.date), {

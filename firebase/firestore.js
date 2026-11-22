@@ -71,16 +71,134 @@ export async function getTodayMenu() {
 
 // 🔥여기에 이 실시간 경청 함수를 새로 추가해 줍니다!
 export function watchTodayMenu(callback) {
-    // TODAY_DOC(todayMenu/today) 문서의 변경 사항을 실시간으로 감시합니다.
-    return onSnapshot(TODAY_DOC, (snapshot) => {
-        if (snapshot.exists()) {
-            callback(snapshot.data()); // 데이터가 있으면 화면을 그리는 콜백 함수에 데이터 전달
-        } else {
-            callback(null);
+    let todayMenu = null;
+    let todaySchedule = null;
+    let watchedDate = "";
+    let stopSchedule = null;
+
+    const getKoreaDate = () => new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(new Date());
+
+    const emit = () => {
+        if (!todaySchedule) {
+            callback(todayMenu);
+            return;
         }
-    }, (error) => {
-        console.error("오늘 메뉴 실시간 감지 실패:", error);
-    });
+
+        const lunch = todaySchedule.lunch || {};
+        const dinner = todaySchedule.dinner || {};
+        const toItems = value => Array.isArray(value) ? value.filter(item => typeof item === "string" && item.trim()) : [];
+        const toNotice = value => Array.isArray(value) ? value.filter(Boolean).join(" · ") : (typeof value === "string" ? value : "");
+
+        callback({
+            ...(todayMenu || {}),
+            soup: toItems(lunch.soup),
+            main: toItems(lunch.main),
+            side: [...toItems(lunch.side), ...toItems(lunch.service)],
+            kimchi: [],
+            dessert: toItems(lunch.dessert),
+            notice: toNotice(lunch.notice),
+            dinner: {
+                ...(todayMenu?.dinner || {}),
+                soup: toItems(dinner.soup),
+                main: toItems(dinner.main),
+                side: [...toItems(dinner.side), ...toItems(dinner.service)],
+                kimchi: [],
+                dessert: toItems(dinner.dessert),
+                notice: toNotice(dinner.notice),
+                leftovers: []
+            },
+            displayMode: todayMenu?.displayMode === "dinner"
+                ? "dinner"
+                : todayMenu?.displayMode === "special" ? "special" : "lunch",
+            displayOrientation: todayMenu?.displayOrientation === "landscape" ? "landscape" : "portrait",
+            updatedAt: todaySchedule.updatedAt || todayMenu?.updatedAt
+        });
+    };
+
+    const watchScheduleForToday = () => {
+        const date = getKoreaDate();
+        if (date === watchedDate) return;
+
+        watchedDate = date;
+        stopSchedule?.();
+        todaySchedule = null;
+
+        stopSchedule = onSnapshot(
+            doc(db, "menuSchedules", date),
+            snapshot => {
+                todaySchedule = snapshot.exists() ? snapshot.data() : null;
+                emit();
+            },
+            error => console.error("날짜별 메뉴 실시간 감지 실패:", error)
+        );
+    };
+
+    const stopToday = onSnapshot(
+        TODAY_DOC,
+        snapshot => {
+            todayMenu = snapshot.exists() ? snapshot.data() : null;
+            emit();
+        },
+        error => console.error("오늘 메뉴 실시간 감지 실패:", error)
+    );
+
+    watchScheduleForToday();
+    const rolloverTimer = setInterval(watchScheduleForToday, 60 * 1000);
+
+    return () => {
+        stopToday();
+        stopSchedule?.();
+        clearInterval(rolloverTimer);
+    };
+}
+
+export async function getMenuSchedule(date) {
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(date || ""))) {
+        throw new Error("날짜 형식이 올바르지 않습니다.");
+    }
+    const snapshot = await getDoc(doc(db, "menuSchedules", date));
+    return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
+}
+
+export async function saveMenuSchedule(record) {
+    if (!record?.date || !/^\\d{4}-\\d{2}-\\d{2}$/.test(record.date)) {
+        throw new Error("저장할 날짜가 올바르지 않습니다.");
+    }
+    await setDoc(
+        doc(db, "menuSchedules", record.date),
+        { ...record, updatedAt: serverTimestamp() },
+        { merge: true }
+    );
+}
+
+export async function importMenuSchedules(records) {
+    if (!Array.isArray(records) || !records.length) {
+        throw new Error("등록할 날짜별 메뉴 데이터가 없습니다.");
+    }
+
+    // Firestore batch 한도보다 여유 있게 400건씩 저장합니다.
+    for (let offset = 0; offset < records.length; offset += 400) {
+        const batch = writeBatch(db);
+        records.slice(offset, offset + 400).forEach(record => {
+            if (!record?.date || !/^\\d{4}-\\d{2}-\\d{2}$/.test(record.date)) {
+                throw new Error("날짜 형식이 올바르지 않은 메뉴 데이터가 포함되어 있습니다.");
+            }
+            batch.set(doc(db, "menuSchedules", record.date), {
+                ...record,
+                updatedAt: serverTimestamp(),
+                importedAt: serverTimestamp(),
+                importSource: "2026-menu-history"
+            });
+        });
+        await batch.commit();
+    }
+
+    return records.length;
 }
 
 export async function saveTodayMenu(menu) {

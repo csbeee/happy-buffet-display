@@ -3,6 +3,7 @@ name: Meal Management Code Validation
 on:
   push:
     branches:
+      - main
       - test/meal-management-ci-validation
   pull_request:
     branches:

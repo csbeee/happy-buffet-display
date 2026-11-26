@@ -21,41 +21,10 @@
   <main class="schedule-page">
     <section class="schedule-intro">
       <h2>날짜별 중식 · 석식 메뉴</h2>
-      <p>2026년 4월~11월 과거 식단을 날짜별로 등록하고, 필요한 날짜의 메뉴를 수정합니다.</p>
+      <p>날짜를 선택해 중식·석식 메뉴를 조회하고 수정합니다. 저장된 메뉴는 그대로 유지됩니다.</p>
     </section>
 
-    <section class="schedule-panel" aria-labelledby="importHeading">
-      <div class="panel-heading">
-        <div>
-          <h2 id="importHeading">2026년 과거 메뉴 일괄 등록</h2>
-          <p>업로드한 식단표에서 변환한 메뉴 데이터입니다. 등록 전에 날짜 범위와 메뉴를 확인하세요.</p>
-        </div>
-        <span class="source-tag">2026년 식단표</span>
-      </div>
-      <p id="datasetStatus" class="status-line" role="status">등록 데이터를 불러오는 중입니다.</p>
-      <div id="datasetSummary" class="dataset-summary" hidden></div>
-      <div class="table-wrap">
-        <table id="previewTable">
-          <thead>
-            <tr><th>날짜</th><th>중식 메인</th><th>중식 국</th><th>석식 메인</th><th>석식 국</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="import-warning">
-        <strong>분류 확인 안내</strong>
-        <p>원본 식단표에는 메인·반찬 구분이 명시되어 있지 않아 행 순서를 기준으로 임시 분류했습니다. 원본 메뉴 순서는 보존되어 있으며, 등록 후 아래 날짜별 편집 영역에서 수정할 수 있습니다. 김치 메뉴는 반찬에 포함됩니다.</p>
-        <p id="conflictNotice" hidden></p>
-      </div>
-      <label class="confirm-line">
-        <input id="confirmImport" type="checkbox">
-        자동 분류 초안과 기존 날짜 메뉴 덮어쓰기 안내를 확인했습니다.
-      </label>
-      <button id="importBtn" class="primary" type="button" disabled>192일 메뉴를 Firestore에 등록</button>
-      <p id="importStatus" class="status-line" role="status" aria-live="polite"></p>
-    </section>
-
-    <section id="editPanel" class="schedule-panel editor-panel" hidden aria-labelledby="editHeading">
+    <section id="editPanel" class="schedule-panel editor-panel" aria-labelledby="editHeading">
       <div class="panel-heading">
         <div>
           <h2 id="editHeading">날짜별 메뉴 수정</h2>

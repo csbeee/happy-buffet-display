@@ -51,6 +51,7 @@ let rosterMembers = [];
 let checkedRosterIds = new Set();
 let sessionGroupNumbers = new Map();
 let rosterLoadFailed = false;
+let claimedRosterIds = new Set();
 
 function getKoreaSessionLabel() {
   const now = new Date();
@@ -183,6 +184,10 @@ function clearSignatureForNewEntry() {
   signatureMessage.textContent = "위 영역에 서명해 주세요.";
 }
 
+function getRosterClaimScope(companyId, serviceDate, mealPeriod) {
+  return `${companyId}_${serviceDate}_${mealPeriod}`;
+}
+
 function getServicePeriod() {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Seoul",
@@ -308,6 +313,10 @@ async function loadRosterForCompany(company) {
       .map((item) => ({ id: item.id, ...item.data() }))
       .filter((member) => member.active !== false && typeof member.name === "string" && member.name.trim())
       .sort((a, b) => String(a.name).localeCompare(String(b.name), "ko"));
+    const { serviceDate, mealPeriod } = getServicePeriod();
+    const claimScope = getRosterClaimScope(company.id, serviceDate, mealPeriod);
+    const claimSnapshot = await getDocs(collection(db, "mealRosterClaims", claimScope, "members"));
+    claimedRosterIds = new Set(claimSnapshot.docs.map((claim) => claim.id));
     rosterSection.hidden = rosterMembers.length === 0;
     updateEntryModeVisibility();
     renderRoster();
@@ -331,8 +340,11 @@ function renderRoster() {
     const label = document.createElement("label");
     label.className = "roster-member" + (checkedRosterIds.has(member.id) ? " checked" : "");
     const checkbox = document.createElement("input");
+    const alreadyClaimed = claimedRosterIds.has(member.id);
     checkbox.type = "checkbox";
     checkbox.checked = checkedRosterIds.has(member.id);
+    checkbox.disabled = alreadyClaimed;
+    if (alreadyClaimed) label.classList.add("already-claimed");
     checkbox.addEventListener("change", () => {
       if (checkbox.checked) checkedRosterIds.add(member.id);
       else checkedRosterIds.delete(member.id);
@@ -341,7 +353,7 @@ function renderRoster() {
       rosterCountLabel.textContent = `${checkedRosterIds.size}/${rosterMembers.length}명 선택`;
     });
     const name = document.createElement("span");
-    name.textContent = member.name;
+    name.textContent = alreadyClaimed ? `${member.name} · 이미 접수됨` : member.name;
     label.append(checkbox, name);
     rosterList.append(label);
   });
@@ -434,8 +446,16 @@ reviewEntryButton.addEventListener("click", async () => {
   }
   if (count < 1 || count > 500) { entryMessage.textContent = "계산된 식수는 1~500명이어야 합니다."; return; }
   if (!signatureHasInk) { entryMessage.textContent = "서명을 입력해 주세요."; return; }
+  if (getRosterCount() === 0) {
+    const confirmedTotalOnly = window.confirm(
+      "사전 등록 명단을 선택하지 않고 총 인원으로 접수합니다.\n\n총 인원 입력은 이미 접수된 사람인지 자동으로 확인할 수 없어 중복 접수될 수 있습니다. 계속 저장할까요?"
+    );
+    if (!confirmedTotalOnly) return;
+  }
 
-  const mode = rosterMembers.length > 0 ? "mixed" : "total";
+  const mode = getRosterCount() > 0
+    ? (getAdditionalCount() > 0 ? "mixed" : "roster")
+    : "total";
   const groupNo = Number(groupNumberInput.value) || 1;
   const signatureDataUrl = signatureCanvas.toDataURL("image/png");
   if (!signatureDataUrl.startsWith("data:image/png;base64,") || signatureDataUrl.length > 200000) {
@@ -450,6 +470,11 @@ reviewEntryButton.addEventListener("click", async () => {
     const submissionId = crypto.randomUUID();
     const entryRef = doc(collection(db, "mealEntries"));
     const counterRef = doc(db, "mealEntryCounters", `${selectedCompany.id}_${serviceDate}_${mealPeriod}`);
+    const claimScope = getRosterClaimScope(selectedCompany.id, serviceDate, mealPeriod);
+    const rosterClaims = [...checkedRosterIds].map((rosterId) => ({
+      rosterId,
+      ref: doc(db, "mealRosterClaims", claimScope, "members", rosterId)
+    }));
     const savedMealPrice = Number(selectedCompany.mealPrice ?? 7000);
     if (!Number.isInteger(savedMealPrice) || savedMealPrice < 0 || savedMealPrice > 1000000) {
       throw new Error("거래처의 1인 식대 설정을 확인해 주세요.");
@@ -457,6 +482,13 @@ reviewEntryButton.addEventListener("click", async () => {
     const savedTotalAmount = savedMealPrice * count;
     const savedGroupNo = await runTransaction(db, async (transaction) => {
       const counterSnap = await transaction.get(counterRef);
+      const claimSnapshots = await Promise.all(rosterClaims.map(({ ref }) => transaction.get(ref)));
+      const duplicateNames = claimSnapshots
+        .map((claim, index) => claim.exists() ? rosterMembers.find((member) => member.id === rosterClaims[index].rosterId)?.name || rosterClaims[index].rosterId : null)
+        .filter(Boolean);
+      if (duplicateNames.length) {
+        throw new Error(`이미 접수된 명단입니다: ${duplicateNames.join(", ")}. 명단을 새로고침한 뒤 확인해 주세요.`);
+      }
       const nextGroup = (Number(counterSnap.exists() ? counterSnap.data().lastGroupNumber : 0) || 0) + 1;
       transaction.set(counterRef, {
         companyId: selectedCompany.id,
@@ -483,10 +515,21 @@ reviewEntryButton.addEventListener("click", async () => {
         createdAt: serverTimestamp(),
         source: "meal-management-tablet"
       });
+      rosterClaims.forEach(({ rosterId, ref }) => {
+        transaction.set(ref, {
+          companyId: selectedCompany.id,
+          serviceDate,
+          mealPeriod,
+          rosterId,
+          entryId: entryRef.id,
+          createdAt: serverTimestamp()
+        });
+      });
       return nextGroup;
     });
     window.alert(`식수 접수가 저장되었습니다.\n${selectedCompany.name} / 방문 그룹 ${savedGroupNo}\n${count}명 · 합계 ${savedTotalAmount.toLocaleString("ko-KR")}원`);
     sessionGroupNumbers.set(selectedCompany.id, savedGroupNo + 1);
+    rosterClaims.forEach(({ rosterId }) => claimedRosterIds.add(rosterId));
     entryPanel.hidden = true;
     searchInput.value = "";
     renderCompanies();

@@ -25,14 +25,21 @@ test('tablet meal entry searches by company name, aliases and ledger number with
   assert.equal(html.includes('companyCode'), false);
 });
 
-test('meal entry writes visit counter and entry atomically', () => {
+test('meal entry prevents roster duplicates with atomic per-date and per-meal claims', () => {
   const source = read('meal-management/meal-entry.js');
+  const rules = read('firestore.rules');
   assert.ok(source.includes('mealEntryCounters'));
   assert.ok(source.includes('transaction.set(counterRef'));
   assert.ok(source.includes('transaction.set(entryRef'));
-  assert.ok(source.includes('signatureDataUrl'));
-  assert.ok(source.includes('representativeName: ""'));
+  assert.ok(source.includes('transaction.get(ref)'));
+  assert.ok(source.includes('mealRosterClaims'));
+  assert.ok(source.includes('이미 접수된 명단'));
+  assert.ok(source.includes('window.confirm'));
   assert.ok(source.includes('rosterIds'));
+  assert.ok(rules.includes('match /mealRosterClaims/{claimScope}/members/{rosterId}'));
+  assert.ok(rules.includes('getAfter(/databases/$(database)/documents/mealEntries/$(request.resource.data.entryId))'));
+  assert.ok(rules.includes('allow update, delete: if isAdmin();'));
+  assert.ok(rules.includes('claimScope == request.resource.data.companyId + "_"'));
 });
 
 test('meal entry and admin JavaScript parse successfully', () => {

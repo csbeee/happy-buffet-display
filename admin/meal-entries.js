@@ -6,6 +6,7 @@ const kst=(d=0)=>{const x=new Date(Date.now()+32400000);x.setUTCDate(x.getUTCDat
 const won=n=>(Number(n)||0).toLocaleString("ko-KR")+"원";
 const meal=v=>v==="dinner"?"저녁":v==="lunch"?"점심":v||"미분류";
 const safe=v=>v===null||v===undefined||v===""?"-":String(v);
+const rosterClaimScope=(companyId,serviceDate,mealPeriod)=>companyId+"_"+serviceDate+"_"+mealPeriod;
 const time=v=>{if(!v)return "-";const d=typeof v.toDate==="function"?v.toDate():new Date(v);return isNaN(d)?"-":new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d)};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function defaults(){$("startDate").value=kst(-6);$("endDate").value=kst()}
@@ -220,5 +221,37 @@ async function edit(){
   updateEditMode();await loadEditRoster();$("editDialog").showModal();
 }
 const fields=[["serviceDate","식사 날짜"],["mealPeriod","식사 구분"],["representativeName","대표자"],["entryMode","입력 방식"],["rosterIds","사전 명단"],["headcount","식수 인원"],["mealPrice","1인 식대"],["totalAmount","합계 금액"]];
-async function save(ev){ev.preventDefault();if(!selected)return;const mode=$("editEntryMode").value,extra=Number($("editAdditionalCount").value);if(!Number.isInteger(extra)||extra<0||extra>500){$("editStatus").textContent="추가 인원은 0~500명 사이의 정수로 입력해 주세요.";return}const rosterIds=mode==="total"?(Array.isArray(selected.rosterIds)?selected.rosterIds:[]):[...editRosterIds];const count=mode==="roster"?rosterIds.length:mode==="mixed"?rosterIds.length+extra:extra;const next={serviceDate:$("editDate").value,mealPeriod:$("editPeriod").value,representativeName:$("editRepresentative").value.trim(),entryMode:mode,rosterIds,headcount:count,mealPrice:Number($("editMealPrice").value)};if(!next.serviceDate||!next.representativeName||!Number.isInteger(next.headcount)||next.headcount<1||next.headcount>500||!Number.isInteger(next.mealPrice)||next.mealPrice<0||next.mealPrice>1000000){$("editStatus").textContent="날짜, 대표자, 인원(1~500명), 식대를 확인해 주세요.";return}next.totalAmount=next.headcount*next.mealPrice;const original=selected;const changed=fields.filter(([k])=>k==="rosterIds"?(JSON.stringify([...(original[k]||[])].sort())!==JSON.stringify([...(next[k]||[])].sort())):(original[k]??null)!==(next[k]??null));if(!changed.length){$("editStatus").textContent="변경된 내용이 없습니다.";return}if(!confirm("장부를 수정하고 수정 이력을 저장할까요?"))return;const btn=$("saveEditBtn");btn.disabled=true;btn.textContent="저장 중…";try{const ref=doc(db,"mealEntries",original.id),audit=doc(collection(db,"mealEntryEditHistory")),email=auth.currentUser?.email||"관리자";await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error("원본 장부가 없어 수정할 수 없습니다.");const current=snap.data(),before={};fields.forEach(([k])=>before[k]=current[k]??(k==="rosterIds"?[]:null));const actual=fields.filter(([k])=>k==="rosterIds"?(JSON.stringify([...(current[k]||[])].sort())!==JSON.stringify([...(next[k]||[])].sort())):(before[k]??null)!==(next[k]??null));if(!actual.length)throw Error("다른 사용자가 먼저 수정했습니다. 다시 조회해 주세요.");tx.update(ref,{...next,updatedAt:serverTimestamp(),lastEditedAt:serverTimestamp(),lastEditedBy:email});tx.set(audit,{entryId:original.id,companyId:current.companyId||"",companyName:current.companyName||"",before,after:{...next},changedFields:actual.map(([key,label])=>({key,label})),editorEmail:email,editedAt:serverTimestamp(),source:"admin-meal-ledger"})});$("editDialog").close();$("detailDialog").close();await load();const fresh=entries.find(x=>x.id===original.id);if(fresh)await detail(fresh)}catch(e){console.error(e);$("editStatus").textContent=e.message||"수정에 실패했습니다."}finally{btn.disabled=false;btn.textContent="수정 저장"}}
+async function save(ev){ev.preventDefault();if(!selected)return;const mode=$("editEntryMode").value,extra=Number($("editAdditionalCount").value);if(!Number.isInteger(extra)||extra<0||extra>500){$("editStatus").textContent="추가 인원은 0~500명 사이의 정수로 입력해 주세요.";return}const rosterIds=mode==="total"?(Array.isArray(selected.rosterIds)?selected.rosterIds:[]):[...editRosterIds];const count=mode==="roster"?rosterIds.length:mode==="mixed"?rosterIds.length+extra:extra;const next={serviceDate:$("editDate").value,mealPeriod:$("editPeriod").value,representativeName:$("editRepresentative").value.trim(),entryMode:mode,rosterIds,headcount:count,mealPrice:Number($("editMealPrice").value)};if(!next.serviceDate||!next.representativeName||!Number.isInteger(next.headcount)||next.headcount<1||next.headcount>500||!Number.isInteger(next.mealPrice)||next.mealPrice<0||next.mealPrice>1000000){$("editStatus").textContent="날짜, 대표자, 인원(1~500명), 식대를 확인해 주세요.";return}next.totalAmount=next.headcount*next.mealPrice;const original=selected;const changed=fields.filter(([k])=>k==="rosterIds"?(JSON.stringify([...(original[k]||[])].sort())!==JSON.stringify([...(next[k]||[])].sort())):(original[k]??null)!==(next[k]??null));if(!changed.length){$("editStatus").textContent="변경된 내용이 없습니다.";return}if(!confirm("장부를 수정하고 수정 이력을 저장할까요?"))return;const btn=$("saveEditBtn");btn.disabled=true;btn.textContent="저장 중…";try{const ref=doc(db,"mealEntries",original.id),audit=doc(collection(db,"mealEntryEditHistory")),email=auth.currentUser?.email||"관리자";await runTransaction(db,async tx=>{
+  const snap=await tx.get(ref);
+  if(!snap.exists())throw Error("원본 장부가 없어 수정할 수 없습니다.");
+  const current=snap.data(),before={};
+  fields.forEach(([k])=>before[k]=current[k]??(k==="rosterIds"?[]:null));
+  const actual=fields.filter(([k])=>k==="rosterIds"?(JSON.stringify([...(current[k]||[])].sort())!==JSON.stringify([...(next[k]||[])].sort())):(before[k]??null)!==(next[k]??null));
+  if(!actual.length)throw Error("다른 사용자가 먼저 수정했습니다. 다시 조회해 주세요.");
+  const oldIds=Array.isArray(current.rosterIds)?current.rosterIds:[];
+  const newIds=Array.isArray(next.rosterIds)?next.rosterIds:[];
+  const oldScope=rosterClaimScope(current.companyId,current.serviceDate,current.mealPeriod);
+  const newScope=rosterClaimScope(current.companyId,next.serviceDate,next.mealPeriod);
+  const oldClaims=oldIds.map(id=>doc(db,"mealRosterClaims",oldScope,"members",id));
+  const newClaims=newIds.map(id=>doc(db,"mealRosterClaims",newScope,"members",id));
+  const allClaims=[...new Map([...oldClaims,...newClaims].map(claim=>[claim.path,claim])).values()];
+  const claimSnapshots=await Promise.all(allClaims.map(claim=>tx.get(claim)));
+  const claimByPath=new Map(allClaims.map((claim,index)=>[claim.path,claimSnapshots[index]]));
+  for(const claim of newClaims){
+    const existing=claimByPath.get(claim.path);
+    if(existing?.exists()&&existing.data().entryId!==original.id){
+      throw Error("선택한 사전 명단 중 이미 다른 접수에 포함된 사람이 있습니다. 날짜와 식사 구분을 확인해 주세요.");
+    }
+  }
+  const newPaths=new Set(newClaims.map(claim=>claim.path));
+  oldClaims.forEach(claim=>{
+    if(!newPaths.has(claim.path)&&claimByPath.get(claim.path)?.exists())tx.delete(claim);
+  });
+  newClaims.forEach((claim,index)=>{
+    const rosterId=newIds[index];
+    tx.set(claim,{companyId:current.companyId,serviceDate:next.serviceDate,mealPeriod:next.mealPeriod,rosterId,entryId:original.id,createdAt:serverTimestamp()});
+  });
+  tx.update(ref,{...next,updatedAt:serverTimestamp(),lastEditedAt:serverTimestamp(),lastEditedBy:email});
+  tx.set(audit,{entryId:original.id,companyId:current.companyId||"",companyName:current.companyName||"",before,after:{...next},changedFields:actual.map(([key,label])=>({key,label})),editorEmail:email,editedAt:serverTimestamp(),source:"admin-meal-ledger"});
+});$("editDialog").close();$("detailDialog").close();await load();const fresh=entries.find(x=>x.id===original.id);if(fresh)await detail(fresh)}catch(e){console.error(e);$("editStatus").textContent=e.message||"수정에 실패했습니다."}finally{btn.disabled=false;btn.textContent="수정 저장"}}
 $("searchBtn").addEventListener("click",load);$("refreshBtn").addEventListener("click",load);$("todayBtn").addEventListener("click",()=>{$("startDate").value=kst();$("endDate").value=kst();load()});$("companyFilter").addEventListener("change",apply);$("periodFilter").addEventListener("change",apply);$("editEntryBtn").addEventListener("click",edit);$("editForm").addEventListener("submit",save);["editMealPrice"].forEach(id=>$(id).addEventListener("input",updateTotal));$("editEntryMode").addEventListener("change",updateEditMode);$("editAdditionalCount").addEventListener("input",updateEditHeadcount);$("editRosterSearch").addEventListener("input",renderEditRoster);document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>$(b.dataset.close).close()));defaults();load();

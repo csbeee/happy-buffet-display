@@ -296,6 +296,9 @@ button:focus-visible, input:focus-visible {
 .roster-member { display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font-size: 15px; font-weight: 700; }
 .roster-member input { width: 22px; height: 22px; accent-color: var(--green-800); flex: 0 0 auto; }
 .roster-member.checked { border-color: #7da995; background: var(--green-100); }
+.roster-member.already-claimed { color: #77827c; background: #f0f2f0; border-style: dashed; }
+.roster-member.already-claimed input { cursor: not-allowed; }
+.roster-member.already-claimed span { text-decoration: line-through; }
 .calculated-count-panel { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; padding: 16px 18px; border-radius: 14px; background: var(--green-950); color: #fff; }
 .calculated-count-panel span { font-size: 14px; }
 .calculated-count-panel strong { font-size: 28px; }

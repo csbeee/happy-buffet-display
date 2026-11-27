@@ -40,6 +40,10 @@ test('meal entry prevents roster duplicates with atomic per-date and per-meal cl
   assert.ok(rules.includes('getAfter(/databases/$(database)/documents/mealEntries/$(request.resource.data.entryId))'));
   assert.ok(rules.includes('allow update, delete: if isAdmin();'));
   assert.ok(rules.includes('claimScope == request.resource.data.companyId + "_"'));
+  const admin = read('admin/meal-entries.js');
+  assert.ok(admin.includes('rosterClaimScope'));
+  assert.ok(admin.includes('tx.delete(claim)'), 'admin edits release claims removed from an entry');
+  assert.ok(admin.includes('tx.set(claim,'), 'admin edits synchronize claims with updated entry details');
 });
 
 test('meal entry and admin JavaScript parse successfully', () => {

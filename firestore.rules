@@ -107,6 +107,32 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // A roster member can be claimed only once per company, service date and meal period.
+    // The claim must be created atomically with the corresponding meal entry.
+    match /mealRosterClaims/{claimScope}/members/{rosterId} {
+      allow get, list: if true;
+      allow create: if request.resource.data.keys().hasOnly([
+          "companyId", "serviceDate", "mealPeriod", "rosterId", "entryId", "createdAt"
+        ])
+        && request.resource.data.companyId is string
+        && request.resource.data.companyId.size() > 0
+        && validServiceDate(request.resource.data.serviceDate)
+        && request.resource.data.mealPeriod in ["lunch", "dinner"]
+        && request.resource.data.rosterId == rosterId
+        && request.resource.data.entryId is string
+        && request.resource.data.createdAt == request.time
+        && claimScope == request.resource.data.companyId + "_" + request.resource.data.serviceDate + "_" + request.resource.data.mealPeriod
+        && exists(/databases/$(database)/documents/companyRosters/$(rosterId))
+        && get(/databases/$(database)/documents/companyRosters/$(rosterId)).data.companyId == request.resource.data.companyId
+        && existsAfter(/databases/$(database)/documents/mealEntries/$(request.resource.data.entryId))
+        && getAfter(/databases/$(database)/documents/mealEntries/$(request.resource.data.entryId)).data.companyId == request.resource.data.companyId
+        && getAfter(/databases/$(database)/documents/mealEntries/$(request.resource.data.entryId)).data.serviceDate == request.resource.data.serviceDate
+        && getAfter(/databases/$(database)/documents/mealEntries/$(request.resource.data.entryId)).data.mealPeriod == request.resource.data.mealPeriod
+        && getAfter(/databases/$(database)/documents/mealEntries/$(request.resource.data.entryId)).data.rosterIds.hasAny([rosterId])
+        && getAfter(/databases/$(database)/documents/mealEntries/$(request.resource.data.entryId)).data.status == "confirmed";
+      allow update, delete: if isAdmin();
+    }
+
     // Anonymous tablet submissions are create-only; ledger reads and edits are admin-only.
     match /mealEntries/{entryId} {
       allow create: if validMealEntry();
